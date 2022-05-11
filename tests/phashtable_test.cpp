@@ -58,9 +58,9 @@ static int test_hash_table_values (pconstpointer a, pconstpointer b)
 
 P_TEST_CASE_BEGIN (phashtable_nomem_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	PHashTable *table = p_hash_table_new ();
+	PHashTable *table = ztk_hash_table_new ();
 	P_TEST_CHECK (table != NULL);
 
 	PMemVTable vtable;
@@ -69,34 +69,34 @@ P_TEST_CASE_BEGIN (phashtable_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (p_hash_table_new () == NULL);
-	p_hash_table_insert (table, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
-	P_TEST_CHECK (p_hash_table_keys (table) == NULL);
-	P_TEST_CHECK (p_hash_table_values (table) == NULL);
+	P_TEST_CHECK (ztk_hash_table_new () == NULL);
+	ztk_hash_table_insert (table, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
+	P_TEST_CHECK (ztk_hash_table_keys (table) == NULL);
+	P_TEST_CHECK (ztk_hash_table_values (table) == NULL);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
-	p_hash_table_free (table);
+	ztk_hash_table_free (table);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (phashtable_invalid_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	P_TEST_CHECK (p_hash_table_keys (NULL) == NULL);
-	P_TEST_CHECK (p_hash_table_values (NULL) == NULL);
-	P_TEST_CHECK (p_hash_table_lookup (NULL, NULL) == NULL);
-	P_TEST_CHECK (p_hash_table_lookup_by_value (NULL, NULL, NULL) == NULL);
-	p_hash_table_insert (NULL, NULL, NULL);
-	p_hash_table_remove (NULL, NULL);
-	p_hash_table_free (NULL);
+	P_TEST_CHECK (ztk_hash_table_keys (NULL) == NULL);
+	P_TEST_CHECK (ztk_hash_table_values (NULL) == NULL);
+	P_TEST_CHECK (ztk_hash_table_lookup (NULL, NULL) == NULL);
+	P_TEST_CHECK (ztk_hash_table_lookuztk_by_value (NULL, NULL, NULL) == NULL);
+	ztk_hash_table_insert (NULL, NULL, NULL);
+	ztk_hash_table_remove (NULL, NULL);
+	ztk_hash_table_free (NULL);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -105,153 +105,153 @@ P_TEST_CASE_BEGIN (phashtable_general_test)
 	PHashTable	*table = NULL;
 	PList		*list = NULL;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	table = p_hash_table_new ();
+	table = ztk_hash_table_new ();
 	P_TEST_REQUIRE (table != NULL);
 
 	/* Test for NULL key */
-	p_hash_table_insert (table, NULL, PINT_TO_POINTER (1));
-	list = p_hash_table_keys (table);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	ztk_hash_table_insert (table, NULL, PINT_TO_POINTER (1));
+	list = ztk_hash_table_keys (table);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 0);
-	p_list_free (list);
-	list = p_hash_table_values (table);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	ztk_list_free (list);
+	list = ztk_hash_table_values (table);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 1);
-	p_list_free (list);
-	p_hash_table_remove (table, NULL);
+	ztk_list_free (list);
+	ztk_hash_table_remove (table, NULL);
 
 	/* Test for insertion */
-	p_hash_table_insert (table, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
-	list = p_hash_table_values (table);
+	ztk_hash_table_insert (table, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
+	list = ztk_hash_table_values (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 10);
-	p_list_free (list);
-	list = p_hash_table_keys (table);
+	ztk_list_free (list);
+	list = ztk_hash_table_keys (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 1);
-	p_list_free (list);
+	ztk_list_free (list);
 
 	/* False remove */
-	p_hash_table_remove (table, PINT_TO_POINTER (2));
-	list = p_hash_table_values (table);
+	ztk_hash_table_remove (table, PINT_TO_POINTER (2));
+	list = ztk_hash_table_values (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 10);
-	p_list_free (list);
-	list = p_hash_table_keys (table);
+	ztk_list_free (list);
+	list = ztk_hash_table_keys (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 1);
-	p_list_free (list);
+	ztk_list_free (list);
 
 	/* Replace existing value */
-	p_hash_table_insert (table, PINT_TO_POINTER (1), PINT_TO_POINTER (15));
-	list = p_hash_table_values (table);
+	ztk_hash_table_insert (table, PINT_TO_POINTER (1), PINT_TO_POINTER (15));
+	list = ztk_hash_table_values (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 15);
-	p_list_free (list);
-	list = p_hash_table_keys (table);
+	ztk_list_free (list);
+	list = ztk_hash_table_keys (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 1);
-	p_list_free (list);
+	ztk_list_free (list);
 
 	/* More insertion */
-	p_hash_table_insert (table, PINT_TO_POINTER (2), PINT_TO_POINTER (20));
-	p_hash_table_insert (table, PINT_TO_POINTER (3), PINT_TO_POINTER (30));
+	ztk_hash_table_insert (table, PINT_TO_POINTER (2), PINT_TO_POINTER (20));
+	ztk_hash_table_insert (table, PINT_TO_POINTER (3), PINT_TO_POINTER (30));
 
-	list = p_hash_table_values (table);
+	list = ztk_hash_table_values (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 3);
+	P_TEST_REQUIRE (ztk_list_length (list) == 3);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) +
 		       PPOINTER_TO_INT (list->next->data) +
 		       PPOINTER_TO_INT (list->next->next->data) == 65);
-	p_list_free (list);
-	list = p_hash_table_keys (table);
+	ztk_list_free (list);
+	list = ztk_hash_table_keys (table);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 3);
+	P_TEST_REQUIRE (ztk_list_length (list) == 3);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) +
 		       PPOINTER_TO_INT (list->next->data) +
 		       PPOINTER_TO_INT (list->next->next->data) == 6);
-	p_list_free (list);
+	ztk_list_free (list);
 
-	P_TEST_CHECK (PPOINTER_TO_INT (p_hash_table_lookup (table, PINT_TO_POINTER (1))) == 15);
-	P_TEST_CHECK (PPOINTER_TO_INT (p_hash_table_lookup (table, PINT_TO_POINTER (2))) == 20);
-	P_TEST_CHECK (PPOINTER_TO_INT (p_hash_table_lookup (table, PINT_TO_POINTER (3))) == 30);
-	P_TEST_CHECK (p_hash_table_lookup (table, PINT_TO_POINTER (4)) == (ppointer) -1);
-	p_hash_table_insert (table, PINT_TO_POINTER (22), PINT_TO_POINTER (20));
+	P_TEST_CHECK (PPOINTER_TO_INT (ztk_hash_table_lookup (table, PINT_TO_POINTER (1))) == 15);
+	P_TEST_CHECK (PPOINTER_TO_INT (ztk_hash_table_lookup (table, PINT_TO_POINTER (2))) == 20);
+	P_TEST_CHECK (PPOINTER_TO_INT (ztk_hash_table_lookup (table, PINT_TO_POINTER (3))) == 30);
+	P_TEST_CHECK (ztk_hash_table_lookup (table, PINT_TO_POINTER (4)) == (ppointer) -1);
+	ztk_hash_table_insert (table, PINT_TO_POINTER (22), PINT_TO_POINTER (20));
 
-	list = p_hash_table_lookup_by_value (table,
+	list = ztk_hash_table_lookuztk_by_value (table,
 					     PINT_TO_POINTER (19),
 					     (PCompareFunc) test_hash_table_values);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 3);
+	P_TEST_REQUIRE (ztk_list_length (list) == 3);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) +
 		       PPOINTER_TO_INT (list->next->data) +
 		       PPOINTER_TO_INT (list->next->next->data) == 27);
-	p_list_free (list);
+	ztk_list_free (list);
 
-	list = p_hash_table_lookup_by_value (table,
+	list = ztk_hash_table_lookuztk_by_value (table,
 					     PINT_TO_POINTER (20),
 					     NULL);
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_REQUIRE (p_list_length (list) == 2);
+	P_TEST_REQUIRE (ztk_list_length (list) == 2);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) +
 		       PPOINTER_TO_INT (list->next->data) == 24);
-	p_list_free (list);
+	ztk_list_free (list);
 
-	P_TEST_REQUIRE (PPOINTER_TO_INT (p_hash_table_lookup (table, PINT_TO_POINTER (22))) == 20);
+	P_TEST_REQUIRE (PPOINTER_TO_INT (ztk_hash_table_lookup (table, PINT_TO_POINTER (22))) == 20);
 
-	p_hash_table_remove (table, PINT_TO_POINTER (1));
-	p_hash_table_remove (table, PINT_TO_POINTER (2));
+	ztk_hash_table_remove (table, PINT_TO_POINTER (1));
+	ztk_hash_table_remove (table, PINT_TO_POINTER (2));
 
-	list = p_hash_table_keys (table);
-	P_TEST_REQUIRE (p_list_length (list) == 2);
-	p_list_free (list);
-	list = p_hash_table_values (table);
-	P_TEST_REQUIRE (p_list_length (list) == 2);
-	p_list_free (list);
+	list = ztk_hash_table_keys (table);
+	P_TEST_REQUIRE (ztk_list_length (list) == 2);
+	ztk_list_free (list);
+	list = ztk_hash_table_values (table);
+	P_TEST_REQUIRE (ztk_list_length (list) == 2);
+	ztk_list_free (list);
 
-	p_hash_table_remove (table, PINT_TO_POINTER (3));
+	ztk_hash_table_remove (table, PINT_TO_POINTER (3));
 
-	list = p_hash_table_keys (table);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	list = ztk_hash_table_keys (table);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 22);
-	p_list_free (list);
-	list = p_hash_table_values (table);
-	P_TEST_REQUIRE (p_list_length (list) == 1);
+	ztk_list_free (list);
+	list = ztk_hash_table_values (table);
+	P_TEST_REQUIRE (ztk_list_length (list) == 1);
 	P_TEST_REQUIRE (PPOINTER_TO_INT (list->data) == 20);
-	p_list_free (list);
+	ztk_list_free (list);
 
-	p_hash_table_remove (table, PINT_TO_POINTER (22));
+	ztk_hash_table_remove (table, PINT_TO_POINTER (22));
 
-	P_TEST_REQUIRE (p_hash_table_keys (table) == NULL);
-	P_TEST_REQUIRE (p_hash_table_values (table) == NULL);
+	P_TEST_REQUIRE (ztk_hash_table_keys (table) == NULL);
+	P_TEST_REQUIRE (ztk_hash_table_values (table) == NULL);
 
-	p_hash_table_free (table);
+	ztk_hash_table_free (table);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (phashtable_stress_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	PHashTable *table = p_hash_table_new ();
+	PHashTable *table = ztk_hash_table_new ();
 	P_TEST_REQUIRE (table != NULL);
 
 	srand ((unsigned int) time (NULL));
 
 	int counter = 0;
 
-	pint *keys   = (pint *) p_malloc0 (PHASHTABLE_STRESS_COUNT * sizeof (pint));
-	pint *values = (pint *) p_malloc0 (PHASHTABLE_STRESS_COUNT * sizeof (pint));
+	pint *keys   = (pint *) ztk_malloc0 (PHASHTABLE_STRESS_COUNT * sizeof (pint));
+	pint *values = (pint *) ztk_malloc0 (PHASHTABLE_STRESS_COUNT * sizeof (pint));
 
 	P_TEST_REQUIRE (keys != NULL);
 	P_TEST_REQUIRE (values != NULL);
@@ -259,36 +259,36 @@ P_TEST_CASE_BEGIN (phashtable_stress_test)
 	while (counter != PHASHTABLE_STRESS_COUNT) {
 		pint rand_number = rand ();
 
-		if (p_hash_table_lookup (table, PINT_TO_POINTER (rand_number)) != (ppointer) (-1))
+		if (ztk_hash_table_lookup (table, PINT_TO_POINTER (rand_number)) != (ppointer) (-1))
 			continue;
 
 		keys[counter]   = rand_number;
 		values[counter] = rand () + 1;
 
-		p_hash_table_remove (table, PINT_TO_POINTER (keys[counter]));
-		p_hash_table_insert (table, PINT_TO_POINTER (keys[counter]), PINT_TO_POINTER (values[counter]));
+		ztk_hash_table_remove (table, PINT_TO_POINTER (keys[counter]));
+		ztk_hash_table_insert (table, PINT_TO_POINTER (keys[counter]), PINT_TO_POINTER (values[counter]));
 
 		++counter;
 	}
 
 	for (int i = 0; i < PHASHTABLE_STRESS_COUNT; ++i) {
-		P_TEST_CHECK (p_hash_table_lookup (table, PINT_TO_POINTER (keys[i])) ==
+		P_TEST_CHECK (ztk_hash_table_lookup (table, PINT_TO_POINTER (keys[i])) ==
 			     PINT_TO_POINTER (values[i]));
 
-		p_hash_table_remove (table, PINT_TO_POINTER (keys[i]));
-		P_TEST_CHECK (p_hash_table_lookup (table, PINT_TO_POINTER (keys[i])) == (ppointer) (-1));
+		ztk_hash_table_remove (table, PINT_TO_POINTER (keys[i]));
+		P_TEST_CHECK (ztk_hash_table_lookup (table, PINT_TO_POINTER (keys[i])) == (ppointer) (-1));
 	}
 
-	P_TEST_CHECK (p_hash_table_keys (table) == NULL);
-	P_TEST_CHECK (p_hash_table_values (table) == NULL);
+	P_TEST_CHECK (ztk_hash_table_keys (table) == NULL);
+	P_TEST_CHECK (ztk_hash_table_values (table) == NULL);
 
-	p_free (keys);
-	p_free (values);
+	ztk_free (keys);
+	ztk_free (values);
 
-	p_hash_table_free (table);
+	ztk_hash_table_free (table);
 
 	/* Try to free at once */
-	table = p_hash_table_new ();
+	table = ztk_hash_table_new ();
 	P_TEST_REQUIRE (table != NULL);
 
 	counter = 0;
@@ -296,17 +296,17 @@ P_TEST_CASE_BEGIN (phashtable_stress_test)
 	while (counter != PHASHTABLE_STRESS_COUNT) {
 		pint rand_number = rand ();
 
-		if (p_hash_table_lookup (table, PINT_TO_POINTER (rand_number)) != (ppointer) (-1))
+		if (ztk_hash_table_lookup (table, PINT_TO_POINTER (rand_number)) != (ppointer) (-1))
 			continue;
 
-		p_hash_table_insert (table, PINT_TO_POINTER (rand_number), PINT_TO_POINTER (rand () + 1));
+		ztk_hash_table_insert (table, PINT_TO_POINTER (rand_number), PINT_TO_POINTER (rand () + 1));
 
 		++counter;
 	}
 
-	p_hash_table_free (table);
+	ztk_hash_table_free (table);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

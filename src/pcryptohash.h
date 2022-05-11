@@ -57,13 +57,13 @@
  * - SHA-3/512;
  * - GOST (R 34.11-94).
  *
- * Use p_crypto_hash_new() to initialize a new hash context with one of the
+ * Use ztk_crypto_hash_new() to initialize a new hash context with one of the
  * mentioned above types. Data for hashing can be added in several chunks using
- * the p_crypto_hash_update() routine. You can add more chunks as long as the
+ * the ztk_crypto_hash_update() routine. You can add more chunks as long as the
  * hash context is open.
  *
- * The hash context becomes close in two cases: p_crypto_hash_get_string() or
- * p_crypto_hash_get_digest() was called. After that you can only get a hash in
+ * The hash context becomes close in two cases: ztk_crypto_hash_get_string() or
+ * ztk_crypto_hash_get_digest() was called. After that you can only get a hash in
  * a hexidemical string or in a raw representation.
  *
  * A hashing algorithm couldn't be changed after the context initialization.
@@ -106,18 +106,18 @@ typedef enum PCryptoHashType_ {
  * otherwise.
  * @since 0.0.1
  */
-P_LIB_API PCryptoHash *		p_crypto_hash_new		(PCryptoHashType	type);
+P_LIB_API PCryptoHash *		ztk_crypto_hash_new		(PCryptoHashType	type);
 
 /**
  * @brief Adds a new chunk of data for hashing.
  * @param hash #PCryptoHash context to add @a data to.
  * @param data Data to add for hashing.
  * @param len Data length, in bytes.
- * @note After calling p_crypto_hash_get_string() or p_crypto_hash_get_digest()
+ * @note After calling ztk_crypto_hash_get_string() or ztk_crypto_hash_get_digest()
  * the hash couldn't be updated anymore as it becomes close.
  * @since 0.0.1
  */
-P_LIB_API void			p_crypto_hash_update		(PCryptoHash		*hash,
+P_LIB_API void			ztk_crypto_hash_update		(PCryptoHash		*hash,
 								 const puchar		*data,
 								 psize			len);
 
@@ -130,19 +130,19 @@ P_LIB_API void			p_crypto_hash_update		(PCryptoHash		*hash,
  * added data will be lost. A hash function type couldn't be changed during or
  * after the resets.
  */
-P_LIB_API void			p_crypto_hash_reset		(PCryptoHash		*hash);
+P_LIB_API void			ztk_crypto_hash_reset		(PCryptoHash		*hash);
 
 /**
  * @brief Gets a hash in a hexidemical representation.
  * @param hash #PCryptoHash context to get a string from.
  * @return NULL-terminated string with the hexidemical representation of a hash
  * state in case of success, NULL otherwise. The string should be freed with
- * p_free() after using it.
+ * ztk_free() after using it.
  * @note Before returning the string the hash context will be closed for further
  * updates.
  * @since 0.0.1
  */
-P_LIB_API pchar *		p_crypto_hash_get_string	(PCryptoHash		*hash);
+P_LIB_API pchar *		ztk_crypto_hash_get_string	(PCryptoHash		*hash);
 
 /**
  * @brief Gets a hash in a raw representation.
@@ -154,7 +154,7 @@ P_LIB_API pchar *		p_crypto_hash_get_string	(PCryptoHash		*hash);
  * further updates.
  * @since 0.0.1
  */
-P_LIB_API void			p_crypto_hash_get_digest	(PCryptoHash		*hash,
+P_LIB_API void			ztk_crypto_hash_get_digest	(PCryptoHash		*hash,
 								 puchar			*buf,
 								 psize			*len);
 
@@ -166,7 +166,7 @@ P_LIB_API void			p_crypto_hash_get_digest	(PCryptoHash		*hash,
  * @note This length doesn't match a string hash representation.
  * @since 0.0.1
  */
-P_LIB_API pssize		p_crypto_hash_get_length	(const PCryptoHash	*hash);
+P_LIB_API pssize		ztk_crypto_hash_get_length	(const PCryptoHash	*hash);
 
 /**
  * @brief Gets a hash function type.
@@ -174,14 +174,14 @@ P_LIB_API pssize		p_crypto_hash_get_length	(const PCryptoHash	*hash);
  * @return Hash function type used in the given context.
  * @since 0.0.1
  */
-P_LIB_API PCryptoHashType	p_crypto_hash_get_type		(const PCryptoHash	*hash);
+P_LIB_API PCryptoHashType	ztk_crypto_hash_get_type		(const PCryptoHash	*hash);
 
 /**
  * @brief Frees a previously initialized hash context.
  * @param hash #PCryptoHash context to free.
  * @since 0.0.1
  */
-P_LIB_API void			p_crypto_hash_free		(PCryptoHash		*hash);
+P_LIB_API void			ztk_crypto_hash_free		(PCryptoHash		*hash);
 
 P_END_DECLS
 

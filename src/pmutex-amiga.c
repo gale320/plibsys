@@ -38,20 +38,20 @@ struct PMutex_ {
 };
 
 P_LIB_API PMutex *
-p_mutex_new (void)
+ztk_mutex_new (void)
 {
 	PMutex *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PMutex))) == NULL)) {
-		P_ERROR ("PMutex::p_mutex_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PMutex))) == NULL)) {
+		P_ERROR ("PMutex::ztk_mutex_new: failed to allocate memory");
 		return NULL;
 	}
 
 	ret->hdl = IExec->AllocSysObjectTags (ASOT_MUTEX, ASOMUTEX_Recursive, TRUE, TAG_END);
 
 	if (P_UNLIKELY (ret->hdl == NULL)) {
-		P_ERROR ("PMutex::p_mutex_new: AllocSysObjectTags() failed");
-		p_free (ret);
+		P_ERROR ("PMutex::ztk_mutex_new: AllocSysObjectTags() failed");
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -59,7 +59,7 @@ p_mutex_new (void)
 }
 
 P_LIB_API pboolean
-p_mutex_lock (PMutex *mutex)
+ztk_mutex_lock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -70,7 +70,7 @@ p_mutex_lock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-p_mutex_trylock (PMutex *mutex)
+ztk_mutex_trylock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -79,7 +79,7 @@ p_mutex_trylock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-p_mutex_unlock (PMutex *mutex)
+ztk_mutex_unlock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -90,12 +90,12 @@ p_mutex_unlock (PMutex *mutex)
 }
 
 P_LIB_API void
-p_mutex_free (PMutex *mutex)
+ztk_mutex_free (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return;
 
 	IExec->FreeSysObject (ASOT_MUTEX, mutex->hdl);
 
-	p_free (mutex);
+	ztk_free (mutex);
 }

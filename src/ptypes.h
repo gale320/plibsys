@@ -49,8 +49,8 @@
  *
  * To convert between the little and big endian byte orders use the Px_TO_LE,
  * Px_TO_BE, Px_FROM_LE and Px_FROM_BE macros. Macros for the network<->host
- * byte order conversion are also provided: #p_ntohl, #p_ntohs, #p_ntohs and
- * #p_ntohl. All the described above macros depend on the target system
+ * byte order conversion are also provided: #ztk_ntohl, #ztk_ntohs, #ztk_ntohs and
+ * #ztk_ntohl. All the described above macros depend on the target system
  * endianness. Use PUINTx_SWAP_BYTES to manually swap data types independently
  * from the endianness.
  *
@@ -1028,7 +1028,7 @@ typedef pint64 poffset;
  * @return Swapped long int.
  * @since 0.0.1
  */
-#define p_ntohl(val) (PUINT32_FROM_BE (val))
+#define ztk_ntohl(val) (PUINT32_FROM_BE (val))
 
 /**
  * @brief Swaps a short int from the network byte order to the host one.
@@ -1036,7 +1036,7 @@ typedef pint64 poffset;
  * @return Swapped short int.
  * @since 0.0.1
  */
-#define p_ntohs(val) (PUINT16_FROM_BE (val))
+#define ztk_ntohs(val) (PUINT16_FROM_BE (val))
 
 /**
  * @brief Swaps a long int from the host byte order to the network one.
@@ -1044,7 +1044,7 @@ typedef pint64 poffset;
  * @return Swapped long int.
  * @since 0.0.1
  */
-#define p_htonl(val) (PUINT32_TO_BE (val))
+#define ztk_htonl(val) (PUINT32_TO_BE (val))
 
 /**
  * @brief Swaps a short int from the host byte order to the network one.
@@ -1052,7 +1052,7 @@ typedef pint64 poffset;
  * @return Swapped short int.
  * @since 0.0.1
  */
-#define p_htons(val) (PUINT16_TO_BE (val))
+#define ztk_htons(val) (PUINT16_TO_BE (val))
 
 #ifndef FALSE
 /** Type definition for a false boolean value.	*/

@@ -28,46 +28,46 @@
 
 #include <mach/mach_time.h>
 
-static puint64 pp_time_profiler_freq_num   = 0;
-static puint64 pp_time_profiler_freq_denom = 0;
+static puint64 pztk_time_profiler_freq_num   = 0;
+static puint64 pztk_time_profiler_freq_denom = 0;
 
 puint64
-p_time_profiler_get_ticks_internal ()
+ztk_time_profiler_get_ticks_internal ()
 {
 	puint64 val = mach_absolute_time ();
 
 	/* To prevent overflow */
 	val /= 1000;
 
-	val *= pp_time_profiler_freq_num;
-	val /= pp_time_profiler_freq_denom;
+	val *= pztk_time_profiler_freq_num;
+	val /= pztk_time_profiler_freq_denom;
 
 	return val;
 }
 
 puint64
-p_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
+ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 {
-	return p_time_profiler_get_ticks_internal () - profiler->counter;
+	return ztk_time_profiler_get_ticks_internal () - profiler->counter;
 }
 
 void
-p_time_profiler_init (void)
+ztk_time_profiler_init (void)
 {
 	mach_timebase_info_data_t tb;
 
 	if (P_UNLIKELY (mach_timebase_info (&tb) != KERN_SUCCESS || tb.denom == 0)) {
-		P_ERROR ("PTimeProfiler::p_time_profiler_init: mach_timebase_info() failed");
+		P_ERROR ("PTimeProfiler::ztk_time_profiler_init: mach_timebase_info() failed");
 		return;
 	}
 
-	pp_time_profiler_freq_num   = (puint64) tb.numer;
-	pp_time_profiler_freq_denom = (puint64) tb.denom;
+	pztk_time_profiler_freq_num   = (puint64) tb.numer;
+	pztk_time_profiler_freq_denom = (puint64) tb.denom;
 }
 
 void
-p_time_profiler_shutdown (void)
+ztk_time_profiler_shutdown (void)
 {
-	pp_time_profiler_freq_num   = 0;
-	pp_time_profiler_freq_denom = 0;
+	pztk_time_profiler_freq_num   = 0;
+	pztk_time_profiler_freq_denom = 0;
 }

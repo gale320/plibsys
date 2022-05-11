@@ -35,10 +35,10 @@ struct PRWLock_ {
 	rwlock_hdl hdl;
 };
 
-static pboolean pp_rwlock_unlock_any (PRWLock *lock);
+static pboolean pztk_rwlock_unlock_any (PRWLock *lock);
 
 static pboolean
-pp_rwlock_unlock_any (PRWLock *lock)
+pztk_rwlock_unlock_any (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
@@ -46,24 +46,24 @@ pp_rwlock_unlock_any (PRWLock *lock)
 	if (P_LIKELY (pthread_rwlock_unlock (&lock->hdl) == 0))
 		return TRUE;
 	else {
-		P_ERROR ("PRWLock::pp_rwlock_unlock_any: pthread_rwlock_unlock() failed");
+		P_ERROR ("PRWLock::pztk_rwlock_unlock_any: pthread_rwlock_unlock() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API PRWLock *
-p_rwlock_new (void)
+ztk_rwlock_new (void)
 {
 	PRWLock *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PRWLock))) == NULL)) {
-		P_ERROR ("PRWLock::p_rwlock_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PRWLock))) == NULL)) {
+		P_ERROR ("PRWLock::ztk_rwlock_new: failed to allocate memory");
 		return NULL;
 	}
 
 	if (P_UNLIKELY (pthread_rwlock_init (&ret->hdl, NULL) != 0)) {
-		P_ERROR ("PRWLock::p_rwlock_new: pthread_rwlock_init() failed");
-		p_free (ret);
+		P_ERROR ("PRWLock::ztk_rwlock_new: pthread_rwlock_init() failed");
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -71,7 +71,7 @@ p_rwlock_new (void)
 }
 
 P_LIB_API pboolean
-p_rwlock_reader_lock (PRWLock *lock)
+ztk_rwlock_reader_lock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
@@ -79,13 +79,13 @@ p_rwlock_reader_lock (PRWLock *lock)
 	if (P_UNLIKELY (pthread_rwlock_rdlock (&lock->hdl) == 0))
 		return TRUE;
 	else {
-		P_ERROR ("PRWLock::p_rwlock_reader_lock: pthread_rwlock_rdlock() failed");
+		P_ERROR ("PRWLock::ztk_rwlock_reader_lock: pthread_rwlock_rdlock() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API pboolean
-p_rwlock_reader_trylock (PRWLock *lock)
+ztk_rwlock_reader_trylock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
@@ -94,13 +94,13 @@ p_rwlock_reader_trylock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-p_rwlock_reader_unlock (PRWLock *lock)
+ztk_rwlock_reader_unlock (PRWLock *lock)
 {
-	return pp_rwlock_unlock_any (lock);
+	return pztk_rwlock_unlock_any (lock);
 }
 
 P_LIB_API pboolean
-p_rwlock_writer_lock (PRWLock *lock)
+ztk_rwlock_writer_lock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
@@ -108,13 +108,13 @@ p_rwlock_writer_lock (PRWLock *lock)
 	if (P_UNLIKELY (pthread_rwlock_wrlock (&lock->hdl) == 0))
 		return TRUE;
 	else {
-		P_ERROR ("PRWLock::p_rwlock_writer_lock: pthread_rwlock_wrlock() failed");
+		P_ERROR ("PRWLock::ztk_rwlock_writer_lock: pthread_rwlock_wrlock() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API pboolean
-p_rwlock_writer_trylock (PRWLock *lock)
+ztk_rwlock_writer_trylock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
@@ -123,29 +123,29 @@ p_rwlock_writer_trylock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-p_rwlock_writer_unlock (PRWLock *lock)
+ztk_rwlock_writer_unlock (PRWLock *lock)
 {
-	return pp_rwlock_unlock_any (lock);
+	return pztk_rwlock_unlock_any (lock);
 }
 
 P_LIB_API void
-p_rwlock_free (PRWLock *lock)
+ztk_rwlock_free (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return;
 
 	if (P_UNLIKELY (pthread_rwlock_destroy (&lock->hdl) != 0))
-		P_ERROR ("PRWLock::p_rwlock_free: pthread_rwlock_destroy() failed");
+		P_ERROR ("PRWLock::ztk_rwlock_free: pthread_rwlock_destroy() failed");
 
-	p_free (lock);
+	ztk_free (lock);
 }
 
 void
-p_rwlock_init (void)
+ztk_rwlock_init (void)
 {
 }
 
 void
-p_rwlock_shutdown (void)
+ztk_rwlock_shutdown (void)
 {
 }

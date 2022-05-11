@@ -35,7 +35,7 @@
  * Lock-free atomic operations require software and hardware support. Usually
  * lock-free atomic operations are implemented with low-level using assembly
  * inlines. Some of the compilers provide built-in routines to perform atomic
- * operations. You can use the p_atomic_is_lock_free() call to check whether
+ * operations. You can use the ztk_atomic_is_lock_free() call to check whether
  * such a support is provided or not.
  *
  * If there is no hardware or software support for lock-free atomic operations
@@ -69,7 +69,7 @@ P_BEGIN_DECLS
  * This call acts as a full compiler and hardware memory barrier (before the
  * get).
  */
-P_LIB_API pint		p_atomic_int_get			(const volatile pint	*atomic);
+P_LIB_API pint		ztk_atomic_int_get			(const volatile pint	*atomic);
 
 /**
  * @brief Sets #pint value to @a atomic.
@@ -80,7 +80,7 @@ P_LIB_API pint		p_atomic_int_get			(const volatile pint	*atomic);
  * This call acts as a full compiler and hardware memory barrier (after the
  * set).
  */
-P_LIB_API void		p_atomic_int_set			(volatile pint		*atomic,
+P_LIB_API void		ztk_atomic_int_set			(volatile pint		*atomic,
 								 pint			val);
 
 /**
@@ -92,7 +92,7 @@ P_LIB_API void		p_atomic_int_set			(volatile pint		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API void		p_atomic_int_inc			(volatile pint		*atomic);
+P_LIB_API void		ztk_atomic_int_inc			(volatile pint		*atomic);
 
 /**
  * @brief Decrements #pint value from @a atomic by 1 and tests the result for
@@ -106,7 +106,7 @@ P_LIB_API void		p_atomic_int_inc			(volatile pint		*atomic);
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API pboolean	p_atomic_int_dec_and_test		(volatile pint		*atomic);
+P_LIB_API pboolean	ztk_atomic_int_dec_and_test		(volatile pint		*atomic);
 
 /**
  * @brief Compares @a oldval with the value pointed to by @a atomic and if
@@ -124,7 +124,7 @@ P_LIB_API pboolean	p_atomic_int_dec_and_test		(volatile pint		*atomic);
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API pboolean	p_atomic_int_compare_and_exchange	(volatile pint		*atomic,
+P_LIB_API pboolean	ztk_atomic_int_compare_and_exchange	(volatile pint		*atomic,
 								 pint			oldval,
 								 pint			newval);
 
@@ -140,7 +140,7 @@ P_LIB_API pboolean	p_atomic_int_compare_and_exchange	(volatile pint		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API pint		p_atomic_int_add			(volatile pint		*atomic,
+P_LIB_API pint		ztk_atomic_int_add			(volatile pint		*atomic,
 								 pint			val);
 
 /**
@@ -156,7 +156,7 @@ P_LIB_API pint		p_atomic_int_add			(volatile pint		*atomic,
  * Think of this operation as an atomic version of
  * `{ tmp = *atomic; *atomic &= val; return tmp; }`.
  */
-P_LIB_API puint		p_atomic_int_and			(volatile puint		*atomic,
+P_LIB_API puint		ztk_atomic_int_and			(volatile puint		*atomic,
 								 puint			val);
 
 /**
@@ -172,7 +172,7 @@ P_LIB_API puint		p_atomic_int_and			(volatile puint		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API puint		p_atomic_int_or				(volatile puint		*atomic,
+P_LIB_API puint		ztk_atomic_int_or				(volatile puint		*atomic,
 								 puint			val);
 
 /**
@@ -188,7 +188,7 @@ P_LIB_API puint		p_atomic_int_or				(volatile puint		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API puint		p_atomic_int_xor			(volatile puint		*atomic,
+P_LIB_API puint		ztk_atomic_int_xor			(volatile puint		*atomic,
 								 puint			val);
 
 /**
@@ -199,7 +199,7 @@ P_LIB_API puint		p_atomic_int_xor			(volatile puint		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier (before the get).
  */
-P_LIB_API ppointer	p_atomic_pointer_get			(const volatile void	*atomic);
+P_LIB_API ppointer	ztk_atomic_pointer_get			(const volatile void	*atomic);
 
 /**
  * @brief Sets @a val to #ppointer-sized @a atomic.
@@ -209,7 +209,7 @@ P_LIB_API ppointer	p_atomic_pointer_get			(const volatile void	*atomic);
  *
  * This call acts as a full compiler and hardware memory barrier (after the set).
  */
-P_LIB_API void		p_atomic_pointer_set			(volatile void		*atomic,
+P_LIB_API void		ztk_atomic_pointer_set			(volatile void		*atomic,
 								 ppointer		val);
 
 /**
@@ -228,7 +228,7 @@ P_LIB_API void		p_atomic_pointer_set			(volatile void		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API pboolean	p_atomic_pointer_compare_and_exchange	(volatile void		*atomic,
+P_LIB_API pboolean	ztk_atomic_pointer_compare_and_exchange	(volatile void		*atomic,
 								 ppointer 		oldval,
 								 ppointer		newval);
 
@@ -244,7 +244,7 @@ P_LIB_API pboolean	p_atomic_pointer_compare_and_exchange	(volatile void		*atomic
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API pssize	p_atomic_pointer_add			(volatile void		*atomic,
+P_LIB_API pssize	ztk_atomic_pointer_add			(volatile void		*atomic,
 								 pssize			val);
 
 /**
@@ -260,7 +260,7 @@ P_LIB_API pssize	p_atomic_pointer_add			(volatile void		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API psize		p_atomic_pointer_and			(volatile void		*atomic,
+P_LIB_API psize		ztk_atomic_pointer_and			(volatile void		*atomic,
 								 psize			val);
 
 /**
@@ -276,7 +276,7 @@ P_LIB_API psize		p_atomic_pointer_and			(volatile void		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API psize		p_atomic_pointer_or			(volatile void		*atomic,
+P_LIB_API psize		ztk_atomic_pointer_or			(volatile void		*atomic,
 								 psize			val);
 
 /**
@@ -292,7 +292,7 @@ P_LIB_API psize		p_atomic_pointer_or			(volatile void		*atomic,
  *
  * This call acts as a full compiler and hardware memory barrier.
  */
-P_LIB_API psize		p_atomic_pointer_xor			(volatile void		*atomic,
+P_LIB_API psize		ztk_atomic_pointer_xor			(volatile void		*atomic,
 								 psize			val);
 
 /**
@@ -303,7 +303,7 @@ P_LIB_API psize		p_atomic_pointer_xor			(volatile void		*atomic,
  * Some underlying atomic model implementations may not support lock-free
  * operations depending on hardware or software.
  */
-P_LIB_API pboolean	p_atomic_is_lock_free			(void);
+P_LIB_API pboolean	ztk_atomic_is_lock_free			(void);
 
 P_END_DECLS
 

@@ -57,20 +57,20 @@ P_TEST_CASE_BEGIN (pmem_bad_input_test)
 {
 	PMemVTable vtable;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	vtable.free    = NULL;
 	vtable.malloc  = NULL;
 	vtable.realloc = NULL;
 
-	P_TEST_CHECK (p_malloc (0) == NULL);
-	P_TEST_CHECK (p_malloc0 (0) == NULL);
-	P_TEST_CHECK (p_realloc (NULL, 0) == NULL);
-	P_TEST_CHECK (p_mem_set_vtable (NULL) == FALSE);
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == FALSE);
-	p_free (NULL);
+	P_TEST_CHECK (ztk_malloc (0) == NULL);
+	P_TEST_CHECK (ztk_malloc0 (0) == NULL);
+	P_TEST_CHECK (ztk_realloc (NULL, 0) == NULL);
+	P_TEST_CHECK (ztk_mem_set_vtable (NULL) == FALSE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == FALSE);
+	ztk_free (NULL);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -80,7 +80,7 @@ P_TEST_CASE_BEGIN (pmem_general_test)
 	ppointer	ptr = NULL;
 	pint		i;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	alloc_counter   = 0;
 	realloc_counter = 0;
@@ -90,10 +90,10 @@ P_TEST_CASE_BEGIN (pmem_general_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
 
 	/* Test memory allocation using system functions */
-	ptr = p_malloc (1024);
+	ptr = ztk_malloc (1024);
 	P_TEST_REQUIRE (ptr != NULL);
 
 	for (int i = 0; i < 1024; ++i)
@@ -102,9 +102,9 @@ P_TEST_CASE_BEGIN (pmem_general_test)
 	for (int i = 0; i < 1024; ++i)
 		P_TEST_CHECK (*(((pchar *) ptr) + i) == (pchar) (i % 127));
 
-	p_free (ptr);
+	ztk_free (ptr);
 
-	ptr = p_malloc0 (2048);
+	ptr = ztk_malloc0 (2048);
 	P_TEST_REQUIRE (ptr != NULL);
 
 	for (int i = 0; i < 2048; ++i)
@@ -116,15 +116,15 @@ P_TEST_CASE_BEGIN (pmem_general_test)
 	for (int i = 0; i < 2048; ++i)
 		P_TEST_CHECK (*(((pchar *) ptr) + i) == (pchar) (i % 127));
 
-	p_free (ptr);
+	ztk_free (ptr);
 
-	ptr = p_realloc (NULL, 1024);
+	ptr = ztk_realloc (NULL, 1024);
 	P_TEST_REQUIRE (ptr != NULL);
 
 	for (int i = 0; i < 1024; ++i)
 		*(((pchar *) ptr) + i) = (pchar) (i % 127);
 
-	ptr = p_realloc (ptr, 2048);
+	ptr = ztk_realloc (ptr, 2048);
 
 	for (int i = 1024; i < 2048; ++i)
 		*(((pchar *) ptr) + i) = (pchar) ((i - 1) % 127);
@@ -135,19 +135,19 @@ P_TEST_CASE_BEGIN (pmem_general_test)
 	for (int i = 1024; i < 2048; ++i)
 		P_TEST_CHECK (*(((pchar *) ptr) + i) == (pchar) ((i - 1) % 127));
 
-	p_free (ptr);
+	ztk_free (ptr);
 
 	P_TEST_CHECK (alloc_counter > 0);
 	P_TEST_CHECK (realloc_counter > 0);
 	P_TEST_CHECK (free_counter > 0);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
 	/* Test memory mapping */
-	ptr = p_mem_mmap (0, NULL);
+	ptr = ztk_mem_mmap (0, NULL);
 	P_TEST_CHECK (ptr == NULL);
 
-	ptr = p_mem_mmap (1024, NULL);
+	ptr = ztk_mem_mmap (1024, NULL);
 	P_TEST_REQUIRE (ptr != NULL);
 
 	for (i = 0; i < 1024; ++i)
@@ -156,10 +156,10 @@ P_TEST_CASE_BEGIN (pmem_general_test)
 	for (i = 0; i < 1024; ++i)
 		P_TEST_CHECK (*(((pchar *) ptr) + i) == i % 127);
 
-	P_TEST_CHECK (p_mem_munmap (NULL, 1024, NULL) == FALSE);
-	P_TEST_CHECK (p_mem_munmap (ptr, 1024, NULL) == TRUE);
+	P_TEST_CHECK (ztk_mem_munmap (NULL, 1024, NULL) == FALSE);
+	P_TEST_CHECK (ztk_mem_munmap (ptr, 1024, NULL) == TRUE);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

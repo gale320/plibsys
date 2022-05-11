@@ -249,7 +249,7 @@
  * @brief Library full version in the string form, i.e. "0.0.1".
  * @since 0.0.1
  * @note This is the version against which the application is compiled.
- * @sa p_libsys_version()
+ * @sa ztk_libsys_version()
  */
 
 /**
@@ -258,7 +258,7 @@
  * PP = patch), i.e. 0x000001.
  * @since 0.0.1
  * @note This is the version against which the application is compiled.
- * @sa p_libsys_version()
+ * @sa ztk_libsys_version()
  */
 
 /**
@@ -269,7 +269,7 @@
  * @param minor Minor version number to check.
  * @param patch Minor version number to check.
  * @since 0.0.1
- * @sa p_libsys_version()
+ * @sa ztk_libsys_version()
  *
  * @code
  * if (PLIBSYS_VERSION >= PLIBSYS_VERSION_CHECK (0, 0, 1))

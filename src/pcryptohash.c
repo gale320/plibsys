@@ -35,12 +35,12 @@
 #include <string.h>
 
 #define P_HASH_FUNCS(ctx, type) \
-	ctx->create = (void * (*) (void)) p_crypto_hash_##type##_new;				\
-	ctx->update = (void (*) (void *, const puchar *, psize)) p_crypto_hash_##type##_update;	\
-	ctx->finish = (void (*) (void *)) p_crypto_hash_##type##_finish;			\
-	ctx->digest = (const puchar * (*) (void *)) p_crypto_hash_##type##_digest;		\
-	ctx->reset = (void (*) (void *)) p_crypto_hash_##type##_reset;				\
-	ctx->free = (void (*) (void *)) p_crypto_hash_##type##_free;
+	ctx->create = (void * (*) (void)) ztk_crypto_hash_##type##_new;				\
+	ctx->update = (void (*) (void *, const puchar *, psize)) ztk_crypto_hash_##type##_update;	\
+	ctx->finish = (void (*) (void *)) ztk_crypto_hash_##type##_finish;			\
+	ctx->digest = (const puchar * (*) (void *)) ztk_crypto_hash_##type##_digest;		\
+	ctx->reset = (void (*) (void *)) ztk_crypto_hash_##type##_reset;				\
+	ctx->free = (void (*) (void *)) ztk_crypto_hash_##type##_free;
 
 struct PCryptoHash_ {
 	PCryptoHashType	type;
@@ -55,32 +55,32 @@ struct PCryptoHash_ {
 	void		(*free)		(void *hash);
 };
 
-static pchar pp_crypto_hash_hex_str[]= "0123456789abcdef";
+static pchar pztk_crypto_hash_hex_str[]= "0123456789abcdef";
 
 static void
-pp_crypto_hash_digest_to_hex (const puchar *digest, puint len, pchar *out);
+pztk_crypto_hash_digest_to_hex (const puchar *digest, puint len, pchar *out);
 
 static void
-pp_crypto_hash_digest_to_hex (const puchar *digest, puint len, pchar *out)
+pztk_crypto_hash_digest_to_hex (const puchar *digest, puint len, pchar *out)
 {
 	puint i;
 
 	for (i = 0; i < len; ++i) {
-		*(out + (i << 1)    ) = pp_crypto_hash_hex_str[(digest[i] >> 4) & 0x0F];
-		*(out + (i << 1) + 1) = pp_crypto_hash_hex_str[(digest[i]     ) & 0x0F];
+		*(out + (i << 1)    ) = pztk_crypto_hash_hex_str[(digest[i] >> 4) & 0x0F];
+		*(out + (i << 1) + 1) = pztk_crypto_hash_hex_str[(digest[i]     ) & 0x0F];
 	}
 }
 
 P_LIB_API PCryptoHash *
-p_crypto_hash_new (PCryptoHashType type)
+ztk_crypto_hash_new (PCryptoHashType type)
 {
 	PCryptoHash *ret;
 
 	if (P_UNLIKELY (!(type >= P_CRYPTO_HASH_TYPE_MD5 && type <= P_CRYPTO_HASH_TYPE_GOST)))
 		return NULL;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PCryptoHash))) == NULL)) {
-		P_ERROR ("PCryptoHash::p_crypto_hash_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PCryptoHash))) == NULL)) {
+		P_ERROR ("PCryptoHash::ztk_crypto_hash_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -135,7 +135,7 @@ p_crypto_hash_new (PCryptoHashType type)
 	ret->closed = FALSE;
 
 	if (P_UNLIKELY ((ret->context = ret->create ()) == NULL)) {
-		p_free (ret);
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -143,7 +143,7 @@ p_crypto_hash_new (PCryptoHashType type)
 }
 
 P_LIB_API void
-p_crypto_hash_update (PCryptoHash *hash, const puchar *data, psize len)
+ztk_crypto_hash_update (PCryptoHash *hash, const puchar *data, psize len)
 {
 	if (P_UNLIKELY (hash == NULL || data == NULL || len == 0))
 		return;
@@ -155,7 +155,7 @@ p_crypto_hash_update (PCryptoHash *hash, const puchar *data, psize len)
 }
 
 P_LIB_API void
-p_crypto_hash_reset (PCryptoHash *hash)
+ztk_crypto_hash_reset (PCryptoHash *hash)
 {
 	if (P_UNLIKELY (hash == NULL))
 		return;
@@ -165,7 +165,7 @@ p_crypto_hash_reset (PCryptoHash *hash)
 }
 
 P_LIB_API pchar *
-p_crypto_hash_get_string (PCryptoHash *hash)
+ztk_crypto_hash_get_string (PCryptoHash *hash)
 {
 	pchar		*ret;
 	const puchar	*digest;
@@ -181,16 +181,16 @@ p_crypto_hash_get_string (PCryptoHash *hash)
 	if (P_UNLIKELY ((digest = hash->digest (hash->context)) == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (hash->hash_len * 2 + 1)) == NULL))
+	if (P_UNLIKELY ((ret = ztk_malloc0 (hash->hash_len * 2 + 1)) == NULL))
 		return NULL;
 
-	pp_crypto_hash_digest_to_hex (digest, hash->hash_len, ret);
+	pztk_crypto_hash_digest_to_hex (digest, hash->hash_len, ret);
 
 	return ret;
 }
 
 P_LIB_API void
-p_crypto_hash_get_digest (PCryptoHash *hash, puchar *buf, psize *len)
+ztk_crypto_hash_get_digest (PCryptoHash *hash, puchar *buf, psize *len)
 {
 	const puchar *digest;
 
@@ -222,7 +222,7 @@ p_crypto_hash_get_digest (PCryptoHash *hash, puchar *buf, psize *len)
 }
 
 P_LIB_API pssize
-p_crypto_hash_get_length (const PCryptoHash *hash)
+ztk_crypto_hash_get_length (const PCryptoHash *hash)
 {
 	if (P_UNLIKELY (hash == NULL))
 		return 0;
@@ -231,7 +231,7 @@ p_crypto_hash_get_length (const PCryptoHash *hash)
 }
 
 P_LIB_API PCryptoHashType
-p_crypto_hash_get_type (const PCryptoHash *hash)
+ztk_crypto_hash_get_type (const PCryptoHash *hash)
 {
 	if (P_UNLIKELY (hash == NULL))
 		return (PCryptoHashType) -1;
@@ -240,11 +240,11 @@ p_crypto_hash_get_type (const PCryptoHash *hash)
 }
 
 P_LIB_API void
-p_crypto_hash_free (PCryptoHash *hash)
+ztk_crypto_hash_free (PCryptoHash *hash)
 {
 	if (P_UNLIKELY (hash == NULL))
 		return;
 
 	hash->free (hash->context);
-	p_free (hash);
+	ztk_free (hash);
 }

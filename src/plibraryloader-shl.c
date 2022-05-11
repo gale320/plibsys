@@ -40,32 +40,32 @@ struct PLibraryLoader_ {
 	int		last_error;
 };
 
-static void pp_library_loader_clean_handle (plibrary_handle handle);
+static void pztk_library_loader_clean_handle (plibrary_handle handle);
 
 static void
-pp_library_loader_clean_handle (plibrary_handle handle)
+pztk_library_loader_clean_handle (plibrary_handle handle)
 {
 	if (P_UNLIKELY (shl_unload (handle) != 0))
-		P_ERROR ("PLibraryLoader::pp_library_loader_clean_handle: shl_unload() failed");
+		P_ERROR ("PLibraryLoader::pztk_library_loader_clean_handle: shl_unload() failed");
 }
 
 P_LIB_API PLibraryLoader *
-p_library_loader_new (const pchar *path)
+ztk_library_loader_new (const pchar *path)
 {
 	PLibraryLoader	*loader = NULL;
 	plibrary_handle	handle;
 
-	if (!p_file_is_exists (path))
+	if (!ztk_file_is_exists (path))
 		return NULL;
 
 	if (P_UNLIKELY ((handle = shl_load (path, BIND_IMMEDIATE | BIND_NONFATAL | DYNAMIC_PATH, 0)) == NULL)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_new: shl_load() failed");
+		P_ERROR ("PLibraryLoader::ztk_library_loader_new: shl_load() failed");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((loader = p_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_new: failed to allocate memory");
-		pp_library_loader_clean_handle (handle);
+	if (P_UNLIKELY ((loader = ztk_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
+		P_ERROR ("PLibraryLoader::ztk_library_loader_new: failed to allocate memory");
+		pztk_library_loader_clean_handle (handle);
 		return NULL;
 	}
 
@@ -76,7 +76,7 @@ p_library_loader_new (const pchar *path)
 }
 
 P_LIB_API PFuncAddr
-p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
+ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 {
 	PFuncAddr func_addr = NULL;
 
@@ -84,7 +84,7 @@ p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 		return NULL;
 
 	if (P_UNLIKELY (shl_findsym (&loader->handle, sym, TYPE_UNDEFINED, (ppointer) &func_addr) != 0)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_get_symbol: shl_findsym() failed");
+		P_ERROR ("PLibraryLoader::ztk_library_loader_get_symbol: shl_findsym() failed");
 		loader->last_error = (errno == 0 ? -1 : errno);
 		return NULL;
 	}
@@ -95,18 +95,18 @@ p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 }
 
 P_LIB_API void
-p_library_loader_free (PLibraryLoader *loader)
+ztk_library_loader_free (PLibraryLoader *loader)
 {
 	if (P_UNLIKELY (loader == NULL))
 		return;
 
-	pp_library_loader_clean_handle (loader->handle);
+	pztk_library_loader_clean_handle (loader->handle);
 
-	p_free (loader);
+	ztk_free (loader);
 }
 
 P_LIB_API pchar *
-p_library_loader_get_last_error (PLibraryLoader *loader)
+ztk_library_loader_get_last_error (PLibraryLoader *loader)
 {
 	if (loader == NULL)
 		return NULL;
@@ -114,13 +114,13 @@ p_library_loader_get_last_error (PLibraryLoader *loader)
 	if (loader->last_error == 0)
 		return NULL;
 	else if (loader->last_error == -1)
-		return p_strdup ("Failed to find a symbol");
+		return ztk_strdup ("Failed to find a symbol");
 	else
-		return p_strdup (strerror (loader->last_error));
+		return ztk_strdup (strerror (loader->last_error));
 }
 
 P_LIB_API pboolean
-p_library_loader_is_ref_counted (void)
+ztk_library_loader_is_ref_counted (void)
 {
 #if defined (P_OS_HPUX) && defined (P_CPU_HPPA) && (PLIBSYS_SIZEOF_VOID_P == 4)
 	return FALSE;
@@ -130,11 +130,11 @@ p_library_loader_is_ref_counted (void)
 }
 
 void
-p_library_loader_init (void)
+ztk_library_loader_init (void)
 {
 }
 
 void
-p_library_loader_shutdown (void)
+ztk_library_loader_shutdown (void)
 {
 }

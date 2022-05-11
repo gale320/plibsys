@@ -61,16 +61,16 @@ struct PUThreadDestructor_ {
 	PUThreadDestructor	*next;
 };
 
-static PUThreadDestructor * volatile pp_uthread_tls_destructors = NULL;
-static PMutex *pp_uthread_tls_mutex = NULL;
+static PUThreadDestructor * volatile pztk_uthread_tls_destructors = NULL;
+static PMutex *pztk_uthread_tls_mutex = NULL;
 
-static void pp_uthread_get_os2_priority (PUThreadPriority prio, PULONG thr_class, PLONG thr_level);
-static PULONG pp_uthread_get_tls_key (PUThreadKey *key);
-static void pp_uthread_clean_destructors (void);
-static void pp_uthread_os2_proxy (ppointer data);
+static void pztk_uthread_get_os2_priority (PUThreadPriority prio, PULONG thr_class, PLONG thr_level);
+static PULONG pztk_uthread_get_tls_key (PUThreadKey *key);
+static void pztk_uthread_clean_destructors (void);
+static void pztk_uthread_os2_proxy (ppointer data);
 
 static void
-pp_uthread_get_os2_priority (PUThreadPriority prio, PULONG thr_class, PLONG thr_level)
+pztk_uthread_get_os2_priority (PUThreadPriority prio, PULONG thr_class, PLONG thr_level)
 {
 	switch (prio) {
 		case P_UTHREAD_PRIORITY_INHERIT:
@@ -79,7 +79,7 @@ pp_uthread_get_os2_priority (PUThreadPriority prio, PULONG thr_class, PLONG thr_
 			PTIB	ptib = NULL;
 
 			if (P_UNLIKELY (DosGetInfoBlocks (&ptib, NULL) != NO_ERROR)) {
-				P_WARNING ("PUThread::pp_uthread_get_os2_priority: DosGetInfoBlocks() failed");
+				P_WARNING ("PUThread::pztk_uthread_get_os2_priority: DosGetInfoBlocks() failed");
 				*thr_class = PRTYC_REGULAR;
 				*thr_level = 0;
 			} else {
@@ -142,16 +142,16 @@ pp_uthread_get_os2_priority (PUThreadPriority prio, PULONG thr_class, PLONG thr_
 }
 
 static PULONG
-pp_uthread_get_tls_key (PUThreadKey *key)
+pztk_uthread_get_tls_key (PUThreadKey *key)
 {
 	PULONG thread_key;
 
-	thread_key = (PULONG) p_atomic_pointer_get ((ppointer) &key->key);
+	thread_key = (PULONG) ztk_atomic_pointer_get ((ppointer) &key->key);
 
 	if (P_LIKELY (thread_key != NULL))
 		return thread_key;
 
-	p_mutex_lock (pp_uthread_tls_mutex);
+	ztk_mutex_lock (pztk_uthread_tls_mutex);
 
 	thread_key = key->key;
 
@@ -159,37 +159,37 @@ pp_uthread_get_tls_key (PUThreadKey *key)
 		PUThreadDestructor *destr = NULL;
 
 		if (key->free_func != NULL) {
-			if (P_UNLIKELY ((destr = p_malloc0 (sizeof (PUThreadDestructor))) == NULL)) {
-				P_ERROR ("PUThread::pp_uthread_get_tls_key: failed to allocate memory");
-				p_mutex_unlock (pp_uthread_tls_mutex);
+			if (P_UNLIKELY ((destr = ztk_malloc0 (sizeof (PUThreadDestructor))) == NULL)) {
+				P_ERROR ("PUThread::pztk_uthread_get_tls_key: failed to allocate memory");
+				ztk_mutex_unlock (pztk_uthread_tls_mutex);
 				return NULL;
 			}
 		}
 
 		if (P_UNLIKELY (DosAllocThreadLocalMemory (1, &thread_key) != NO_ERROR)) {
-			P_ERROR ("PUThread::pp_uthread_get_tls_key: DosAllocThreadLocalMemory() failed");
-			p_free (destr);
-			p_mutex_unlock (pp_uthread_tls_mutex);
+			P_ERROR ("PUThread::pztk_uthread_get_tls_key: DosAllocThreadLocalMemory() failed");
+			ztk_free (destr);
+			ztk_mutex_unlock (pztk_uthread_tls_mutex);
 			return NULL;
 		}
 
 		if (destr != NULL) {
 			destr->key       = thread_key;
 			destr->free_func = key->free_func;
-			destr->next      = pp_uthread_tls_destructors;
+			destr->next      = pztk_uthread_tls_destructors;
 
 			/* At the same time thread exit could be performed at there is no
 			 * lock for the global destructor list */
-			if (P_UNLIKELY (p_atomic_pointer_compare_and_exchange ((void * volatile *) &pp_uthread_tls_destructors,
+			if (P_UNLIKELY (ztk_atomic_pointer_compare_and_exchange ((void * volatile *) &pztk_uthread_tls_destructors,
 									       (void *) destr->next,
 									       (void *) destr) == FALSE)) {
-				P_ERROR ("PUThread::pp_uthread_get_tls_key: p_atomic_pointer_compare_and_exchange() failed");
+				P_ERROR ("PUThread::pztk_uthread_get_tls_key: ztk_atomic_pointer_compare_and_exchange() failed");
 
 				if (P_UNLIKELY (DosFreeThreadLocalMemory (thread_key) != NO_ERROR))
-					P_ERROR ("PUThread::pp_uthread_get_tls_key: DosFreeThreadLocalMemory() failed");
+					P_ERROR ("PUThread::pztk_uthread_get_tls_key: DosFreeThreadLocalMemory() failed");
 
-				p_free (destr);
-				p_mutex_unlock (pp_uthread_tls_mutex);
+				ztk_free (destr);
+				ztk_mutex_unlock (pztk_uthread_tls_mutex);
 				return NULL;
 			}
 		}
@@ -197,13 +197,13 @@ pp_uthread_get_tls_key (PUThreadKey *key)
 		key->key = thread_key;
 	}
 
-	p_mutex_unlock (pp_uthread_tls_mutex);
+	ztk_mutex_unlock (pztk_uthread_tls_mutex);
 
 	return thread_key;
 }
 
 static void 
-pp_uthread_clean_destructors (void)
+pztk_uthread_clean_destructors (void)
 {
 	pboolean was_called;
 
@@ -212,7 +212,7 @@ pp_uthread_clean_destructors (void)
 
 		was_called = FALSE;
 
-		destr = (PUThreadDestructor *) p_atomic_pointer_get ((const void * volatile *) &pp_uthread_tls_destructors);
+		destr = (PUThreadDestructor *) ztk_atomic_pointer_get ((const void * volatile *) &pztk_uthread_tls_destructors);
 
 		while (destr != NULL) {
 			PULONG value;
@@ -231,91 +231,91 @@ pp_uthread_clean_destructors (void)
 }
 
 static void
-pp_uthread_os2_proxy (ppointer data)
+pztk_uthread_os2_proxy (ppointer data)
 {
 	PUThread *thread = data;
 
 	thread->proxy (thread);
 
-	pp_uthread_clean_destructors ();
+	pztk_uthread_clean_destructors ();
 }
 
 void
-p_uthread_init_internal (void)
+ztk_uthread_init_internal (void)
 {
-	if (P_LIKELY (pp_uthread_tls_mutex == NULL))
-		pp_uthread_tls_mutex = p_mutex_new ();
+	if (P_LIKELY (pztk_uthread_tls_mutex == NULL))
+		pztk_uthread_tls_mutex = ztk_mutex_new ();
 }
 
 void
-p_uthread_shutdown_internal (void)
+ztk_uthread_shutdown_internal (void)
 {
 	PUThreadDestructor *destr;
 
-	pp_uthread_clean_destructors ();
+	pztk_uthread_clean_destructors ();
 
-	destr = pp_uthread_tls_destructors;
+	destr = pztk_uthread_tls_destructors;
 
 	while (destr != NULL) {
 		PUThreadDestructor *next_destr = destr->next;
 
-		p_free (destr);
+		ztk_free (destr);
 		destr = next_destr;
 	}
 
-	pp_uthread_tls_destructors = NULL;
+	pztk_uthread_tls_destructors = NULL;
 
-	if (P_LIKELY (pp_uthread_tls_mutex != NULL)) {
-		p_mutex_free (pp_uthread_tls_mutex);
-		pp_uthread_tls_mutex = NULL;
+	if (P_LIKELY (pztk_uthread_tls_mutex != NULL)) {
+		ztk_mutex_free (pztk_uthread_tls_mutex);
+		pztk_uthread_tls_mutex = NULL;
 	}
 }
 
 void
-p_uthread_win32_thread_detach (void)
+ztk_uthread_win32_thread_detach (void)
 {
 }
 
 PUThread *
-p_uthread_create_internal (PUThreadFunc		func,
+ztk_uthread_create_internal (PUThreadFunc		func,
 			   pboolean		joinable,
 			   PUThreadPriority	prio,
 			   psize		stack_size)
 {
 	PUThread *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PUThread))) == NULL)) {
-		P_ERROR ("PUThread::p_uthread_create_internal: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PUThread))) == NULL)) {
+		P_ERROR ("PUThread::ztk_uthread_create_internal: failed to allocate memory");
 		return NULL;
 	}
 
 	ret->base.joinable = joinable;
 	ret->proxy         = func;
 
-	if (P_UNLIKELY ((ret->hdl = _beginthread ((void (*) (void *)) pp_uthread_os2_proxy,
+	if (P_UNLIKELY ((ret->hdl = _beginthread ((void (*) (void *)) pztk_uthread_os2_proxy,
 						  NULL,
 						  (puint) stack_size,
 						  ret)) <= 0)) {
-		P_ERROR ("PUThread::p_uthread_create_internal: _beginthread() failed");
-		p_free (ret);
+		P_ERROR ("PUThread::ztk_uthread_create_internal: _beginthread() failed");
+		ztk_free (ret);
 		return NULL;
 	}
 
 	ret->base.prio = P_UTHREAD_PRIORITY_INHERIT;
-	p_uthread_set_priority (ret, prio);
+	ztk_uthread_set_priority (ret, prio);
 
 	return ret;
 }
 
 void
-p_uthread_exit_internal (void)
+ztk_uthread_exit_internal (void)
 {
-	pp_uthread_clean_destructors ();
+	pztk_uthread_clean_destructors ();
 	_endthread ();
 }
 
 void
-p_uthread_wait_internal (PUThread *thread)
+ztk_uthread_wait_internal (PUThread *thread)
 {
 	APIRET ulrc;
 
@@ -323,29 +323,29 @@ p_uthread_wait_internal (PUThread *thread)
 		;
 
 	if (P_UNLIKELY (ulrc != NO_ERROR && ulrc != ERROR_INVALID_THREADID))
-		P_ERROR ("PUThread::p_uthread_wait_internal: DosWaitThread() failed");
+		P_ERROR ("PUThread::ztk_uthread_wait_internal: DosWaitThread() failed");
 }
 
 void
-p_uthread_set_name_internal (PUThread *thread)
+ztk_uthread_set_name_internal (PUThread *thread)
 {
 	P_UNUSED (thread);
 }
 
 void
-p_uthread_free_internal (PUThread *thread)
+ztk_uthread_free_internal (PUThread *thread)
 {
-	p_free (thread);
+	ztk_free (thread);
 }
 
 P_LIB_API void
-p_uthread_yield (void)
+ztk_uthread_yield (void)
 {
 	DosSleep (0);
 }
 
 P_LIB_API pboolean
-p_uthread_set_priority (PUThread		*thread,
+ztk_uthread_set_priority (PUThread		*thread,
 			PUThreadPriority	prio)
 {
 	APIRET	ulrc;
@@ -358,16 +358,16 @@ p_uthread_set_priority (PUThread		*thread,
 		return FALSE;
 
 	if (P_UNLIKELY (DosGetInfoBlocks (&ptib, NULL) != NO_ERROR)) {
-		P_WARNING ("PUThread::p_uthread_set_priority: DosGetInfoBlocks() failed");
+		P_WARNING ("PUThread::ztk_uthread_set_priority: DosGetInfoBlocks() failed");
 		return FALSE;
 	}
 
 	cur_level = (ptib->tib_ptib2->tib2_ulpri) & 0x001F;
 
-	pp_uthread_get_os2_priority (prio, &new_class, &new_level);
+	pztk_uthread_get_os2_priority (prio, &new_class, &new_level);
 
 	if (P_UNLIKELY (DosSetPriority (PRTYS_THREAD, new_class, new_level - cur_level, 0) != NO_ERROR)) {
-		P_WARNING ("PUThread::p_uthread_set_priority: DosSetPriority() failed");
+		P_WARNING ("PUThread::ztk_uthread_set_priority: DosSetPriority() failed");
 		return FALSE;
 	}
 
@@ -376,18 +376,18 @@ p_uthread_set_priority (PUThread		*thread,
 }
 
 P_LIB_API P_HANDLE
-p_uthread_current_id (void)
+ztk_uthread_current_id (void)
 {
 	return (P_HANDLE) (_gettid ());
 }
 
 P_LIB_API PUThreadKey *
-p_uthread_local_new (PDestroyFunc free_func)
+ztk_uthread_local_new (PDestroyFunc free_func)
 {
 	PUThreadKey *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PUThreadKey))) == NULL)) {
-		P_ERROR ("PUThread::p_uthread_local_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PUThreadKey))) == NULL)) {
+		P_ERROR ("PUThread::ztk_uthread_local_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -397,30 +397,30 @@ p_uthread_local_new (PDestroyFunc free_func)
 }
 
 P_LIB_API void
-p_uthread_local_free (PUThreadKey *key)
+ztk_uthread_local_free (PUThreadKey *key)
 {
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	p_free (key);
+	ztk_free (key);
 }
 
 P_LIB_API ppointer
-p_uthread_get_local (PUThreadKey *key)
+ztk_uthread_get_local (PUThreadKey *key)
 {
 	PULONG tls_key;
 
 	if (P_UNLIKELY (key == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((tls_key = pp_uthread_get_tls_key (key)) == NULL))
+	if (P_UNLIKELY ((tls_key = pztk_uthread_get_tls_key (key)) == NULL))
 		return NULL;
 
 	return (ppointer) *tls_key;
 }
 
 P_LIB_API void
-p_uthread_set_local (PUThreadKey	*key,
+ztk_uthread_set_local (PUThreadKey	*key,
 		     ppointer		value)
 {
 	PULONG tls_key;
@@ -428,14 +428,14 @@ p_uthread_set_local (PUThreadKey	*key,
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	tls_key = pp_uthread_get_tls_key (key);
+	tls_key = pztk_uthread_get_tls_key (key);
 
 	if (P_LIKELY (tls_key != NULL))
 		*tls_key = (ULONG) value;
 }
 
 P_LIB_API void
-p_uthread_replace_local	(PUThreadKey	*key,
+ztk_uthread_replace_local	(PUThreadKey	*key,
 			 ppointer	value)
 {
 	PULONG		tls_key;
@@ -444,7 +444,7 @@ p_uthread_replace_local	(PUThreadKey	*key,
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	tls_key = pp_uthread_get_tls_key (key);
+	tls_key = pztk_uthread_get_tls_key (key);
 
 	if (P_UNLIKELY (tls_key == NULL))
 		return;

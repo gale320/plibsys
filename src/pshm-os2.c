@@ -39,7 +39,7 @@
 
 #define P_SHM_MEM_PREFIX	"\\SHAREMEM\\"
 #define P_SHM_SEM_PREFIX	"\\SEM32\\"
-#define P_SHM_SUFFIX		"_p_shm_object"
+#define P_SHM_SUFFIX		"_ztk_shm_object"
 
 struct PShm_ {
 	pchar		*platform_key;
@@ -49,11 +49,11 @@ struct PShm_ {
 	PShmAccessPerms	perms;
 };
 
-static pboolean pp_shm_create_handle (PShm *shm, PError **error);
-static void pp_shm_clean_handle (PShm *shm);
+static pboolean pztk_shm_create_handle (PShm *shm, PError **error);
+static void pztk_shm_clean_handle (PShm *shm);
 
 static pboolean
-pp_shm_create_handle (PShm	*shm,
+pztk_shm_create_handle (PShm	*shm,
 		      PError	**error)
 {
 	pchar	*mem_name;
@@ -62,7 +62,7 @@ pp_shm_create_handle (PShm	*shm,
 	ULONG	flags;
 
 	if (P_UNLIKELY (shm == NULL || shm->platform_key == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -74,9 +74,9 @@ pp_shm_create_handle (PShm	*shm,
 	if (shm->perms != P_SHM_ACCESS_READONLY)
 		flags |= PAG_WRITE;
 
-	if (P_UNLIKELY ((mem_name = p_malloc0 (strlen (shm->platform_key) +
+	if (P_UNLIKELY ((mem_name = ztk_malloc0 (strlen (shm->platform_key) +
 					       strlen (P_SHM_MEM_PREFIX) + 1)) == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for shared memory name");
@@ -93,12 +93,12 @@ pp_shm_create_handle (PShm	*shm,
 		;
 
 	if (P_UNLIKELY (ulrc != NO_ERROR && ulrc != ERROR_ALREADY_EXISTS)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_ipc_from_system ((pint) ulrc),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_ipc_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosAllocSharedMem() to allocate shared memory");
-		p_free (mem_name);
-		pp_shm_clean_handle (shm);
+		ztk_free (mem_name);
+		pztk_shm_clean_handle (shm);
 		return FALSE;
 	}
 
@@ -113,14 +113,14 @@ pp_shm_create_handle (PShm	*shm,
 						     flags)) == ERROR_INTERRUPT)
 			;
 
-		p_free (mem_name);
+		ztk_free (mem_name);
 
 		if (P_UNLIKELY (ulrc != NO_ERROR)) {
-			p_error_set_error_p (error,
-					     (pint) p_error_get_ipc_from_system ((pint) ulrc),
+			ztk_error_set_error_p (error,
+					     (pint) ztk_error_get_ipc_from_system ((pint) ulrc),
 					     (pint) ulrc,
 					     "Failed to call DosGetNamedSharedMem() to get shared memory");
-			pp_shm_clean_handle (shm);
+			pztk_shm_clean_handle (shm);
 			return FALSE;
 		}
 
@@ -132,25 +132,25 @@ pp_shm_create_handle (PShm	*shm,
 			;
 
 		if (P_UNLIKELY (ulrc != NO_ERROR)) {
-			p_error_set_error_p (error,
-					     (pint) p_error_get_ipc_from_system ((pint) ulrc),
+			ztk_error_set_error_p (error,
+					     (pint) ztk_error_get_ipc_from_system ((pint) ulrc),
 					     (pint) ulrc,
 					     "Failed to call DosQueryMem() to get memory info");
-			pp_shm_clean_handle (shm);
+			pztk_shm_clean_handle (shm);
 			return FALSE;
 		}
 
 		shm->size = (psize) real_size;
 	} else
-		p_free (mem_name);
+		ztk_free (mem_name);
 
-	if (P_UNLIKELY ((sem_name = p_malloc0 (strlen (shm->platform_key) +
+	if (P_UNLIKELY ((sem_name = ztk_malloc0 (strlen (shm->platform_key) +
 					       strlen (P_SHM_SEM_PREFIX) + 1)) == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for shared memory name");
-		pp_shm_clean_handle (shm);
+		pztk_shm_clean_handle (shm);
 		return FALSE;
 	}
 
@@ -162,14 +162,14 @@ pp_shm_create_handle (PShm	*shm,
 	if (ulrc == ERROR_DUPLICATE_NAME)
 		ulrc = DosOpenMutexSem ((PSZ) sem_name, &shm->sem);
 
-	p_free (sem_name);
+	ztk_free (sem_name);
 
 	if (P_UNLIKELY (ulrc != NO_ERROR)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_ipc_from_system ((pint) ulrc),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_ipc_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosCreateMutexSem() to create a lock");
-		pp_shm_clean_handle (shm);
+		pztk_shm_clean_handle (shm);
 		return FALSE;
 	}
 
@@ -177,7 +177,7 @@ pp_shm_create_handle (PShm	*shm,
 }
 
 static void
-pp_shm_clean_handle (PShm *shm)
+pztk_shm_clean_handle (PShm *shm)
 {
 	APIRET ulrc;
 
@@ -186,14 +186,14 @@ pp_shm_clean_handle (PShm *shm)
 			;
 
 		if (P_UNLIKELY (ulrc != NO_ERROR))
-			P_ERROR ("PShm::pp_shm_clean_handle: DosFreeMem() failed");
+			P_ERROR ("PShm::pztk_shm_clean_handle: DosFreeMem() failed");
 
 		shm->addr = NULL;
 	}
 
 	if (P_LIKELY (shm->sem != NULLHANDLE)) {
 		if (P_UNLIKELY (DosCloseMutexSem (shm->sem) != NO_ERROR))
-			P_ERROR ("PShm::pp_shm_clean_handle: DosCloseMutexSem() failed");
+			P_ERROR ("PShm::pztk_shm_clean_handle: DosCloseMutexSem() failed");
 
 		shm->sem = NULLHANDLE;
 	}
@@ -202,7 +202,7 @@ pp_shm_clean_handle (PShm *shm)
 }
 
 P_LIB_API PShm *
-p_shm_new (const pchar		*name,
+ztk_shm_new (const pchar		*name,
 	   psize		size,
 	   PShmAccessPerms	perms,
 	   PError		**error)
@@ -211,41 +211,41 @@ p_shm_new (const pchar		*name,
 	pchar	*new_name;
 
 	if (P_UNLIKELY (name == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PShm))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PShm))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for shared segment");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((new_name = p_malloc0 (strlen (name) + strlen (P_SHM_SUFFIX) + 1)) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((new_name = ztk_malloc0 (strlen (name) + strlen (P_SHM_SUFFIX) + 1)) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for segment name");
-		p_shm_free (ret);
+		ztk_shm_free (ret);
 		return NULL;
 	}
 
 	strcpy (new_name, name);
 	strcat (new_name, P_SHM_SUFFIX);
 
-	ret->platform_key = p_ipc_get_platform_key (new_name, FALSE);
+	ret->platform_key = ztk_ipc_get_platform_key (new_name, FALSE);
 	ret->perms        = perms;
 	ret->size         = size;
 
-	p_free (new_name);
+	ztk_free (new_name);
 
-	if (P_UNLIKELY (pp_shm_create_handle (ret, error) == FALSE)) {
-		p_shm_free (ret);
+	if (P_UNLIKELY (pztk_shm_create_handle (ret, error) == FALSE)) {
+		ztk_shm_free (ret);
 		return NULL;
 	}
 
@@ -256,33 +256,33 @@ p_shm_new (const pchar		*name,
 }
 
 P_LIB_API void
-p_shm_take_ownership (PShm *shm)
+ztk_shm_take_ownership (PShm *shm)
 {
 	P_UNUSED (shm);
 }
 
 P_LIB_API void
-p_shm_free (PShm *shm)
+ztk_shm_free (PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return;
 
-	pp_shm_clean_handle (shm);
+	pztk_shm_clean_handle (shm);
 
 	if (P_LIKELY (shm->platform_key != NULL))
-		p_free (shm->platform_key);
+		ztk_free (shm->platform_key);
 
-	p_free (shm);
+	ztk_free (shm);
 }
 
 P_LIB_API pboolean
-p_shm_lock (PShm	*shm,
+ztk_shm_lock (PShm	*shm,
 	    PError	**error)
 {
 	APIRET ulrc;
 
 	if (P_UNLIKELY (shm == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -294,8 +294,8 @@ p_shm_lock (PShm	*shm,
 		;
 
 	if (P_UNLIKELY (ulrc != NO_ERROR)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_ipc_from_system ((pint) ulrc),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_ipc_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to lock memory segment");
 		return FALSE;
@@ -305,13 +305,13 @@ p_shm_lock (PShm	*shm,
 }
 
 P_LIB_API pboolean
-p_shm_unlock (PShm	*shm,
+ztk_shm_unlock (PShm	*shm,
 	      PError	**error)
 {
 	APIRET ulrc;
 
 	if (P_UNLIKELY (shm == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -321,8 +321,8 @@ p_shm_unlock (PShm	*shm,
 	ulrc = DosReleaseMutexSem (shm->sem);
 
 	if (P_UNLIKELY (ulrc != NO_ERROR)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_ipc_from_system ((pint) ulrc),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_ipc_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to unlock memory segment");
 		return FALSE;
@@ -332,7 +332,7 @@ p_shm_unlock (PShm	*shm,
 }
 
 P_LIB_API ppointer
-p_shm_get_address (const PShm *shm)
+ztk_shm_get_address (const PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return NULL;
@@ -341,7 +341,7 @@ p_shm_get_address (const PShm *shm)
 }
 
 P_LIB_API psize
-p_shm_get_size (const PShm *shm)
+ztk_shm_get_size (const PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return 0;

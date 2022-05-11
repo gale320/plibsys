@@ -121,18 +121,18 @@ struct PUThreadKey_ {
 };
 
 #ifdef P_OS_SCO
-static PMutex *pp_uthread_tls_mutex = NULL;
+static PMutex *pztk_uthread_tls_mutex = NULL;
 #endif
 
 #ifdef PLIBSYS_HAS_POSIX_SCHEDULING
-static pboolean pp_uthread_get_unix_priority (PUThreadPriority prio, int *sched_policy, int *sched_priority);
+static pboolean pztk_uthread_get_unix_priority (PUThreadPriority prio, int *sched_policy, int *sched_priority);
 #endif
 
-static pthread_key_t * pp_uthread_get_tls_key (PUThreadKey *key);
+static pthread_key_t * pztk_uthread_get_tls_key (PUThreadKey *key);
 
 #ifdef PLIBSYS_HAS_POSIX_SCHEDULING
 static pboolean
-pp_uthread_get_unix_priority (PUThreadPriority prio, int *sched_policy, int *sched_priority)
+pztk_uthread_get_unix_priority (PUThreadPriority prio, int *sched_policy, int *sched_priority)
 {
 	pint	lowBound, upperBound;
 	pint	prio_min, prio_max;
@@ -172,50 +172,50 @@ pp_uthread_get_unix_priority (PUThreadPriority prio, int *sched_policy, int *sch
 #endif
 
 static pthread_key_t *
-pp_uthread_get_tls_key (PUThreadKey *key)
+pztk_uthread_get_tls_key (PUThreadKey *key)
 {
 	pthread_key_t *thread_key;
 
-	thread_key = (pthread_key_t *) p_atomic_pointer_get ((ppointer) &key->key);
+	thread_key = (pthread_key_t *) ztk_atomic_pointer_get ((ppointer) &key->key);
 
 	if (P_LIKELY (thread_key != NULL))
 		return thread_key;
 
 #ifdef P_OS_SCO
-	p_mutex_lock (pp_uthread_tls_mutex);
+	ztk_mutex_lock (pztk_uthread_tls_mutex);
 
 	thread_key = key->key;
 
 	if (P_LIKELY (thread_key == NULL)) {
 #endif
-		if (P_UNLIKELY ((thread_key = p_malloc0 (sizeof (pthread_key_t))) == NULL)) {
-			P_ERROR ("PUThread::pp_uthread_get_tls_key: failed to allocate memory");
+		if (P_UNLIKELY ((thread_key = ztk_malloc0 (sizeof (pthread_key_t))) == NULL)) {
+			P_ERROR ("PUThread::pztk_uthread_get_tls_key: failed to allocate memory");
 #ifdef P_OS_SCO
-			p_mutex_unlock (pp_uthread_tls_mutex);
+			ztk_mutex_unlock (pztk_uthread_tls_mutex);
 #endif
 			return NULL;
 		}
 
 		if (P_UNLIKELY (pthread_key_create (thread_key, key->free_func) != 0)) {
-			P_ERROR ("PUThread::pp_uthread_get_tls_key: pthread_key_create() failed");
-			p_free (thread_key);
+			P_ERROR ("PUThread::pztk_uthread_get_tls_key: pthread_key_create() failed");
+			ztk_free (thread_key);
 #ifdef P_OS_SCO
-			p_mutex_unlock (pp_uthread_tls_mutex);
+			ztk_mutex_unlock (pztk_uthread_tls_mutex);
 #endif
 			return NULL;
 		}
 
 #ifndef P_OS_SCO
-		if (P_UNLIKELY (p_atomic_pointer_compare_and_exchange ((ppointer) &key->key,
+		if (P_UNLIKELY (ztk_atomic_pointer_compare_and_exchange ((ppointer) &key->key,
 								       NULL,
 								       (ppointer) thread_key) == FALSE)) {
 			if (P_UNLIKELY (pthread_key_delete (*thread_key) != 0)) {
-				P_ERROR ("PUThread::pp_uthread_get_tls_key: pthread_key_delete() failed");
-				p_free (thread_key);
+				P_ERROR ("PUThread::pztk_uthread_get_tls_key: pthread_key_delete() failed");
+				ztk_free (thread_key);
 				return NULL;
 			}
 
-			p_free (thread_key);
+			ztk_free (thread_key);
 
 			thread_key = key->key;
 		}
@@ -223,39 +223,39 @@ pp_uthread_get_tls_key (PUThreadKey *key)
 		key->key = thread_key;
 	}
 
-	p_mutex_unlock (pp_uthread_tls_mutex);
+	ztk_mutex_unlock (pztk_uthread_tls_mutex);
 #endif
 
 	return thread_key;
 }
 
 void
-p_uthread_init_internal (void)
+ztk_uthread_init_internal (void)
 {
 #ifdef P_OS_SCO
-	if (P_LIKELY (pp_uthread_tls_mutex == NULL))
-		pp_uthread_tls_mutex = p_mutex_new ();
+	if (P_LIKELY (pztk_uthread_tls_mutex == NULL))
+		pztk_uthread_tls_mutex = ztk_mutex_new ();
 #endif
 }
 
 void
-p_uthread_shutdown_internal (void)
+ztk_uthread_shutdown_internal (void)
 {
 #ifdef P_OS_SCO
-	if (P_LIKELY (pp_uthread_tls_mutex != NULL)) {
-		p_mutex_free (pp_uthread_tls_mutex);
-		pp_uthread_tls_mutex = NULL;
+	if (P_LIKELY (pztk_uthread_tls_mutex != NULL)) {
+		ztk_mutex_free (pztk_uthread_tls_mutex);
+		pztk_uthread_tls_mutex = NULL;
 	}
 #endif
 }
 
 void
-p_uthread_win32_thread_detach (void)
+ztk_uthread_win32_thread_detach (void)
 {
 }
 
 PUThread *
-p_uthread_create_internal (PUThreadFunc		func,
+ztk_uthread_create_internal (PUThreadFunc		func,
 			   pboolean		joinable,
 			   PUThreadPriority	prio,
 			   psize		stack_size)
@@ -273,35 +273,35 @@ p_uthread_create_internal (PUThreadFunc		func,
 	plong			min_stack;
 #endif
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PUThread))) == NULL)) {
-		P_ERROR ("PUThread::p_uthread_create_internal: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PUThread))) == NULL)) {
+		P_ERROR ("PUThread::ztk_uthread_create_internal: failed to allocate memory");
 		return NULL;
 	}
 
 	ret->base.joinable = joinable;
 
 	if (P_UNLIKELY (pthread_attr_init (&attr) != 0)) {
-		P_ERROR ("PUThread::p_uthread_create_internal: pthread_attr_init() failed");
-		p_free (ret);
+		P_ERROR ("PUThread::ztk_uthread_create_internal: pthread_attr_init() failed");
+		ztk_free (ret);
 		return NULL;
 	}
 
 	if (P_UNLIKELY (pthread_attr_setdetachstate (&attr,
 						     joinable ? PTHREAD_CREATE_JOINABLE
 							      : PTHREAD_CREATE_DETACHED) != 0)) {
-		P_ERROR ("PUThread::p_uthread_create_internal: pthread_attr_setdetachstate() failed");
+		P_ERROR ("PUThread::ztk_uthread_create_internal: pthread_attr_setdetachstate() failed");
 		pthread_attr_destroy (&attr);
-		p_free (ret);
+		ztk_free (ret);
 		return NULL;
 	}
 
 #ifdef PLIBSYS_HAS_POSIX_SCHEDULING
 	if (prio == P_UTHREAD_PRIORITY_INHERIT) {
 		if (P_UNLIKELY (pthread_attr_setinheritsched (&attr, PTHREAD_INHERIT_SCHED) != 0))
-			P_WARNING ("PUThread::p_uthread_create_internal: pthread_attr_setinheritsched() failed");
+			P_WARNING ("PUThread::ztk_uthread_create_internal: pthread_attr_setinheritsched() failed");
 	} else {
 		if (P_LIKELY (pthread_attr_getschedpolicy (&attr, &sched_policy) == 0)) {
-			if (P_LIKELY (pp_uthread_get_unix_priority (prio,
+			if (P_LIKELY (pztk_uthread_get_unix_priority (prio,
 								     &sched_policy,
 								     &native_prio) == TRUE)) {
 				memset (&sched, 0, sizeof (sched));
@@ -310,11 +310,11 @@ p_uthread_create_internal (PUThreadFunc		func,
 				if (P_LIKELY (pthread_attr_setinheritsched (&attr, PTHREAD_EXPLICIT_SCHED) != 0 ||
 					      pthread_attr_setschedpolicy (&attr, sched_policy) != 0 ||
 					      pthread_attr_setschedparam (&attr, &sched) != 0))
-					P_WARNING ("PUThread::p_uthread_create_internal: failed to set priority");
+					P_WARNING ("PUThread::ztk_uthread_create_internal: failed to set priority");
 			} else
-				P_WARNING ("PUThread::p_uthread_create_internal: pp_uthread_get_unix_priority() failed");
+				P_WARNING ("PUThread::ztk_uthread_create_internal: pztk_uthread_get_unix_priority() failed");
 		} else
-			P_WARNING ("PUThread::p_uthread_create_internal: pthread_attr_getschedpolicy() failed");
+			P_WARNING ("PUThread::ztk_uthread_create_internal: pthread_attr_getschedpolicy() failed");
 	}
 #endif
 
@@ -327,10 +327,10 @@ p_uthread_create_internal (PUThreadFunc		func,
 			if (P_UNLIKELY (stack_size < (psize) min_stack))
 				stack_size = (psize) min_stack;
 		} else
-			P_WARNING ("PUThread::p_uthread_create_internal: sysconf() with _SC_THREAD_STACK_MIN failed");
+			P_WARNING ("PUThread::ztk_uthread_create_internal: sysconf() with _SC_THREAD_STACK_MIN failed");
 
 		if (P_UNLIKELY (pthread_attr_setstacksize (&attr, stack_size) != 0))
-			P_WARNING ("PUThread::p_uthread_create_internal: pthread_attr_setstacksize() failed");
+			P_WARNING ("PUThread::ztk_uthread_create_internal: pthread_attr_setstacksize() failed");
 	}
 #  endif
 #endif
@@ -347,9 +347,9 @@ p_uthread_create_internal (PUThreadFunc		func,
 #endif
 
 	if (P_UNLIKELY (create_code != 0)) {
-		P_ERROR ("PUThread::p_uthread_create_internal: pthread_create() failed");
+		P_ERROR ("PUThread::ztk_uthread_create_internal: pthread_create() failed");
 		pthread_attr_destroy (&attr);
-		p_free (ret);
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -360,20 +360,20 @@ p_uthread_create_internal (PUThreadFunc		func,
 }
 
 void
-p_uthread_exit_internal (void)
+ztk_uthread_exit_internal (void)
 {
 	pthread_exit (P_INT_TO_POINTER (0));
 }
 
 void
-p_uthread_wait_internal (PUThread *thread)
+ztk_uthread_wait_internal (PUThread *thread)
 {
 	if (P_UNLIKELY (pthread_join (thread->hdl, NULL) != 0))
-		P_ERROR ("PUThread::p_uthread_wait_internal: pthread_join() failed");
+		P_ERROR ("PUThread::ztk_uthread_wait_internal: pthread_join() failed");
 }
 
 void
-p_uthread_set_name_internal (PUThread *thread)
+ztk_uthread_set_name_internal (PUThread *thread)
 {
 	pchar    *thr_name = NULL;
 	pint     res       = 0;
@@ -388,8 +388,8 @@ p_uthread_set_name_internal (PUThread *thread)
 	namelen  = strlen (thr_name);
 
 	if (namelen > PUTHREAD_MAX_NAME - 1) {
-		if (P_UNLIKELY ((thr_name = p_malloc0 (namelen + 1)) == NULL)) {
-			P_ERROR ("PUThread::p_uthread_set_name_internal: failed to allocate memory");
+		if (P_UNLIKELY ((thr_name = ztk_malloc0 (namelen + 1)) == NULL)) {
+			P_ERROR ("PUThread::ztk_uthread_set_name_internal: failed to allocate memory");
 			return;
 		}
 
@@ -402,7 +402,7 @@ p_uthread_set_name_internal (PUThread *thread)
 #if defined(PLIBSYS_HAS_PTHREAD_SETNAME)
 #  if defined(P_OS_MAC)
 	if (thread->hdl != pthread_self ())
-		P_WARNING ("PUThread::p_uthread_set_name_internal: only calling thread is supported in macOS");
+		P_WARNING ("PUThread::ztk_uthread_set_name_internal: only calling thread is supported in macOS");
 	else
 		res = pthread_setname_np (thr_name);
 #  elif defined(P_OS_NETBSD)
@@ -416,7 +416,7 @@ p_uthread_set_name_internal (PUThread *thread)
 	pthread_set_name_np (thread->hdl, thr_name);
 #elif defined(PLIBSYS_HAS_PTHREAD_PRCTL)
 	if (thread->hdl != pthread_self ())
-		P_WARNING ("PUThread::p_uthread_set_name_internal: prctl() can be used on calling thread only");
+		P_WARNING ("PUThread::ztk_uthread_set_name_internal: prctl() can be used on calling thread only");
 	else
 		res = prctl (PR_SET_NAME, thr_name, NULL, NULL, NULL);
 #elif defined(P_OS_HAIKU)
@@ -424,26 +424,26 @@ p_uthread_set_name_internal (PUThread *thread)
 #endif
 
 	if (is_alloc == TRUE)
-		p_free (thr_name);
+		ztk_free (thr_name);
 
 	if (res != 0)
-		P_WARNING ("PUThread::p_uthread_set_name_internal: failed to set thread system name");
+		P_WARNING ("PUThread::ztk_uthread_set_name_internal: failed to set thread system name");
 }
 
 void
-p_uthread_free_internal (PUThread *thread)
+ztk_uthread_free_internal (PUThread *thread)
 {
-	p_free (thread);
+	ztk_free (thread);
 }
 
 P_LIB_API void
-p_uthread_yield (void)
+ztk_uthread_yield (void)
 {
 	sched_yield ();
 }
 
 P_LIB_API pboolean
-p_uthread_set_priority (PUThread		*thread,
+ztk_uthread_set_priority (PUThread		*thread,
 			PUThreadPriority	prio)
 {
 #ifdef PLIBSYS_HAS_POSIX_SCHEDULING
@@ -457,12 +457,12 @@ p_uthread_set_priority (PUThread		*thread,
 
 #ifdef PLIBSYS_HAS_POSIX_SCHEDULING
 	if (P_UNLIKELY (pthread_getschedparam (thread->hdl, &policy, &sched) != 0)) {
-		P_ERROR ("PUThread::p_uthread_set_priority: pthread_getschedparam() failed");
+		P_ERROR ("PUThread::ztk_uthread_set_priority: pthread_getschedparam() failed");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pp_uthread_get_unix_priority (prio, &policy, &native_prio) == FALSE)) {
-		P_ERROR ("PUThread::p_uthread_set_priority: pp_uthread_get_unix_priority() failed");
+	if (P_UNLIKELY (pztk_uthread_get_unix_priority (prio, &policy, &native_prio) == FALSE)) {
+		P_ERROR ("PUThread::ztk_uthread_set_priority: pztk_uthread_get_unix_priority() failed");
 		return FALSE;
 	}
 
@@ -470,7 +470,7 @@ p_uthread_set_priority (PUThread		*thread,
 	sched.sched_priority = native_prio;
 
 	if (P_UNLIKELY (pthread_setschedparam (thread->hdl, policy, &sched) != 0)) {
-		P_ERROR ("PUThread::p_uthread_set_priority: pthread_setschedparam() failed");
+		P_ERROR ("PUThread::ztk_uthread_set_priority: pthread_setschedparam() failed");
 		return FALSE;
 	}
 #endif
@@ -480,18 +480,18 @@ p_uthread_set_priority (PUThread		*thread,
 }
 
 P_LIB_API P_HANDLE
-p_uthread_current_id (void)
+ztk_uthread_current_id (void)
 {
 	return (P_HANDLE) ((psize) pthread_self ());
 }
 
 P_LIB_API PUThreadKey *
-p_uthread_local_new (PDestroyFunc free_func)
+ztk_uthread_local_new (PDestroyFunc free_func)
 {
 	PUThreadKey *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PUThreadKey))) == NULL)) {
-		P_ERROR ("PUThread::p_uthread_local_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PUThreadKey))) == NULL)) {
+		P_ERROR ("PUThread::ztk_uthread_local_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -501,16 +501,16 @@ p_uthread_local_new (PDestroyFunc free_func)
 }
 
 P_LIB_API void
-p_uthread_local_free (PUThreadKey *key)
+ztk_uthread_local_free (PUThreadKey *key)
 {
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	p_free (key);
+	ztk_free (key);
 }
 
 P_LIB_API ppointer
-p_uthread_get_local (PUThreadKey *key)
+ztk_uthread_get_local (PUThreadKey *key)
 {
 	pthread_key_t	*tls_key;
 #ifdef P_OS_SCO
@@ -520,7 +520,7 @@ p_uthread_get_local (PUThreadKey *key)
 	if (P_UNLIKELY (key == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((tls_key = pp_uthread_get_tls_key (key)) == NULL))
+	if (P_UNLIKELY ((tls_key = pztk_uthread_get_tls_key (key)) == NULL))
 		return NULL;
 
 #ifdef P_OS_SCO
@@ -534,7 +534,7 @@ p_uthread_get_local (PUThreadKey *key)
 }
 
 P_LIB_API void
-p_uthread_set_local (PUThreadKey	*key,
+ztk_uthread_set_local (PUThreadKey	*key,
 		     ppointer		value)
 {
 	pthread_key_t *tls_key;
@@ -542,16 +542,16 @@ p_uthread_set_local (PUThreadKey	*key,
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	tls_key = pp_uthread_get_tls_key (key);
+	tls_key = pztk_uthread_get_tls_key (key);
 
 	if (P_LIKELY (tls_key != NULL)) {
 		if (P_UNLIKELY (pthread_setspecific (*tls_key, value) != 0))
-			P_ERROR ("PUThread::p_uthread_set_local: pthread_setspecific() failed");
+			P_ERROR ("PUThread::ztk_uthread_set_local: pthread_setspecific() failed");
 	}
 }
 
 P_LIB_API void
-p_uthread_replace_local	(PUThreadKey	*key,
+ztk_uthread_replace_local	(PUThreadKey	*key,
 			 ppointer	value)
 {
 	pthread_key_t	*tls_key;
@@ -560,7 +560,7 @@ p_uthread_replace_local	(PUThreadKey	*key,
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	tls_key = pp_uthread_get_tls_key (key);
+	tls_key = pztk_uthread_get_tls_key (key);
 
 	if (P_UNLIKELY (tls_key == NULL))
 		return;
@@ -576,5 +576,5 @@ p_uthread_replace_local	(PUThreadKey	*key,
 		key->free_func (old_value);
 
 	if (P_UNLIKELY (pthread_setspecific (*tls_key, value) != 0))
-		P_ERROR ("PUThread::p_uthread_replace_local: pthread_setspecific() failed");
+		P_ERROR ("PUThread::ztk_uthread_replace_local: pthread_setspecific() failed");
 }

@@ -48,7 +48,7 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (ptimeprofiler_nomem_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	PMemVTable vtable;
 
@@ -56,25 +56,25 @@ P_TEST_CASE_BEGIN (ptimeprofiler_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (p_time_profiler_new () == NULL);
+	P_TEST_CHECK (ztk_time_profiler_new () == NULL);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptimeprofiler_bad_input_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	P_TEST_CHECK (p_time_profiler_elapsed_usecs (NULL) == 0);
-	p_time_profiler_reset (NULL);
-	p_time_profiler_free (NULL);
+	P_TEST_CHECK (ztk_time_profiler_elapsed_usecs (NULL) == 0);
+	ztk_time_profiler_reset (NULL);
+	ztk_time_profiler_free (NULL);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -83,37 +83,37 @@ P_TEST_CASE_BEGIN (ptimeprofiler_general_test)
 	PTimeProfiler	*profiler = NULL;
 	puint64		prev_val, val;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	profiler = p_time_profiler_new ();
+	profiler = ztk_time_profiler_new ();
 	P_TEST_REQUIRE (profiler != NULL);
 
-	p_uthread_sleep (50);
-	prev_val = p_time_profiler_elapsed_usecs (profiler);
+	ztk_uthread_sleep (50);
+	prev_val = ztk_time_profiler_elapsed_usecs (profiler);
 	P_TEST_CHECK (prev_val > 0);
 
-	p_uthread_sleep (100);
-	val = p_time_profiler_elapsed_usecs (profiler);
+	ztk_uthread_sleep (100);
+	val = ztk_time_profiler_elapsed_usecs (profiler);
 	P_TEST_CHECK (val > prev_val);
 	prev_val = val;
 
-	p_uthread_sleep (1000);
-	val = p_time_profiler_elapsed_usecs (profiler);
+	ztk_uthread_sleep (1000);
+	val = ztk_time_profiler_elapsed_usecs (profiler);
 	P_TEST_CHECK (val > prev_val);
 
-	p_time_profiler_reset (profiler);
+	ztk_time_profiler_reset (profiler);
 
-	p_uthread_sleep (15);
-	prev_val = p_time_profiler_elapsed_usecs (profiler);
+	ztk_uthread_sleep (15);
+	prev_val = ztk_time_profiler_elapsed_usecs (profiler);
 	P_TEST_CHECK (prev_val > 0);
 
-	p_uthread_sleep (178);
-	val = p_time_profiler_elapsed_usecs (profiler);
+	ztk_uthread_sleep (178);
+	val = ztk_time_profiler_elapsed_usecs (profiler);
 	P_TEST_CHECK (val > prev_val);
 
-	p_time_profiler_free (profiler);
+	ztk_time_profiler_free (profiler);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

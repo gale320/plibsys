@@ -40,7 +40,7 @@ P_BEGIN_DECLS
  * @brief Gets a temporary directory on UNIX systems.
  * @return Temporary directory.
  */
-pchar *		p_ipc_unix_get_temp_dir		(void);
+pchar *		ztk_ipc_unix_get_temztk_dir		(void);
 
 /* Create file for System V IPC, if needed
  * Returns: -1 = error, 0 = file successfully created, 1 = file already exists */
@@ -50,14 +50,14 @@ pchar *		p_ipc_unix_get_temp_dir		(void);
  * @return -1 in case of error, 0 if all was OK, and 1 if the file already
  * exists.
  */
-pint		p_ipc_unix_create_key_file	(const pchar	*file_name);
+pint		ztk_ipc_unix_create_key_file	(const pchar	*file_name);
 
 /**
  * @brief Wrapps the ftok() UNIX call for a unique IPC key.
  * @param file_name File name for ftok() call.
  * @return Key in case of success, -1 otherwise.
  */
-pint		p_ipc_unix_get_ftok_key		(const pchar	*file_name);
+pint		ztk_ipc_unix_get_ftok_key		(const pchar	*file_name);
 #endif /* !P_OS_WIN && !P_OS_OS2 */
 
 /**
@@ -68,7 +68,7 @@ pint		p_ipc_unix_get_ftok_key		(const pchar	*file_name);
  * FALSE. This parameter is not used on the Windows platform.
  * @return Platform independent key for IPC usage.
  */
-pchar *		p_ipc_get_platform_key		(const pchar	*name,
+pchar *		ztk_ipc_get_platform_key		(const pchar	*name,
 						 pboolean	posix);
 
 P_END_DECLS

@@ -37,10 +37,10 @@
 #  include <stdlib.h>
 #endif
 
-static puint64 pp_time_profiler_freq = 1;
+static puint64 pztk_time_profiler_freq = 1;
 
 puint64
-p_time_profiler_get_ticks_internal ()
+ztk_time_profiler_get_ticks_internal ()
 {
 	union {
 		puint64	ticks;
@@ -48,7 +48,7 @@ p_time_profiler_get_ticks_internal ()
 	} tick_time;
 
 	if (P_UNLIKELY (DosTmrQueryTime (&tick_time.tcounter) != NO_ERROR)) {
-		P_ERROR ("PTimeProfiler::p_time_profiler_get_ticks_internal: DosTmrQueryTime() failed");
+		P_ERROR ("PTimeProfiler::ztk_time_profiler_get_ticks_internal: DosTmrQueryTime() failed");
 		return 0;
 	}
 
@@ -56,7 +56,7 @@ p_time_profiler_get_ticks_internal ()
 }
 
 puint64
-p_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
+ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 {
 	puint64	ticks;
 #if PLIBSYS_HAS_LLDIV
@@ -65,43 +65,43 @@ p_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 	puint64	quot;
 	puint64	rem;
 
-	ticks = p_time_profiler_get_ticks_internal ();
+	ticks = ztk_time_profiler_get_ticks_internal ();
 
 	if (ticks < profiler->counter) {
-		P_WARNING ("PTimeProfiler::p_time_profiler_elapsed_usecs_internal: negative jitter");
+		P_WARNING ("PTimeProfiler::ztk_time_profiler_elapsed_usecs_internal: negative jitter");
 		return 1;
 	}
 
 	ticks -= profiler->counter;
 
 #if PLIBSYS_HAS_LLDIV
-	ldres = lldiv ((long long) ticks, (long long) pp_time_profiler_freq);
+	ldres = lldiv ((long long) ticks, (long long) pztk_time_profiler_freq);
 
 	quot = ldres.quot;
 	rem  = ldres.rem;
 #else
-	quot = ticks / pp_time_profiler_freq;
-	rem  = ticks % pp_time_profiler_freq;
+	quot = ticks / pztk_time_profiler_freq;
+	rem  = ticks % pztk_time_profiler_freq;
 #endif
 
-	return (puint64) (quot * 1000000LL + (rem * 1000000LL) / pp_time_profiler_freq);
+	return (puint64) (quot * 1000000LL + (rem * 1000000LL) / pztk_time_profiler_freq);
 }
 
 void
-p_time_profiler_init (void)
+ztk_time_profiler_init (void)
 {
 	ULONG freq;
 
 	if (P_UNLIKELY (DosTmrQueryFreq (&freq) != NO_ERROR)) {
-		P_ERROR ("PTimeProfiler::p_time_profiler_init: DosTmrQueryFreq() failed");
+		P_ERROR ("PTimeProfiler::ztk_time_profiler_init: DosTmrQueryFreq() failed");
 		return;
 	}
 
-	pp_time_profiler_freq = (puint64) freq;
+	pztk_time_profiler_freq = (puint64) freq;
 }
 
 void
-p_time_profiler_shutdown (void)
+ztk_time_profiler_shutdown (void)
 {
-	pp_time_profiler_freq = 1;
+	pztk_time_profiler_freq = 1;
 }

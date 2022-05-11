@@ -39,12 +39,12 @@ P_BEGIN_DECLS
 
 typedef struct PHashMD5_ PHashMD5;
 
-PHashMD5 *	p_crypto_hash_md5_new		(void);
-void		p_crypto_hash_md5_update	(PHashMD5 *ctx, const puchar *data, psize len);
-void		p_crypto_hash_md5_finish	(PHashMD5 *ctx);
-const puchar *	p_crypto_hash_md5_digest	(PHashMD5 *ctx);
-void		p_crypto_hash_md5_reset		(PHashMD5 *ctx);
-void		p_crypto_hash_md5_free		(PHashMD5 *ctx);
+PHashMD5 *	ztk_crypto_hash_md5_new		(void);
+void		ztk_crypto_hash_md5_update	(PHashMD5 *ctx, const puchar *data, psize len);
+void		ztk_crypto_hash_md5_finish	(PHashMD5 *ctx);
+const puchar *	ztk_crypto_hash_md5_digest	(PHashMD5 *ctx);
+void		ztk_crypto_hash_md5_reset		(PHashMD5 *ctx);
+void		ztk_crypto_hash_md5_free		(PHashMD5 *ctx);
 
 P_END_DECLS
 

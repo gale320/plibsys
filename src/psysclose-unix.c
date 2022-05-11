@@ -30,7 +30,7 @@
 #include <errno.h>
 
 pint
-p_sys_close (pint fd)
+ztk_sys_close (pint fd)
 {
 #if defined (EINTR) && defined (P_OS_HPUX)
 	pint res, err_code;
@@ -41,7 +41,7 @@ p_sys_close (pint fd)
 		if (P_LIKELY (res == 0))
 			return 0;
 
-		err_code = p_error_get_last_system ();
+		err_code = ztk_error_get_last_system ();
 
 		if (err_code == EINTR)
 			continue;

@@ -69,7 +69,7 @@ static void foreach_test_func (ppointer data, ppointer user_data)
 
 P_TEST_CASE_BEGIN (plist_nomem_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	PMemVTable vtable;
 
@@ -77,30 +77,30 @@ P_TEST_CASE_BEGIN (plist_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (p_list_append (NULL, PINT_TO_POINTER (10)) == NULL);
-	P_TEST_CHECK (p_list_prepend (NULL, PINT_TO_POINTER (10)) == NULL);
+	P_TEST_CHECK (ztk_list_append (NULL, PINT_TO_POINTER (10)) == NULL);
+	P_TEST_CHECK (ztk_list_prepend (NULL, PINT_TO_POINTER (10)) == NULL);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (plist_invalid_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	P_TEST_CHECK (p_list_remove (NULL, NULL) == NULL);
-	P_TEST_CHECK (p_list_last (NULL) == NULL);
-	P_TEST_CHECK (p_list_length (NULL) == 0);
-	P_TEST_CHECK (p_list_reverse (NULL) == NULL);
+	P_TEST_CHECK (ztk_list_remove (NULL, NULL) == NULL);
+	P_TEST_CHECK (ztk_list_last (NULL) == NULL);
+	P_TEST_CHECK (ztk_list_length (NULL) == 0);
+	P_TEST_CHECK (ztk_list_reverse (NULL) == NULL);
 
-	p_list_free (NULL);
-	p_list_foreach (NULL, NULL, NULL);
+	ztk_list_free (NULL);
+	ztk_list_foreach (NULL, NULL, NULL);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -109,25 +109,25 @@ P_TEST_CASE_BEGIN (plist_general_test)
 	PList		*list = NULL;
 	TestData	test_data;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	/* Testing append */
-	list = p_list_append (list, P_INT_TO_POINTER (32));
-	list = p_list_append (list, P_INT_TO_POINTER (64));
+	list = ztk_list_append (list, P_INT_TO_POINTER (32));
+	list = ztk_list_append (list, P_INT_TO_POINTER (64));
 
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 2);
+	P_TEST_CHECK (ztk_list_length (list) == 2);
 
 	/* Testing data access */
 	P_TEST_CHECK (P_POINTER_TO_INT (list->data) == 32);
-	P_TEST_CHECK (P_POINTER_TO_INT (p_list_last(list)->data) == 64);
+	P_TEST_CHECK (P_POINTER_TO_INT (ztk_list_last(list)->data) == 64);
 
 	/* Testing prepend */
-	list = p_list_prepend (list, P_INT_TO_POINTER (128));
+	list = ztk_list_prepend (list, P_INT_TO_POINTER (128));
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 3);
+	P_TEST_CHECK (ztk_list_length (list) == 3);
 	P_TEST_CHECK (P_POINTER_TO_INT (list->data) == 128);
-	P_TEST_CHECK (P_POINTER_TO_INT (p_list_last(list)->data) == 64);
+	P_TEST_CHECK (P_POINTER_TO_INT (ztk_list_last(list)->data) == 64);
 
 	/* Testing for each loop */
 	memset (&test_data, 0, sizeof (test_data));
@@ -137,7 +137,7 @@ P_TEST_CASE_BEGIN (plist_general_test)
 	P_TEST_REQUIRE (test_data.test_array[2] == 0);
 	P_TEST_REQUIRE (test_data.index == 0);
 
-	p_list_foreach (list, (PFunc) foreach_test_func, (ppointer) &test_data);
+	ztk_list_foreach (list, (PFunc) foreach_test_func, (ppointer) &test_data);
 
 	P_TEST_CHECK (test_data.index == 3);
 	P_TEST_CHECK (test_data.test_array[0] == 128);
@@ -146,12 +146,12 @@ P_TEST_CASE_BEGIN (plist_general_test)
 
 	/* Testing reverse */
 
-	list = p_list_reverse (list);
+	list = ztk_list_reverse (list);
 
 	P_TEST_CHECK (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 3);
+	P_TEST_CHECK (ztk_list_length (list) == 3);
 	P_TEST_CHECK (P_POINTER_TO_INT (list->data) == 64);
-	P_TEST_CHECK (P_POINTER_TO_INT (p_list_last(list)->data) == 128);
+	P_TEST_CHECK (P_POINTER_TO_INT (ztk_list_last(list)->data) == 128);
 
 	/* Testing for each loop */
 	memset (&test_data, 0, sizeof (test_data));
@@ -161,7 +161,7 @@ P_TEST_CASE_BEGIN (plist_general_test)
 	P_TEST_REQUIRE (test_data.test_array[2] == 0);
 	P_TEST_REQUIRE (test_data.index == 0);
 
-	p_list_foreach (list, (PFunc) foreach_test_func, (ppointer) &test_data);
+	ztk_list_foreach (list, (PFunc) foreach_test_func, (ppointer) &test_data);
 
 	P_TEST_CHECK (test_data.index == 3);
 	P_TEST_CHECK (test_data.test_array[0] == 64);
@@ -169,25 +169,25 @@ P_TEST_CASE_BEGIN (plist_general_test)
 	P_TEST_CHECK (test_data.test_array[2] == 128);
 
 	/* Testing remove */
-	list = p_list_remove (list, P_INT_TO_POINTER (32));
+	list = ztk_list_remove (list, P_INT_TO_POINTER (32));
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 2);
+	P_TEST_CHECK (ztk_list_length (list) == 2);
 
-	list = p_list_remove (list, P_INT_TO_POINTER (128));
+	list = ztk_list_remove (list, P_INT_TO_POINTER (128));
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 1);
+	P_TEST_CHECK (ztk_list_length (list) == 1);
 
-	list = p_list_remove (list, P_INT_TO_POINTER (256));
+	list = ztk_list_remove (list, P_INT_TO_POINTER (256));
 	P_TEST_REQUIRE (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 1);
+	P_TEST_CHECK (ztk_list_length (list) == 1);
 
-	list = p_list_remove (list, P_INT_TO_POINTER (64));
+	list = ztk_list_remove (list, P_INT_TO_POINTER (64));
 	P_TEST_REQUIRE (list == NULL);
-	P_TEST_CHECK (p_list_length (list) == 0);
+	P_TEST_CHECK (ztk_list_length (list) == 0);
 
-	p_list_free (list);
+	ztk_list_free (list);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

@@ -34,23 +34,23 @@ P_TEST_MODULE_INIT ();
 
 P_TEST_CASE_BEGIN (pfile_general_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	P_TEST_CHECK (p_file_remove (NULL, NULL) == FALSE);
+	P_TEST_CHECK (ztk_file_remove (NULL, NULL) == FALSE);
 
-	P_TEST_CHECK (p_file_is_exists (PFILE_TEST_FILE) == FALSE);
-	P_TEST_CHECK (p_file_remove ("." P_DIR_SEPARATOR" pfile_test_file_remove.txt", NULL) == FALSE);
+	P_TEST_CHECK (ztk_file_is_exists (PFILE_TEST_FILE) == FALSE);
+	P_TEST_CHECK (ztk_file_remove ("." P_DIR_SEPARATOR" pfile_test_file_remove.txt", NULL) == FALSE);
 
 	FILE *file = fopen (PFILE_TEST_FILE, "w");
 	P_TEST_REQUIRE (file != NULL);
-	P_TEST_CHECK (p_file_is_exists (PFILE_TEST_FILE) == TRUE);
+	P_TEST_CHECK (ztk_file_is_exists (PFILE_TEST_FILE) == TRUE);
 
 	fprintf (file, "This is a test file string\n");
 
 	P_TEST_CHECK (fclose (file) == 0);
-	P_TEST_CHECK (p_file_remove (PFILE_TEST_FILE, NULL) == TRUE);
+	P_TEST_CHECK (ztk_file_remove (PFILE_TEST_FILE, NULL) == TRUE);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

@@ -62,8 +62,8 @@
  * numbers manually. The list doesn't support strings with spaces - such strings
  * will be splitted.
  *
- * To parse a file, create #PIniFile with p_ini_file_new() and then parse it
- * with the p_ini_file_parse() routine.
+ * To parse a file, create #PIniFile with ztk_ini_file_new() and then parse it
+ * with the ztk_ini_file_parse() routine.
  *
  * #PIniFile handles (skips) UTF-8/16/32 BOM characters (marks).
  *
@@ -114,14 +114,14 @@ typedef struct PIniFile_ PIniFile;
  * @return Newly allocated #PIniFile in case of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API PIniFile *	p_ini_file_new			(const pchar	*path);
+P_LIB_API PIniFile *	ztk_ini_file_new			(const pchar	*path);
 
 /**
  * @brief Frees memory and allocated resources of #PIniFile.
  * @param file #PIniFile to free.
  * @since 0.0.1
  */
-P_LIB_API void		p_ini_file_free			(PIniFile	*file);
+P_LIB_API void		ztk_ini_file_free			(PIniFile	*file);
 
 /**
  * @brief Parses given #PIniFile.
@@ -130,7 +130,7 @@ P_LIB_API void		p_ini_file_free			(PIniFile	*file);
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	p_ini_file_parse		(PIniFile	*file,
+P_LIB_API pboolean	ztk_ini_file_parse		(PIniFile	*file,
 							 PError		**error);
 
 /**
@@ -139,7 +139,7 @@ P_LIB_API pboolean	p_ini_file_parse		(PIniFile	*file,
  * @return TRUE if the file was already parsed, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	p_ini_file_is_parsed		(const PIniFile	*file);
+P_LIB_API pboolean	ztk_ini_file_is_parsed		(const PIniFile	*file);
 
 /**
  * @brief Gets all the sections from a given file.
@@ -147,10 +147,10 @@ P_LIB_API pboolean	p_ini_file_is_parsed		(const PIniFile	*file);
  * before.
  * @return #PList of section names.
  * @since 0.0.1
- * @note It's a caller responsibility to p_free() each returned string and to
- * free the returned list with p_list_free().
+ * @note It's a caller responsibility to ztk_free() each returned string and to
+ * free the returned list with ztk_list_free().
  */
-P_LIB_API PList	*	p_ini_file_sections		(const PIniFile	*file);
+P_LIB_API PList	*	ztk_ini_file_sections		(const PIniFile	*file);
 
 /**
  * @brief Gets all the keys from a given section.
@@ -159,10 +159,10 @@ P_LIB_API PList	*	p_ini_file_sections		(const PIniFile	*file);
  * @param section Section name to get the keys from.
  * @return #PList of key names.
  * @since 0.0.1
- * @note It's a caller responsibility to p_free() each returned string and to
- * free the returned list with p_list_free().
+ * @note It's a caller responsibility to ztk_free() each returned string and to
+ * free the returned list with ztk_list_free().
  */
-P_LIB_API PList *	p_ini_file_keys			(const PIniFile	*file,
+P_LIB_API PList *	ztk_ini_file_keys			(const PIniFile	*file,
 							 const pchar	*section);
 
 /**
@@ -173,7 +173,7 @@ P_LIB_API PList *	p_ini_file_keys			(const PIniFile	*file,
  * @return TRUE if @a key exists, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	p_ini_file_is_key_exists	(const PIniFile	*file,
+P_LIB_API pboolean	ztk_ini_file_is_key_exists	(const PIniFile	*file,
 							 const pchar	*section,
 							 const pchar	*key);
 
@@ -186,10 +186,10 @@ P_LIB_API pboolean	p_ini_file_is_key_exists	(const PIniFile	*file,
  * @param default_val Default value to return if no specified key exists.
  * @return Key's value in case of success, @a default_value otherwise.
  * @since 0.0.1
- * @note It's a caller responsibility to p_free() the returned string after
+ * @note It's a caller responsibility to ztk_free() the returned string after
  * usage.
  */
-P_LIB_API pchar *	p_ini_file_parameter_string	(const PIniFile	*file,
+P_LIB_API pchar *	ztk_ini_file_parameter_string	(const PIniFile	*file,
 							 const pchar	*section,
 							 const pchar	*key,
 							 const pchar	*default_val);
@@ -204,7 +204,7 @@ P_LIB_API pchar *	p_ini_file_parameter_string	(const PIniFile	*file,
  * @return Key's value in case of success, @a default_value otherwise.
  * @since 0.0.1
  */
-P_LIB_API pint		p_ini_file_parameter_int	(const PIniFile	*file,
+P_LIB_API pint		ztk_ini_file_parameter_int	(const PIniFile	*file,
 							 const pchar	*section,
 							 const pchar	*key,
 							 pint		default_val);
@@ -219,7 +219,7 @@ P_LIB_API pint		p_ini_file_parameter_int	(const PIniFile	*file,
  * @return Key's value in case of success, @a default_value otherwise.
  * @since 0.0.1
  */
-P_LIB_API double	p_ini_file_parameter_double	(const PIniFile	*file,
+P_LIB_API double	ztk_ini_file_parameter_double	(const PIniFile	*file,
 							 const pchar	*section,
 							 const pchar	*key,
 							 double		default_val);
@@ -234,7 +234,7 @@ P_LIB_API double	p_ini_file_parameter_double	(const PIniFile	*file,
  * @since 0.0.1
  */
 
-P_LIB_API pboolean	p_ini_file_parameter_boolean	(const PIniFile	*file,
+P_LIB_API pboolean	ztk_ini_file_parameter_boolean	(const PIniFile	*file,
 							 const pchar	*section,
 							 const pchar	*key,
 							 pboolean	default_val);
@@ -249,10 +249,10 @@ P_LIB_API pboolean	p_ini_file_parameter_boolean	(const PIniFile	*file,
  * @return #PList of strings. NULL will be returned if no parameter with the
  * given name exists.
  * @since 0.0.1
- * @note It's a caller responsibility to p_free() each returned string and to
- * free the returned list with p_list_free().
+ * @note It's a caller responsibility to ztk_free() each returned string and to
+ * free the returned list with ztk_list_free().
  */
-P_LIB_API PList *	p_ini_file_parameter_list	(const PIniFile	*file,
+P_LIB_API PList *	ztk_ini_file_parameter_list	(const PIniFile	*file,
 							 const pchar	*section,
 							 const pchar	*key);
 

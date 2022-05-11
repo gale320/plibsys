@@ -56,12 +56,12 @@ extern "C" void pmem_free (ppointer block)
 
 static bool create_test_ini_file (bool last_empty_section)
 {
-	FILE *file = fopen ("." P_DIR_SEPARATOR "p_ini_test_file.ini", "w");
+	FILE *file = fopen ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini", "w");
 
 	if (file == NULL)
 		return false;
 
-	pchar *buf = (pchar *) p_malloc0 (PINIFILE_STRESS_LINE + 1);
+	pchar *buf = (pchar *) ztk_malloc0 (PINIFILE_STRESS_LINE + 1);
 
 	for (int i = 0; i < PINIFILE_STRESS_LINE; ++i)
 		buf[i] = (pchar) (97 + i % 20);
@@ -109,18 +109,18 @@ static bool create_test_ini_file (bool last_empty_section)
 	if (last_empty_section)
 		fprintf (file, "[empty_section_2]\n");
 
-	p_free (buf);
+	ztk_free (buf);
 
 	return fclose (file) == 0;
 }
 
 P_TEST_CASE_BEGIN (pinifile_nomem_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	P_TEST_REQUIRE (create_test_ini_file (false));
 
-	PIniFile *ini = p_ini_file_new  ("." P_DIR_SEPARATOR "p_ini_test_file.ini");
+	PIniFile *ini = ztk_ini_file_new  ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini");
 	P_TEST_CHECK (ini != NULL);
 
 	PMemVTable vtable;
@@ -129,31 +129,31 @@ P_TEST_CASE_BEGIN (pinifile_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (p_ini_file_new ("." P_DIR_SEPARATOR "p_ini_test_file.ini") == NULL);
-	P_TEST_CHECK (p_ini_file_parse (ini, NULL) == TRUE);
-	P_TEST_CHECK (p_ini_file_sections (ini) == NULL);
+	P_TEST_CHECK (ztk_ini_file_new ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini") == NULL);
+	P_TEST_CHECK (ztk_ini_file_parse (ini, NULL) == TRUE);
+	P_TEST_CHECK (ztk_ini_file_sections (ini) == NULL);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
-	p_ini_file_free (ini);
+	ztk_ini_file_free (ini);
 
-	ini = p_ini_file_new ("." P_DIR_SEPARATOR "p_ini_test_file.ini");
+	ini = ztk_ini_file_new ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini");
 	P_TEST_CHECK (ini != NULL);
 
-	P_TEST_CHECK (p_ini_file_parse (ini, NULL) == TRUE);
-	PList *section_list = p_ini_file_sections (ini);
+	P_TEST_CHECK (ztk_ini_file_parse (ini, NULL) == TRUE);
+	PList *section_list = ztk_ini_file_sections (ini);
 	P_TEST_CHECK (section_list != NULL);
-	P_TEST_CHECK (p_list_length (section_list) == 4);
+	P_TEST_CHECK (ztk_list_length (section_list) == 4);
 
-	p_list_foreach (section_list, (PFunc) p_free, NULL);
-	p_list_free (section_list);
-	p_ini_file_free (ini);
+	ztk_list_foreach (section_list, (PFunc) ztk_free, NULL);
+	ztk_list_free (section_list);
+	ztk_ini_file_free (ini);
 
-	P_TEST_CHECK (p_file_remove ("." P_DIR_SEPARATOR "p_ini_test_file.ini", NULL) == TRUE);
+	P_TEST_CHECK (ztk_file_remove ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini", NULL) == TRUE);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -161,190 +161,190 @@ P_TEST_CASE_BEGIN (pinifile_bad_input_test)
 {
 	PIniFile *ini = NULL;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	p_ini_file_free (ini);
-	P_TEST_CHECK (p_ini_file_new (NULL) == NULL);
-	P_TEST_CHECK (p_ini_file_parse (ini, NULL) == FALSE);
-	P_TEST_CHECK (p_ini_file_is_parsed (ini) == FALSE);
-	P_TEST_CHECK (p_ini_file_is_key_exists (ini, "string_section", "string_paramter_1") == FALSE);
-	P_TEST_CHECK (p_ini_file_sections (ini) == NULL);
-	P_TEST_CHECK (p_ini_file_keys (ini, "string_section") == NULL);
-	P_TEST_CHECK (p_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_1", FALSE) == FALSE);
-	P_TEST_CHECK_CLOSE (p_ini_file_parameter_double (ini, "numeric_section", "float_parameter_1", 1.0), 1.0, 0.0001);
-	P_TEST_CHECK (p_ini_file_parameter_int (ini, "numeric_section", "int_parameter_1", 0) == 0);
-	P_TEST_CHECK (p_ini_file_parameter_list (ini, "list_section", "list_parameter_1") == NULL);
-	P_TEST_CHECK (p_ini_file_parameter_string (ini, "string_section", "string_parameter_1", NULL) == NULL);
+	ztk_ini_file_free (ini);
+	P_TEST_CHECK (ztk_ini_file_new (NULL) == NULL);
+	P_TEST_CHECK (ztk_ini_file_parse (ini, NULL) == FALSE);
+	P_TEST_CHECK (ztk_ini_file_is_parsed (ini) == FALSE);
+	P_TEST_CHECK (ztk_ini_file_is_key_exists (ini, "string_section", "string_paramter_1") == FALSE);
+	P_TEST_CHECK (ztk_ini_file_sections (ini) == NULL);
+	P_TEST_CHECK (ztk_ini_file_keys (ini, "string_section") == NULL);
+	P_TEST_CHECK (ztk_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_1", FALSE) == FALSE);
+	P_TEST_CHECK_CLOSE (ztk_ini_file_parameter_double (ini, "numeric_section", "float_parameter_1", 1.0), 1.0, 0.0001);
+	P_TEST_CHECK (ztk_ini_file_parameter_int (ini, "numeric_section", "int_parameter_1", 0) == 0);
+	P_TEST_CHECK (ztk_ini_file_parameter_list (ini, "list_section", "list_parameter_1") == NULL);
+	P_TEST_CHECK (ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_1", NULL) == NULL);
 
-	ini = p_ini_file_new ("./bad_file_path/fake.ini");
+	ini = ztk_ini_file_new ("./bad_file_path/fake.ini");
 	P_TEST_CHECK (ini != NULL);
-	P_TEST_CHECK (p_ini_file_parse (ini, NULL) == FALSE);
-	p_ini_file_free (ini);
+	P_TEST_CHECK (ztk_ini_file_parse (ini, NULL) == FALSE);
+	ztk_ini_file_free (ini);
 
 	P_TEST_REQUIRE (create_test_ini_file (true));
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pinifile_read_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	PIniFile *ini = p_ini_file_new ("." P_DIR_SEPARATOR "p_ini_test_file.ini");
+	PIniFile *ini = ztk_ini_file_new ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini");
 	P_TEST_REQUIRE (ini != NULL);
-	P_TEST_CHECK (p_ini_file_is_parsed (ini) == FALSE);
+	P_TEST_CHECK (ztk_ini_file_is_parsed (ini) == FALSE);
 
-	P_TEST_REQUIRE (p_ini_file_parse (ini, NULL) == TRUE);
-	P_TEST_CHECK (p_ini_file_is_parsed (ini) == TRUE);
-	P_TEST_REQUIRE (p_ini_file_parse (ini, NULL) == TRUE);
-	P_TEST_CHECK (p_ini_file_is_parsed (ini) == TRUE);
+	P_TEST_REQUIRE (ztk_ini_file_parse (ini, NULL) == TRUE);
+	P_TEST_CHECK (ztk_ini_file_is_parsed (ini) == TRUE);
+	P_TEST_REQUIRE (ztk_ini_file_parse (ini, NULL) == TRUE);
+	P_TEST_CHECK (ztk_ini_file_is_parsed (ini) == TRUE);
 
 	/* Test list of sections */
-	PList *list = p_ini_file_sections (ini);
+	PList *list = ztk_ini_file_sections (ini);
 	P_TEST_CHECK (list != NULL);
-	P_TEST_CHECK (p_list_length (list) == 4);
+	P_TEST_CHECK (ztk_list_length (list) == 4);
 
-	p_list_foreach (list, (PFunc) p_free, NULL);
-	p_list_free (list);
+	ztk_list_foreach (list, (PFunc) ztk_free, NULL);
+	ztk_list_free (list);
 
 	/* Test empty section */
-	list = p_ini_file_keys (ini, "empty_section");
+	list = ztk_ini_file_keys (ini, "empty_section");
 	P_TEST_CHECK (list == NULL);
 
 	/* Test numeric section */
-	list = p_ini_file_keys (ini, "numeric_section");
-	P_TEST_CHECK (p_list_length (list) == 5);
-	p_list_foreach (list, (PFunc) p_free, NULL);
-	p_list_free (list);
+	list = ztk_ini_file_keys (ini, "numeric_section");
+	P_TEST_CHECK (ztk_list_length (list) == 5);
+	ztk_list_foreach (list, (PFunc) ztk_free, NULL);
+	ztk_list_free (list);
 
-	P_TEST_CHECK (p_ini_file_parameter_list (ini, "numeric_section", "int_parameter_1") == NULL);
-	P_TEST_CHECK (p_ini_file_parameter_int (ini, "numeric_section", "int_parameter_1", -1) == 4);
-	P_TEST_CHECK (p_ini_file_parameter_int (ini, "numeric_section", "int_parameter_2", -1) == 5);
-	P_TEST_CHECK (p_ini_file_parameter_int (ini, "numeric_section", "int_parameter_3", -1) == 6);
-	P_TEST_CHECK (p_ini_file_parameter_int (ini, "numeric_section", "int_parameter_def", 10) == 10);
-	P_TEST_CHECK_CLOSE (p_ini_file_parameter_double (ini, "numeric_section", "float_parameter_1", -1.0), 3.24, 0.0001);
-	P_TEST_CHECK_CLOSE (p_ini_file_parameter_double (ini, "numeric_section", "float_parameter_2", -1.0), 0.15, 0.0001);
-	P_TEST_CHECK_CLOSE (p_ini_file_parameter_double (ini, "numeric_section_no", "float_parameter_def", 10.0), 10.0, 0.0001);
-	P_TEST_CHECK (p_ini_file_is_key_exists (ini, "numeric_section", "int_parameter_1") == TRUE);
-	P_TEST_CHECK (p_ini_file_is_key_exists (ini, "numeric_section", "float_parameter_1") == TRUE);
-	P_TEST_CHECK (p_ini_file_is_key_exists (ini, "numeric_section_false", "float_parameter_1") == FALSE);
+	P_TEST_CHECK (ztk_ini_file_parameter_list (ini, "numeric_section", "int_parameter_1") == NULL);
+	P_TEST_CHECK (ztk_ini_file_parameter_int (ini, "numeric_section", "int_parameter_1", -1) == 4);
+	P_TEST_CHECK (ztk_ini_file_parameter_int (ini, "numeric_section", "int_parameter_2", -1) == 5);
+	P_TEST_CHECK (ztk_ini_file_parameter_int (ini, "numeric_section", "int_parameter_3", -1) == 6);
+	P_TEST_CHECK (ztk_ini_file_parameter_int (ini, "numeric_section", "int_parameter_def", 10) == 10);
+	P_TEST_CHECK_CLOSE (ztk_ini_file_parameter_double (ini, "numeric_section", "float_parameter_1", -1.0), 3.24, 0.0001);
+	P_TEST_CHECK_CLOSE (ztk_ini_file_parameter_double (ini, "numeric_section", "float_parameter_2", -1.0), 0.15, 0.0001);
+	P_TEST_CHECK_CLOSE (ztk_ini_file_parameter_double (ini, "numeric_section_no", "float_parameter_def", 10.0), 10.0, 0.0001);
+	P_TEST_CHECK (ztk_ini_file_is_key_exists (ini, "numeric_section", "int_parameter_1") == TRUE);
+	P_TEST_CHECK (ztk_ini_file_is_key_exists (ini, "numeric_section", "float_parameter_1") == TRUE);
+	P_TEST_CHECK (ztk_ini_file_is_key_exists (ini, "numeric_section_false", "float_parameter_1") == FALSE);
 
 	/* Test string section */
-	list = p_ini_file_keys (ini, "string_section");
-	P_TEST_CHECK (p_list_length (list) == 8);
-	p_list_foreach (list, (PFunc) p_free, NULL);
-	p_list_free (list);
+	list = ztk_ini_file_keys (ini, "string_section");
+	P_TEST_CHECK (ztk_list_length (list) == 8);
+	ztk_list_foreach (list, (PFunc) ztk_free, NULL);
+	ztk_list_free (list);
 
-	pchar *str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_1", NULL);
+	pchar *str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_1", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "Test string") == 0);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_2", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_2", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "Test string with #'") == 0);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_3", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_3", NULL);
 	P_TEST_REQUIRE (str == NULL);
-	P_TEST_CHECK (p_ini_file_is_key_exists (ini, "string_section", "string_parameter_3") == FALSE);
+	P_TEST_CHECK (ztk_ini_file_is_key_exists (ini, "string_section", "string_parameter_3") == FALSE);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_4", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_4", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "54321") == 0);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_5", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_5", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "Test string") == 0);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_6", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_6", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strlen (str) > 0 && strlen (str) < PINIFILE_MAX_LINE);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_7", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_7", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "") == 0);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_8", NULL);
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_8", NULL);
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "") == 0);
-	p_free (str);
+	ztk_free (str);
 
-	str = p_ini_file_parameter_string (ini, "string_section", "string_parameter_def", "default_value");
+	str = ztk_ini_file_parameter_string (ini, "string_section", "string_parameter_def", "default_value");
 	P_TEST_REQUIRE (str != NULL);
 	P_TEST_CHECK (strcmp (str, "default_value") == 0);
-	p_free (str);
+	ztk_free (str);
 
 	/* Test boolean section */
-	list = p_ini_file_keys (ini, "boolean_section");
-	P_TEST_CHECK (p_list_length (list) == 4);
-	p_list_foreach (list, (PFunc) p_free, NULL);
-	p_list_free (list);
+	list = ztk_ini_file_keys (ini, "boolean_section");
+	P_TEST_CHECK (ztk_list_length (list) == 4);
+	ztk_list_foreach (list, (PFunc) ztk_free, NULL);
+	ztk_list_free (list);
 
-	P_TEST_CHECK (p_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_1", FALSE) == TRUE);
-	P_TEST_CHECK (p_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_2", TRUE) == FALSE);
-	P_TEST_CHECK (p_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_3", TRUE) == FALSE);
-	P_TEST_CHECK (p_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_4", FALSE) == TRUE);
-	P_TEST_CHECK (p_ini_file_parameter_boolean (ini, "boolean_section", "boolean_section_def", TRUE) == TRUE);
+	P_TEST_CHECK (ztk_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_1", FALSE) == TRUE);
+	P_TEST_CHECK (ztk_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_2", TRUE) == FALSE);
+	P_TEST_CHECK (ztk_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_3", TRUE) == FALSE);
+	P_TEST_CHECK (ztk_ini_file_parameter_boolean (ini, "boolean_section", "boolean_parameter_4", FALSE) == TRUE);
+	P_TEST_CHECK (ztk_ini_file_parameter_boolean (ini, "boolean_section", "boolean_section_def", TRUE) == TRUE);
 
 	/* Test list section */
-	list = p_ini_file_keys (ini, "list_section");
-	P_TEST_CHECK (p_list_length (list) == 3);
-	p_list_foreach (list, (PFunc) p_free, NULL);
-	p_list_free (list);
+	list = ztk_ini_file_keys (ini, "list_section");
+	P_TEST_CHECK (ztk_list_length (list) == 3);
+	ztk_list_foreach (list, (PFunc) ztk_free, NULL);
+	ztk_list_free (list);
 
 	/* -- First list parameter */
-	PList *list_val = p_ini_file_parameter_list (ini, "list_section", "list_parameter_1");
+	PList *list_val = ztk_ini_file_parameter_list (ini, "list_section", "list_parameter_1");
 	P_TEST_CHECK (list_val != NULL);
-	P_TEST_CHECK (p_list_length (list_val) == 4);
+	P_TEST_CHECK (ztk_list_length (list_val) == 4);
 
 	pint int_sum = 0;
 	for (PList *iter = list_val; iter != NULL; iter = iter->next)
 		int_sum +=  atoi ((const pchar *) (iter->data));
 
 	P_TEST_CHECK (int_sum == 18);
-	p_list_foreach (list_val, (PFunc) p_free, NULL);
-	p_list_free (list_val);
+	ztk_list_foreach (list_val, (PFunc) ztk_free, NULL);
+	ztk_list_free (list_val);
 
 	/* -- Second list parameter */
-	list_val = p_ini_file_parameter_list (ini, "list_section", "list_parameter_2");
+	list_val = ztk_ini_file_parameter_list (ini, "list_section", "list_parameter_2");
 	P_TEST_CHECK (list_val != NULL);
-	P_TEST_CHECK (p_list_length (list_val) == 3);
+	P_TEST_CHECK (ztk_list_length (list_val) == 3);
 
 	double flt_sum = 0;
 	for (PList *iter = list_val; iter != NULL; iter = iter->next)
 		flt_sum +=  atof ((const pchar *) (iter->data));
 
 	P_TEST_CHECK_CLOSE (flt_sum, 10.0, 0.0001);
-	p_list_foreach (list_val, (PFunc) p_free, NULL);
-	p_list_free (list_val);
+	ztk_list_foreach (list_val, (PFunc) ztk_free, NULL);
+	ztk_list_free (list_val);
 
 	/* -- Third list parameter */
-	list_val = p_ini_file_parameter_list (ini, "list_section", "list_parameter_3");
+	list_val = ztk_ini_file_parameter_list (ini, "list_section", "list_parameter_3");
 	P_TEST_CHECK (list_val != NULL);
-	P_TEST_CHECK (p_list_length (list_val) == 3);
+	P_TEST_CHECK (ztk_list_length (list_val) == 3);
 
 	pboolean bool_sum = TRUE;
 	for (PList *iter = list_val; iter != NULL; iter = iter->next)
 		bool_sum = bool_sum && atoi ((const pchar *) (iter->data));
 
 	P_TEST_CHECK (bool_sum == FALSE);
-	p_list_foreach (list_val, (PFunc) p_free, NULL);
-	p_list_free (list_val);
+	ztk_list_foreach (list_val, (PFunc) ztk_free, NULL);
+	ztk_list_free (list_val);
 
 	/* -- False list parameter */
-	P_TEST_CHECK (p_ini_file_parameter_list (ini, "list_section_no", "list_parameter_def") == NULL);
+	P_TEST_CHECK (ztk_ini_file_parameter_list (ini, "list_section_no", "list_parameter_def") == NULL);
 
-	p_ini_file_free (ini);
+	ztk_ini_file_free (ini);
 
-	P_TEST_CHECK (p_file_remove ("." P_DIR_SEPARATOR "p_ini_test_file.ini", NULL) == TRUE);
+	P_TEST_CHECK (ztk_file_remove ("." P_DIR_SEPARATOR "ztk_ini_test_file.ini", NULL) == TRUE);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

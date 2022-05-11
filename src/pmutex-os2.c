@@ -39,18 +39,18 @@ struct PMutex_ {
 };
 
 P_LIB_API PMutex *
-p_mutex_new (void)
+ztk_mutex_new (void)
 {
 	PMutex *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PMutex))) == NULL)) {
-		P_ERROR ("PMutex::p_mutex_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PMutex))) == NULL)) {
+		P_ERROR ("PMutex::ztk_mutex_new: failed to allocate memory");
 		return NULL;
 	}
 
 	if (P_UNLIKELY (DosCreateMutexSem (NULL, (PHMTX) &ret->hdl, 0, FALSE) != NO_ERROR)) {
-		P_ERROR ("PMutex::p_mutex_new: DosCreateMutexSem() failed");
-		p_free (ret);
+		P_ERROR ("PMutex::ztk_mutex_new: DosCreateMutexSem() failed");
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -58,7 +58,7 @@ p_mutex_new (void)
 }
 
 P_LIB_API pboolean
-p_mutex_lock (PMutex *mutex)
+ztk_mutex_lock (PMutex *mutex)
 {
 	APIRET ulrc;
 
@@ -71,13 +71,13 @@ p_mutex_lock (PMutex *mutex)
 	if (P_LIKELY (ulrc == NO_ERROR))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::p_mutex_lock: DosRequestMutexSem() failed");
+		P_ERROR ("PMutex::ztk_mutex_lock: DosRequestMutexSem() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API pboolean
-p_mutex_trylock (PMutex *mutex)
+ztk_mutex_trylock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -86,7 +86,7 @@ p_mutex_trylock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-p_mutex_unlock (PMutex *mutex)
+ztk_mutex_unlock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -94,19 +94,19 @@ p_mutex_unlock (PMutex *mutex)
 	if (P_LIKELY (DosReleaseMutexSem (mutex->hdl) == NO_ERROR))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::p_mutex_unlock: DosReleaseMutexSem() failed");
+		P_ERROR ("PMutex::ztk_mutex_unlock: DosReleaseMutexSem() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API void
-p_mutex_free (PMutex *mutex)
+ztk_mutex_free (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return;
 
 	if (P_UNLIKELY (DosCloseMutexSem (mutex->hdl) != NO_ERROR))
-		P_ERROR ("PMutex::p_mutex_free: DosCloseMutexSem() failed");
+		P_ERROR ("PMutex::ztk_mutex_free: DosCloseMutexSem() failed");
 
-	p_free (mutex);
+	ztk_free (mutex);
 }

@@ -32,7 +32,7 @@
 #endif
 
 P_LIB_API puint32
-p_process_get_current_pid (void)
+ztk_process_get_current_pid (void)
 {
 #ifdef P_OS_WIN
 	return (puint32) GetCurrentProcessId ();
@@ -42,7 +42,7 @@ p_process_get_current_pid (void)
 }
 
 P_LIB_API pboolean
-p_process_is_running (puint32 pid)
+ztk_process_is_running (puint32 pid)
 {
 #ifdef P_OS_WIN
 	HANDLE proc;

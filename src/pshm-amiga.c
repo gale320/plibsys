@@ -35,7 +35,7 @@
 #include <proto/exec.h>
 
 #define P_SHM_NAMESPACE	"pshm"
-#define P_SHM_SUFFIX	"_p_shm_object"
+#define P_SHM_SUFFIX	"_ztk_shm_object"
 #define P_SHM_PRIV_SIZE	(2 * sizeof (psize))
 
 struct PShm_ {
@@ -47,11 +47,11 @@ struct PShm_ {
 	PShmAccessPerms	perms;
 };
 
-static PErrorIPC pp_shm_get_ipc_error (puint32 err_code);
-static pboolean pp_shm_create_handle (PShm *shm, PError **error);
+static PErrorIPC pztk_shm_get_ipc_error (puint32 err_code);
+static pboolean pztk_shm_create_handle (PShm *shm, PError **error);
 
 static PErrorIPC
-pp_shm_get_ipc_error (puint32 err_code)
+pztk_shm_get_ipc_error (puint32 err_code)
 {
 	if (err_code == ANMERROR_NOERROR)
 		return P_ERROR_IPC_NONE;
@@ -66,7 +66,7 @@ pp_shm_get_ipc_error (puint32 err_code)
 }
 
 static pboolean
-pp_shm_create_handle (PShm	*shm,
+pztk_shm_create_handle (PShm	*shm,
 		      PError	**error)
 {
 	ppointer	mem_area;
@@ -74,7 +74,7 @@ pp_shm_create_handle (PShm	*shm,
 	pboolean	is_exists;
 
 	if (P_UNLIKELY (shm == NULL || shm->platform_key == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -94,8 +94,8 @@ pp_shm_create_handle (PShm	*shm,
 
 		if (P_UNLIKELY (mem_area == NULL)) {
 			IExec->Permit ();
-			p_error_set_error_p (error,
-				     (pint) pp_shm_get_ipc_error (err_code),
+			ztk_error_set_error_p (error,
+				     (pint) pztk_shm_get_ipc_error (err_code),
 				     (pint) err_code,
 				     "Failed to call AllocNamedMemoryTags() to create memory segment");
 			return FALSE;
@@ -117,7 +117,7 @@ pp_shm_create_handle (PShm	*shm,
 
 	shm->addr = ((pchar *) mem_area) + P_SHM_PRIV_SIZE;
 
-	if (P_UNLIKELY ((shm->sem = p_semaphore_new (shm->platform_key, 1,
+	if (P_UNLIKELY ((shm->sem = ztk_semaphore_new (shm->platform_key, 1,
 						     is_exists ? P_SEM_ACCESS_OPEN : P_SEM_ACCESS_CREATE,
 						     error)) == NULL)) {
 		IExec->FreeNamedMemory (P_SHM_NAMESPACE, shm->platform_key);
@@ -131,7 +131,7 @@ pp_shm_create_handle (PShm	*shm,
 }
 
 P_LIB_API PShm *
-p_shm_new (const pchar		*name,
+ztk_shm_new (const pchar		*name,
 	   psize		size,
 	   PShmAccessPerms	perms,
 	   PError		**error)
@@ -140,41 +140,41 @@ p_shm_new (const pchar		*name,
 	pchar	*new_name;
 
 	if (P_UNLIKELY (name == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PShm))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PShm))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for shared segment");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((new_name = p_malloc0 (strlen (name) + strlen (P_SHM_SUFFIX) + 1)) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((new_name = ztk_malloc0 (strlen (name) + strlen (P_SHM_SUFFIX) + 1)) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for segment name");
-		p_shm_free (ret);
+		ztk_shm_free (ret);
 		return NULL;
 	}
 
 	strcpy (new_name, name);
 	strcat (new_name, P_SHM_SUFFIX);
 
-	ret->platform_key = p_ipc_get_platform_key (new_name, FALSE);
+	ret->platform_key = ztk_ipc_get_platform_key (new_name, FALSE);
 	ret->perms        = perms;
 	ret->size         = size;
 
-	p_free (new_name);
+	ztk_free (new_name);
 
-	if (P_UNLIKELY (pp_shm_create_handle (ret, error) == FALSE)) {
-		p_shm_free (ret);
+	if (P_UNLIKELY (pztk_shm_create_handle (ret, error) == FALSE)) {
+		ztk_shm_free (ret);
 		return NULL;
 	}
 
@@ -185,17 +185,17 @@ p_shm_new (const pchar		*name,
 }
 
 P_LIB_API void
-p_shm_take_ownership (PShm *shm)
+ztk_shm_take_ownership (PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return;
 
 	shm->is_owner = TRUE;
-	p_semaphore_take_ownership (shm->sem);
+	ztk_semaphore_take_ownership (shm->sem);
 }
 
 P_LIB_API void
-p_shm_free (PShm *shm)
+ztk_shm_free (PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return;
@@ -206,7 +206,7 @@ p_shm_free (PShm *shm)
 		*((psize *) shm->addr - 1) -= 1;
 
 		if (shm->is_owner || *((psize *) shm->addr - 1) == 0) {
-			p_semaphore_free (shm->sem);
+			ztk_semaphore_free (shm->sem);
 			shm->sem = NULL;
 
 			IExec->FreeNamedMemory (P_SHM_NAMESPACE, shm->platform_key);			
@@ -220,43 +220,43 @@ p_shm_free (PShm *shm)
 	shm->size     = 0;
 
 	if (P_LIKELY (shm->platform_key != NULL))
-		p_free (shm->platform_key);
+		ztk_free (shm->platform_key);
 
-	p_free (shm);
+	ztk_free (shm);
 }
 
 P_LIB_API pboolean
-p_shm_lock (PShm	*shm,
+ztk_shm_lock (PShm	*shm,
 	    PError	**error)
 {
 	if (P_UNLIKELY (shm == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	return p_semaphore_acquire (shm->sem, error);
+	return ztk_semaphore_acquire (shm->sem, error);
 }
 
 P_LIB_API pboolean
-p_shm_unlock (PShm	*shm,
+ztk_shm_unlock (PShm	*shm,
 	      PError	**error)
 {
 	if (P_UNLIKELY (shm == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	return p_semaphore_release (shm->sem, error);
+	return ztk_semaphore_release (shm->sem, error);
 }
 
 P_LIB_API ppointer
-p_shm_get_address (const PShm *shm)
+ztk_shm_get_address (const PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return NULL;
@@ -265,7 +265,7 @@ p_shm_get_address (const PShm *shm)
 }
 
 P_LIB_API psize
-p_shm_get_size (const PShm *shm)
+ztk_shm_get_size (const PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return 0;

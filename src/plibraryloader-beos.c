@@ -38,32 +38,32 @@ struct PLibraryLoader_ {
 	status_t	last_status;
 };
 
-static void pp_library_loader_clean_handle (plibrary_handle handle);
+static void pztk_library_loader_clean_handle (plibrary_handle handle);
 
 static void
-pp_library_loader_clean_handle (plibrary_handle handle)
+pztk_library_loader_clean_handle (plibrary_handle handle)
 {
 	if (P_UNLIKELY (unload_add_on (handle) != B_OK))
-		P_ERROR ("PLibraryLoader::pp_library_loader_clean_handle: unload_add_on() failed");
+		P_ERROR ("PLibraryLoader::pztk_library_loader_clean_handle: unload_add_on() failed");
 }
 
 P_LIB_API PLibraryLoader *
-p_library_loader_new (const pchar *path)
+ztk_library_loader_new (const pchar *path)
 {
 	PLibraryLoader	*loader = NULL;
 	plibrary_handle	handle;
 
-	if (!p_file_is_exists (path))
+	if (!ztk_file_is_exists (path))
 		return NULL;
 
 	if (P_UNLIKELY ((handle = load_add_on (path)) == B_ERROR)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_new: load_add_on() failed");
+		P_ERROR ("PLibraryLoader::ztk_library_loader_new: load_add_on() failed");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((loader = p_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_new: failed to allocate memory");
-		pp_library_loader_clean_handle (handle);
+	if (P_UNLIKELY ((loader = ztk_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
+		P_ERROR ("PLibraryLoader::ztk_library_loader_new: failed to allocate memory");
+		pztk_library_loader_clean_handle (handle);
 		return NULL;
 	}
 
@@ -74,7 +74,7 @@ p_library_loader_new (const pchar *path)
 }
 
 P_LIB_API PFuncAddr
-p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
+ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 {
 	ppointer	location = NULL;
 	status_t	status;
@@ -86,7 +86,7 @@ p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 						    (pchar *) sym,
 						    B_SYMBOL_TYPE_ANY,
 						    &location)) != B_OK)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_get_symbol: get_image_symbol() failed");
+		P_ERROR ("PLibraryLoader::ztk_library_loader_get_symbol: get_image_symbol() failed");
 		loader->last_status = status;
 		return NULL;
 	}
@@ -97,18 +97,18 @@ p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 }
 
 P_LIB_API void
-p_library_loader_free (PLibraryLoader *loader)
+ztk_library_loader_free (PLibraryLoader *loader)
 {
 	if (P_UNLIKELY (loader == NULL))
 		return;
 
-	pp_library_loader_clean_handle (loader->handle);
+	pztk_library_loader_clean_handle (loader->handle);
 
-	p_free (loader);
+	ztk_free (loader);
 }
 
 P_LIB_API pchar *
-p_library_loader_get_last_error (PLibraryLoader *loader)
+ztk_library_loader_get_last_error (PLibraryLoader *loader)
 {
 	if (loader == NULL)
 		return NULL;
@@ -117,26 +117,26 @@ p_library_loader_get_last_error (PLibraryLoader *loader)
 		case B_OK:
 			return NULL;
 		case B_BAD_IMAGE_ID:
-			return p_strdup ("Image handler doesn't identify an existing image");
+			return ztk_strdup ("Image handler doesn't identify an existing image");
 		case B_BAD_INDEX:
-			return p_strdup ("Invalid symbol index");
+			return ztk_strdup ("Invalid symbol index");
 		default:
-			return p_strdup ("Unknown error");
+			return ztk_strdup ("Unknown error");
 	}
 }
 
 P_LIB_API pboolean
-p_library_loader_is_ref_counted (void)
+ztk_library_loader_is_ref_counted (void)
 {
 	return TRUE;
 }
 
 void
-p_library_loader_init (void)
+ztk_library_loader_init (void)
 {
 }
 
 void
-p_library_loader_shutdown (void)
+ztk_library_loader_shutdown (void)
 {
 }

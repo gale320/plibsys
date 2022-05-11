@@ -60,22 +60,22 @@ struct PTree_ {
 };
 
 P_LIB_API PTree *
-p_tree_new (PTreeType		type,
+ztk_tree_new (PTreeType		type,
 	    PCompareFunc	func)
 {
-	return p_tree_new_full (type, (PCompareDataFunc) func, NULL, NULL, NULL);
+	return ztk_tree_new_full (type, (PCompareDataFunc) func, NULL, NULL, NULL);
 }
 
 P_LIB_API PTree *
-p_tree_new_with_data (PTreeType		type,
+ztk_tree_new_with_data (PTreeType		type,
 		      PCompareDataFunc	func,
 		      ppointer		data)
 {
-	return p_tree_new_full (type, func, data, NULL, NULL);
+	return ztk_tree_new_full (type, func, data, NULL, NULL);
 }
 
 P_LIB_API PTree *
-p_tree_new_full (PTreeType		type,
+ztk_tree_new_full (PTreeType		type,
 		 PCompareDataFunc	func,
 		 ppointer		data,
 		 PDestroyFunc		key_destroy,
@@ -89,8 +89,8 @@ p_tree_new_full (PTreeType		type,
 	if (P_UNLIKELY (func == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PTree))) == NULL)) {
-		P_ERROR ("PTree::p_tree_new_full: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PTree))) == NULL)) {
+		P_ERROR ("PTree::ztk_tree_new_full: failed to allocate memory");
 		return NULL;
 	}
 
@@ -102,19 +102,19 @@ p_tree_new_full (PTreeType		type,
 
 	switch (type) {
 	case P_TREE_TYPE_BINARY:
-		ret->insert_node_func = p_tree_bst_insert;
-		ret->remove_node_func = p_tree_bst_remove;
-		ret->free_node_func   = p_tree_bst_node_free;
+		ret->insert_node_func = ztk_tree_bst_insert;
+		ret->remove_node_func = ztk_tree_bst_remove;
+		ret->free_node_func   = ztk_tree_bst_node_free;
 		break;
 	case P_TREE_TYPE_RB:
-		ret->insert_node_func = p_tree_rb_insert;
-		ret->remove_node_func = p_tree_rb_remove;
-		ret->free_node_func   = p_tree_rb_node_free;
+		ret->insert_node_func = ztk_tree_rb_insert;
+		ret->remove_node_func = ztk_tree_rb_remove;
+		ret->free_node_func   = ztk_tree_rb_node_free;
 		break;
 	case P_TREE_TYPE_AVL:
-		ret->insert_node_func = p_tree_avl_insert;
-		ret->remove_node_func = p_tree_avl_remove;
-		ret->free_node_func   = p_tree_avl_node_free;
+		ret->insert_node_func = ztk_tree_avl_insert;
+		ret->remove_node_func = ztk_tree_avl_remove;
+		ret->free_node_func   = ztk_tree_avl_node_free;
 		break;
 	}
 
@@ -122,7 +122,7 @@ p_tree_new_full (PTreeType		type,
 }
 
 P_LIB_API void
-p_tree_insert (PTree	*tree,
+ztk_tree_insert (PTree	*tree,
 	       ppointer	key,
 	       ppointer	value)
 {
@@ -144,7 +144,7 @@ p_tree_insert (PTree	*tree,
 }
 
 P_LIB_API pboolean
-p_tree_remove (PTree		*tree,
+ztk_tree_remove (PTree		*tree,
 	       pconstpointer	key)
 {
 	pboolean result;
@@ -165,11 +165,11 @@ p_tree_remove (PTree		*tree,
 }
 
 P_LIB_API ppointer
-p_tree_lookup (PTree		*tree,
+ztk_tree_lookup (PTree		*tree,
 	       pconstpointer	key)
 {
 	PTreeBaseNode	*cur_node;
-	pint		cmp_result;
+	pint		cmztk_result;
 
 	if (P_UNLIKELY (tree == NULL))
 		return NULL;
@@ -177,11 +177,11 @@ p_tree_lookup (PTree		*tree,
 	cur_node = tree->root;
 
 	while (cur_node != NULL) {
-		cmp_result = tree->compare_func (key, cur_node->key, tree->data);
+		cmztk_result = tree->compare_func (key, cur_node->key, tree->data);
 
-		if (cmp_result < 0)
+		if (cmztk_result < 0)
 			cur_node = cur_node->left;
-		else if (cmp_result > 0)
+		else if (cmztk_result > 0)
 			cur_node = cur_node->right;
 		else
 			return cur_node->value;
@@ -191,7 +191,7 @@ p_tree_lookup (PTree		*tree,
 }
 
 P_LIB_API void
-p_tree_foreach (PTree		*tree,
+ztk_tree_foreach (PTree		*tree,
 		PTraverseFunc	traverse_func,
 		ppointer	user_data)
 {
@@ -248,7 +248,7 @@ p_tree_foreach (PTree		*tree,
 }
 
 P_LIB_API void
-p_tree_clear (PTree *tree)
+ztk_tree_clear (PTree *tree)
 {
 	PTreeBaseNode	*cur_node;
 	PTreeBaseNode	*prev_node;
@@ -290,7 +290,7 @@ p_tree_clear (PTree *tree)
 }
 
 P_LIB_API PTreeType
-p_tree_get_type (const PTree *tree)
+ztk_tree_get_type (const PTree *tree)
 {
 	if (P_UNLIKELY (tree == NULL))
 		return (PTreeType) -1;
@@ -299,7 +299,7 @@ p_tree_get_type (const PTree *tree)
 }
 
 P_LIB_API pint
-p_tree_get_nnodes (const PTree *tree)
+ztk_tree_get_nnodes (const PTree *tree)
 {
 	if (P_UNLIKELY (tree == NULL))
 		return 0;
@@ -308,8 +308,8 @@ p_tree_get_nnodes (const PTree *tree)
 }
 
 P_LIB_API void
-p_tree_free (PTree *tree)
+ztk_tree_free (PTree *tree)
 {
-	p_tree_clear (tree);
-	p_free (tree);
+	ztk_tree_clear (tree);
+	ztk_free (tree);
 }

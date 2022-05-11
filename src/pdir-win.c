@@ -41,22 +41,22 @@ struct PDir_ {
 };
 
 P_LIB_API PDir *
-p_dir_new (const pchar	*path,
+ztk_dir_new (const pchar	*path,
 	   PError	**error)
 {
 	PDir	*ret;
 	pchar	*pathp;
 
 	if (P_UNLIKELY (path == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PDir))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PDir))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for directory structure");
@@ -64,11 +64,11 @@ p_dir_new (const pchar	*path,
 	}
 
 	if (P_UNLIKELY (!GetFullPathNameA (path, MAX_PATH, ret->path, NULL))) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call GetFullPathNameA() to get directory path");
-		p_free (ret);
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -85,42 +85,42 @@ p_dir_new (const pchar	*path,
 	ret->search_handle = FindFirstFileA (ret->path, &ret->find_data);
 
 	if (P_UNLIKELY (ret->search_handle == INVALID_HANDLE_VALUE)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call FindFirstFileA() to open directory stream");
-		p_free (ret);
+		ztk_free (ret);
 		return NULL;
 	}
 
 	ret->cached    = TRUE;
-	ret->orig_path = p_strdup (path);
+	ret->orig_path = ztk_strdup (path);
 
 	return ret;
 }
 
 P_LIB_API pboolean
-p_dir_create (const pchar	*path,
+ztk_dir_create (const pchar	*path,
 	      pint		mode,
 	      PError		**error)
 {
 	P_UNUSED (mode);
 
 	if (P_UNLIKELY (path == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (p_dir_is_exists (path))
+	if (ztk_dir_is_exists (path))
 		return TRUE;
 
 	if (P_UNLIKELY (CreateDirectoryA (path, NULL) == 0)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call CreateDirectoryA() to create directory");
 		return FALSE;
 	} else
@@ -128,19 +128,19 @@ p_dir_create (const pchar	*path,
 }
 
 P_LIB_API pboolean
-p_dir_remove (const pchar	*path,
+ztk_dir_remove (const pchar	*path,
 	      PError		**error)
 {
 	if (P_UNLIKELY (path == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (!p_dir_is_exists (path)) {
-		p_error_set_error_p (error,
+	if (!ztk_dir_is_exists (path)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NOT_EXISTS,
 				     0,
 				     "Specified directory doesn't exist");
@@ -148,9 +148,9 @@ p_dir_remove (const pchar	*path,
 	}
 
 	if (P_UNLIKELY (RemoveDirectoryA (path) == 0)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call RemoveDirectoryA() to remove directory");
 		return FALSE;
 	} else
@@ -158,7 +158,7 @@ p_dir_remove (const pchar	*path,
 }
 
 P_LIB_API pboolean
-p_dir_is_exists (const pchar *path)
+ztk_dir_is_exists (const pchar *path)
 {
 	DWORD	dwAttrs;
 
@@ -171,23 +171,23 @@ p_dir_is_exists (const pchar *path)
 }
 
 P_LIB_API pchar *
-p_dir_get_path (const PDir *dir)
+ztk_dir_get_path (const PDir *dir)
 {
 	if (P_UNLIKELY (dir == NULL))
 		return NULL;
 
-	return p_strdup (dir->orig_path);
+	return ztk_strdup (dir->orig_path);
 }
 
 P_LIB_API PDirEntry *
-p_dir_get_next_entry (PDir	*dir,
+ztk_dir_get_next_entry (PDir	*dir,
 		      PError	**error)
 {
 	PDirEntry	*ret;
 	DWORD		dwAttrs;
 
 	if (P_UNLIKELY (dir == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -198,7 +198,7 @@ p_dir_get_next_entry (PDir	*dir,
 		dir->cached = FALSE;
 	else {
 		if (P_UNLIKELY (dir->search_handle == INVALID_HANDLE_VALUE)) {
-			p_error_set_error_p (error,
+			ztk_error_set_error_p (error,
 					     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 					     0,
 					     "Not a valid (or closed) directory stream");
@@ -206,9 +206,9 @@ p_dir_get_next_entry (PDir	*dir,
 		}
 
 		if (P_UNLIKELY (!FindNextFileA (dir->search_handle, &dir->find_data))) {
-			p_error_set_error_p (error,
-					     (pint) p_error_get_last_io (),
-					     p_error_get_last_system (),
+			ztk_error_set_error_p (error,
+					     (pint) ztk_error_get_last_io (),
+					     ztk_error_get_last_system (),
 					     "Failed to call FindNextFileA() to read directory stream");
 			FindClose (dir->search_handle);
 			dir->search_handle = INVALID_HANDLE_VALUE;
@@ -216,15 +216,15 @@ p_dir_get_next_entry (PDir	*dir,
 		}
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PDirEntry))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PDirEntry))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for directory entry");
 		return NULL;
 	}
 
-	ret->name = p_strdup (dir->find_data.cFileName);
+	ret->name = ztk_strdup (dir->find_data.cFileName);
 
 	dwAttrs = dir->find_data.dwFileAttributes;
 
@@ -239,11 +239,11 @@ p_dir_get_next_entry (PDir	*dir,
 }
 
 P_LIB_API pboolean
-p_dir_rewind (PDir	*dir,
+ztk_dir_rewind (PDir	*dir,
 	      PError	**error)
 {
 	if (P_UNLIKELY (dir == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -252,9 +252,9 @@ p_dir_rewind (PDir	*dir,
 
 	if (dir->search_handle != INVALID_HANDLE_VALUE) {
 		if (P_UNLIKELY (FindClose (dir->search_handle) == 0)) {
-			p_error_set_error_p (error,
-					     (pint) p_error_get_last_io (),
-					     p_error_get_last_system (),
+			ztk_error_set_error_p (error,
+					     (pint) ztk_error_get_last_io (),
+					     ztk_error_get_last_system (),
 					     "Failed to call FindClose() to close directory stream");
 			return FALSE;
 		}
@@ -263,9 +263,9 @@ p_dir_rewind (PDir	*dir,
 	dir->search_handle = FindFirstFileA (dir->path, &dir->find_data);
 
 	if (P_UNLIKELY (dir->search_handle == INVALID_HANDLE_VALUE)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call FindFirstFileA() to open directory stream");
 		dir->cached = FALSE;
 		return FALSE;
@@ -276,16 +276,16 @@ p_dir_rewind (PDir	*dir,
 }
 
 P_LIB_API void
-p_dir_free (PDir *dir)
+ztk_dir_free (PDir *dir)
 {
 	if (dir == NULL)
 		return;
 
 	if (P_LIKELY (dir->search_handle != INVALID_HANDLE_VALUE)) {
 		if (P_UNLIKELY (!FindClose (dir->search_handle)))
-			P_ERROR ("PDir::p_dir_free: FindClose() failed");
+			P_ERROR ("PDir::ztk_dir_free: FindClose() failed");
 	}
 
-	p_free (dir->orig_path);
-	p_free (dir);
+	ztk_free (dir->orig_path);
+	ztk_free (dir);
 }

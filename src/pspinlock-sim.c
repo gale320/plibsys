@@ -32,18 +32,18 @@ struct PSpinLock_ {
 };
 
 P_LIB_API PSpinLock *
-p_spinlock_new (void)
+ztk_spinlock_new (void)
 {
 	PSpinLock *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PSpinLock))) == NULL)) {
-		P_ERROR ("PSpinLock::p_spinlock_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSpinLock))) == NULL)) {
+		P_ERROR ("PSpinLock::ztk_spinlock_new: failed to allocate memory");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret->mutex = p_mutex_new ()) == NULL)) {
-		P_ERROR ("PSpinLock::p_spinlock_new: p_mutex_new() failed");
-		p_free (ret);
+	if (P_UNLIKELY ((ret->mutex = ztk_mutex_new ()) == NULL)) {
+		P_ERROR ("PSpinLock::ztk_spinlock_new: ztk_mutex_new() failed");
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -51,38 +51,38 @@ p_spinlock_new (void)
 }
 
 P_LIB_API pboolean
-p_spinlock_lock (PSpinLock *spinlock)
+ztk_spinlock_lock (PSpinLock *spinlock)
 {
 	if (P_UNLIKELY (spinlock == NULL))
 		return FALSE;
 
-	return p_mutex_lock (spinlock->mutex);
+	return ztk_mutex_lock (spinlock->mutex);
 }
 
 P_LIB_API pboolean
-p_spinlock_trylock (PSpinLock *spinlock)
+ztk_spinlock_trylock (PSpinLock *spinlock)
 {
 	if (spinlock == NULL)
 		return FALSE;
 
-	return p_mutex_trylock (spinlock->mutex);
+	return ztk_mutex_trylock (spinlock->mutex);
 }
 
 P_LIB_API pboolean
-p_spinlock_unlock (PSpinLock *spinlock)
+ztk_spinlock_unlock (PSpinLock *spinlock)
 {
 	if (P_UNLIKELY (spinlock == NULL))
 		return FALSE;
 
-	return p_mutex_unlock (spinlock->mutex);
+	return ztk_mutex_unlock (spinlock->mutex);
 }
 
 P_LIB_API void
-p_spinlock_free (PSpinLock *spinlock)
+ztk_spinlock_free (PSpinLock *spinlock)
 {
 	if (P_UNLIKELY (spinlock == NULL))
 		return;
 
-	p_mutex_free (spinlock->mutex);
-	p_free (spinlock);
+	ztk_mutex_free (spinlock->mutex);
+	ztk_free (spinlock);
 }

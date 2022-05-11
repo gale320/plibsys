@@ -55,17 +55,17 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (pmain_general_test)
 {
-	p_libsys_init ();
-	p_libsys_shutdown ();
+	ztk_libsys_init ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pmain_double_test)
 {
-	p_libsys_init_full (NULL);
-	p_libsys_init ();
-	p_libsys_shutdown ();
-	p_libsys_shutdown ();
+	ztk_libsys_init_full (NULL);
+	ztk_libsys_init ();
+	ztk_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -77,28 +77,28 @@ P_TEST_CASE_BEGIN (pmain_vtable_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	p_libsys_init_full (&vtable);
+	ztk_libsys_init_full (&vtable);
 
 	alloc_counter   = 0;
 	realloc_counter = 0;
 	free_counter    = 0;
 
-	pchar *buf = (pchar *) p_malloc0 (10);
-	pchar *new_buf = (pchar *) p_realloc ((ppointer) buf, 20);
+	pchar *buf = (pchar *) ztk_malloc0 (10);
+	pchar *new_buf = (pchar *) ztk_realloc ((ppointer) buf, 20);
 
 	P_TEST_REQUIRE (new_buf != NULL);
 
 	buf = new_buf;
 
-	p_free (buf);
+	ztk_free (buf);
 
 	P_TEST_CHECK (alloc_counter > 0);
 	P_TEST_CHECK (realloc_counter > 0);
 	P_TEST_CHECK (free_counter > 0);
 
-	P_TEST_CHECK (strcmp (p_libsys_version (), PLIBSYS_VERSION_STR) == 0);
+	P_TEST_CHECK (strcmp (ztk_libsys_version (), PLIBSYS_VERSION_STR) == 0);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

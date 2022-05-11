@@ -29,12 +29,12 @@
 #include <stdlib.h>
 
 P_LIB_API PList *
-p_list_append (PList *list, ppointer data)
+ztk_list_append (PList *list, ppointer data)
 {
 	PList *item, *cur;
 
-	if (P_UNLIKELY ((item = p_malloc0 (sizeof (PList))) == NULL)) {
-		P_ERROR ("PList::p_list_append: failed to allocate memory");
+	if (P_UNLIKELY ((item = ztk_malloc0 (sizeof (PList))) == NULL)) {
+		P_ERROR ("PList::ztk_list_append: failed to allocate memory");
 		return list;
 	}
 
@@ -52,7 +52,7 @@ p_list_append (PList *list, ppointer data)
 }
 
 P_LIB_API PList *
-p_list_remove (PList *list, ppointer data)
+ztk_list_remove (PList *list, ppointer data)
 {
 	PList *cur, *prev, *head;
 
@@ -66,7 +66,7 @@ p_list_remove (PList *list, ppointer data)
 			else
 				prev->next = cur->next;
 
-			p_free (cur);
+			ztk_free (cur);
 
 			break;
 		}
@@ -76,7 +76,7 @@ p_list_remove (PList *list, ppointer data)
 }
 
 P_LIB_API void
-p_list_foreach (PList *list, PFunc func, ppointer user_data)
+ztk_list_foreach (PList *list, PFunc func, ppointer user_data)
 {
 	PList *cur;
 
@@ -88,7 +88,7 @@ p_list_foreach (PList *list, PFunc func, ppointer user_data)
 }
 
 P_LIB_API void
-p_list_free (PList *list)
+ztk_list_free (PList *list)
 {
 	PList *cur, *next;
 
@@ -97,12 +97,12 @@ p_list_free (PList *list)
 
 	for (next = cur = list; cur != NULL && next != NULL; cur = next)  {
 		next = cur->next;
-		p_free (cur);
+		ztk_free (cur);
 	}
 }
 
 P_LIB_API PList *
-p_list_last (PList *list)
+ztk_list_last (PList *list)
 {
 	PList *cur;
 
@@ -116,7 +116,7 @@ p_list_last (PList *list)
 }
 
 P_LIB_API psize
-p_list_length (const PList *list)
+ztk_list_length (const PList *list)
 {
 	const PList	*cur;
 	psize		ret;
@@ -131,12 +131,12 @@ p_list_length (const PList *list)
 }
 
 P_LIB_API PList *
-p_list_prepend	(PList *list, ppointer data)
+ztk_list_prepend	(PList *list, ppointer data)
 {
 	PList *item;
 
-	if (P_UNLIKELY ((item = p_malloc0 (sizeof (PList))) == NULL)) {
-		P_ERROR ("PList::p_list_prepend: failed to allocate memory");
+	if (P_UNLIKELY ((item = ztk_malloc0 (sizeof (PList))) == NULL)) {
+		P_ERROR ("PList::ztk_list_prepend: failed to allocate memory");
 		return list;
 	}
 
@@ -152,7 +152,7 @@ p_list_prepend	(PList *list, ppointer data)
 }
 
 P_LIB_API PList *
-p_list_reverse	(PList *list)
+ztk_list_reverse	(PList *list)
 {
 	PList *prev, *cur, *tmp;
 

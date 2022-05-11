@@ -37,22 +37,22 @@
 typedef puint64 (WINAPI * PWin32TicksFunc) (void);
 typedef puint64 (* PWin32ElapsedFunc) (puint64 last_counter);
 
-static PWin32TicksFunc   pp_time_profiler_ticks_func   = NULL;
-static PWin32ElapsedFunc pp_time_profiler_elapsed_func = NULL;
-static puint64           pp_time_profiler_freq         = 1;
+static PWin32TicksFunc   pztk_time_profiler_ticks_func   = NULL;
+static PWin32ElapsedFunc pztk_time_profiler_elapsed_func = NULL;
+static puint64           pztk_time_profiler_freq         = 1;
 
-static puint64 WINAPI pp_time_profiler_get_hr_ticks (void);
-static puint64 pp_time_profiler_elapsed_hr (puint64 last_counter);
-static puint64 pp_time_profiler_elapsed_tick64 (puint64 last_counter);
-static puint64 pp_time_profiler_elapsed_tick (puint64 last_counter);
+static puint64 WINAPI pztk_time_profiler_get_hr_ticks (void);
+static puint64 pztk_time_profiler_elapsed_hr (puint64 last_counter);
+static puint64 pztk_time_profiler_elapsed_tick64 (puint64 last_counter);
+static puint64 pztk_time_profiler_elapsed_tick (puint64 last_counter);
 
 static puint64 WINAPI
-pp_time_profiler_get_hr_ticks (void)
+pztk_time_profiler_get_hr_ticks (void)
 {
 	LARGE_INTEGER tcounter;
 
 	if (P_UNLIKELY (QueryPerformanceCounter (&tcounter) == FALSE)) {
-		P_ERROR ("PTimeProfiler::pp_time_profiler_get_hr_ticks: QueryPerformanceCounter() failed");
+		P_ERROR ("PTimeProfiler::pztk_time_profiler_get_hr_ticks: QueryPerformanceCounter() failed");
 		tcounter.QuadPart = 0;
 	}
 
@@ -60,7 +60,7 @@ pp_time_profiler_get_hr_ticks (void)
 }
 
 static puint64
-pp_time_profiler_elapsed_hr (puint64 last_counter)
+pztk_time_profiler_elapsed_hr (puint64 last_counter)
 {
 	puint64	ticks;
 #ifdef PLIBSYS_HAS_LLDIV
@@ -69,35 +69,35 @@ pp_time_profiler_elapsed_hr (puint64 last_counter)
 	puint64	quot;
 	puint64	rem;
 
-	ticks = pp_time_profiler_ticks_func () - last_counter;
+	ticks = pztk_time_profiler_ticks_func () - last_counter;
 
 #ifdef PLIBSYS_HAS_LLDIV
-	ldres = lldiv ((long long) ticks, (long long) pp_time_profiler_freq);
+	ldres = lldiv ((long long) ticks, (long long) pztk_time_profiler_freq);
 
 	quot = ldres.quot;
 	rem  = ldres.rem;
 #else
-	quot = ticks / pp_time_profiler_freq;
-	rem  = ticks % pp_time_profiler_freq;
+	quot = ticks / pztk_time_profiler_freq;
+	rem  = ticks % pztk_time_profiler_freq;
 #endif
 
-	return (puint64) (quot * 1000000 + (rem * 1000000) / pp_time_profiler_freq);
+	return (puint64) (quot * 1000000 + (rem * 1000000) / pztk_time_profiler_freq);
 }
 
 static puint64
-pp_time_profiler_elapsed_tick64 (puint64 last_counter)
+pztk_time_profiler_elapsed_tick64 (puint64 last_counter)
 {
-	return (pp_time_profiler_ticks_func () - last_counter) * 1000;
+	return (pztk_time_profiler_ticks_func () - last_counter) * 1000;
 }
 
 static puint64
-pp_time_profiler_elapsed_tick (puint64 last_counter)
+pztk_time_profiler_elapsed_tick (puint64 last_counter)
 {
 	puint64 val;
 	puint64 high_bit;
 
 	high_bit = 0;
-	val      = pp_time_profiler_ticks_func ();
+	val      = pztk_time_profiler_ticks_func ();
 
 	if (P_UNLIKELY (val < last_counter))
 		high_bit = 1;
@@ -106,19 +106,19 @@ pp_time_profiler_elapsed_tick (puint64 last_counter)
 }
 
 puint64
-p_time_profiler_get_ticks_internal ()
+ztk_time_profiler_get_ticks_internal ()
 {
-	return pp_time_profiler_ticks_func ();
+	return pztk_time_profiler_ticks_func ();
 }
 
 puint64
-p_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
+ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 {
-	return pp_time_profiler_elapsed_func (profiler->counter);
+	return pztk_time_profiler_elapsed_func (profiler->counter);
 }
 
 void
-p_time_profiler_init (void)
+ztk_time_profiler_init (void)
 {
 	LARGE_INTEGER	tcounter;
 	HMODULE		hmodule;
@@ -128,12 +128,12 @@ p_time_profiler_init (void)
 
 	if (has_qpc == TRUE) {
 		if (P_UNLIKELY (QueryPerformanceFrequency (&tcounter) == 0)) {
-			P_ERROR ("PTimeProfiler::p_time_profiler_init: QueryPerformanceFrequency() failed");
+			P_ERROR ("PTimeProfiler::ztk_time_profiler_init: QueryPerformanceFrequency() failed");
 			has_qpc = FALSE;
 		} else {
-			pp_time_profiler_freq         = (puint64) (tcounter.QuadPart);
-			pp_time_profiler_ticks_func   = (PWin32TicksFunc) pp_time_profiler_get_hr_ticks;
-			pp_time_profiler_elapsed_func = (PWin32ElapsedFunc) pp_time_profiler_elapsed_hr;
+			pztk_time_profiler_freq         = (puint64) (tcounter.QuadPart);
+			pztk_time_profiler_ticks_func   = (PWin32TicksFunc) pztk_time_profiler_get_hr_ticks;
+			pztk_time_profiler_elapsed_func = (PWin32ElapsedFunc) pztk_time_profiler_elapsed_hr;
 		}
 	}
 
@@ -141,29 +141,29 @@ p_time_profiler_init (void)
 		hmodule = GetModuleHandleA ("kernel32.dll");
 
 		if (P_UNLIKELY (hmodule == NULL)) {
-			P_ERROR ("PTimeProfiler::p_time_profiler_init: failed to load kernel32.dll module");
+			P_ERROR ("PTimeProfiler::ztk_time_profiler_init: failed to load kernel32.dll module");
 			return;
 		}
 
-		pp_time_profiler_ticks_func   = (PWin32TicksFunc) GetProcAddress (hmodule, "GetTickCount64");
-		pp_time_profiler_elapsed_func = (PWin32ElapsedFunc) pp_time_profiler_elapsed_tick64;
+		pztk_time_profiler_ticks_func   = (PWin32TicksFunc) GetProcAddress (hmodule, "GetTickCount64");
+		pztk_time_profiler_elapsed_func = (PWin32ElapsedFunc) pztk_time_profiler_elapsed_tick64;
 
-		if (P_UNLIKELY (pp_time_profiler_ticks_func == NULL)) {
-			pp_time_profiler_ticks_func   = (PWin32TicksFunc) GetProcAddress (hmodule, "GetTickCount");
-			pp_time_profiler_elapsed_func = (PWin32ElapsedFunc) pp_time_profiler_elapsed_tick;
+		if (P_UNLIKELY (pztk_time_profiler_ticks_func == NULL)) {
+			pztk_time_profiler_ticks_func   = (PWin32TicksFunc) GetProcAddress (hmodule, "GetTickCount");
+			pztk_time_profiler_elapsed_func = (PWin32ElapsedFunc) pztk_time_profiler_elapsed_tick;
 		}
 
-		if (P_UNLIKELY (pp_time_profiler_ticks_func == NULL)) {
-			P_ERROR ("PTimeProfiler::p_time_profiler_init: no reliable tick counter");
-			pp_time_profiler_elapsed_func = NULL;
+		if (P_UNLIKELY (pztk_time_profiler_ticks_func == NULL)) {
+			P_ERROR ("PTimeProfiler::ztk_time_profiler_init: no reliable tick counter");
+			pztk_time_profiler_elapsed_func = NULL;
 		}
 	}
 }
 
 void
-p_time_profiler_shutdown (void)
+ztk_time_profiler_shutdown (void)
 {
-	pp_time_profiler_freq         = 1;
-	pp_time_profiler_ticks_func   = NULL;
-	pp_time_profiler_elapsed_func = NULL;
+	pztk_time_profiler_freq         = 1;
+	pztk_time_profiler_ticks_func   = NULL;
+	pztk_time_profiler_elapsed_func = NULL;
 }

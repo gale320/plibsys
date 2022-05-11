@@ -42,25 +42,25 @@
 
 #if !defined (P_OS_WIN) && !defined (P_OS_OS2) && !defined (P_OS_AMIGA)
 pchar *
-p_ipc_unix_get_temp_dir (void)
+ztk_ipc_unix_get_temztk_dir (void)
 {
 	pchar	*str, *ret;
 	psize	len;
 
 #ifdef P_tmpdir
 	if (strlen (P_tmpdir) > 0)
-		str = p_strdup (P_tmpdir);
+		str = ztk_strdup (P_tmpdir);
 	else
-		return p_strdup ("/tmp/");
+		return ztk_strdup ("/tmp/");
 #else
-	const pchar *tmp_env;
+	const pchar *tmztk_env;
 
-	tmp_env = getenv ("TMPDIR");
+	tmztk_env = getenv ("TMPDIR");
 
-	if (tmp_env != NULL)
-		str = p_strdup (tmp_env);
+	if (tmztk_env != NULL)
+		str = ztk_strdup (tmztk_env);
 	else
-		return p_strdup ("/tmp/");
+		return ztk_strdup ("/tmp/");
 #endif /* P_tmpdir */
 
 	/* Now we need to ensure that we have only the one trailing slash */
@@ -70,8 +70,8 @@ p_ipc_unix_get_temp_dir (void)
 	*(str + ++len) = '\0';
 
 	/* len + / + zero symbol */
-	if (P_UNLIKELY ((ret = p_malloc0 (len + 2)) == NULL)) {
-		p_free (str);
+	if (P_UNLIKELY ((ret = ztk_malloc0 (len + 2)) == NULL)) {
+		ztk_free (str);
 		return NULL;
 	}
 
@@ -84,7 +84,7 @@ p_ipc_unix_get_temp_dir (void)
 /* Create file for System V IPC, if needed
  * Returns: -1 = error, 0 = file successfully created, 1 = file already exists */
 pint
-p_ipc_unix_create_key_file (const pchar *file_name)
+ztk_ipc_unix_create_key_file (const pchar *file_name)
 {
 	pint fd;
 
@@ -95,11 +95,11 @@ p_ipc_unix_create_key_file (const pchar *file_name)
 		/* file already exists */
 		return (errno == EEXIST) ? 1 : -1;
 	else
-		return p_sys_close (fd);
+		return ztk_sys_close (fd);
 }
 
 pint
-p_ipc_unix_get_ftok_key (const pchar *file_name)
+ztk_ipc_unix_get_ftok_key (const pchar *file_name)
 {
 	struct stat st_info;
 
@@ -116,7 +116,7 @@ p_ipc_unix_get_ftok_key (const pchar *file_name)
 /* Returns a platform-independent key for IPC usage, object name for Windows and
  * a file name to use with ftok () for UNIX-like systems */
 pchar *
-p_ipc_get_platform_key (const pchar *name, pboolean posix)
+ztk_ipc_get_platform_key (const pchar *name, pboolean posix)
 {
 	PCryptoHash	*sha1;
 	pchar		*hash_str;
@@ -124,19 +124,19 @@ p_ipc_get_platform_key (const pchar *name, pboolean posix)
 #if defined (P_OS_WIN) || defined (P_OS_OS2) || defined (P_OS_AMIGA)
 	P_UNUSED (posix);
 #else
-	pchar		*path_name, *tmp_path;
+	pchar		*path_name, *tmztk_path;
 #endif
 
 	if (P_UNLIKELY (name == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((sha1 = p_crypto_hash_new (P_CRYPTO_HASH_TYPE_SHA1)) == NULL))
+	if (P_UNLIKELY ((sha1 = ztk_crypto_hash_new (P_CRYPTO_HASH_TYPE_SHA1)) == NULL))
 		return NULL;
 
-	p_crypto_hash_update (sha1, (const puchar *) name, strlen (name));
+	ztk_crypto_hash_update (sha1, (const puchar *) name, strlen (name));
 
-	hash_str = p_crypto_hash_get_string (sha1);
-	p_crypto_hash_free (sha1);
+	hash_str = ztk_crypto_hash_get_string (sha1);
+	ztk_crypto_hash_free (sha1);
 
 	if (P_UNLIKELY (hash_str == NULL))
 		return NULL;
@@ -148,31 +148,31 @@ p_ipc_get_platform_key (const pchar *name, pboolean posix)
 		/* POSIX semaphores which are named kinda like '/semname'.
 		 * Some implementations of POSIX semaphores has restriction for
 		 * the name as of max 14 characters, best to use this limit */
-		if (P_UNLIKELY ((path_name = p_malloc0 (15)) == NULL)) {
-			p_free (hash_str);
+		if (P_UNLIKELY ((path_name = ztk_malloc0 (15)) == NULL)) {
+			ztk_free (hash_str);
 			return NULL;
 		}
 
 		strcpy (path_name, "/");
 		strncat (path_name, hash_str, 13);
 	} else {
-		tmp_path = p_ipc_unix_get_temp_dir ();
+		tmztk_path = ztk_ipc_unix_get_temztk_dir ();
 
 		/* tmp dir + filename + zero symbol */
-		path_name = p_malloc0 (strlen (tmp_path) + strlen (hash_str) + 1);
+		path_name = ztk_malloc0 (strlen (tmztk_path) + strlen (hash_str) + 1);
 
 		if (P_UNLIKELY ((path_name) == NULL)) {
-			p_free (tmp_path);
-			p_free (hash_str);
+			ztk_free (tmztk_path);
+			ztk_free (hash_str);
 			return NULL;
 		}
 
-		strcpy (path_name, tmp_path);
+		strcpy (path_name, tmztk_path);
 		strcat (path_name, hash_str);
-		p_free (tmp_path);
+		ztk_free (tmztk_path);
 	}
 
-	p_free (hash_str);
+	ztk_free (hash_str);
 	return path_name;
 #endif
 }

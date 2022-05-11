@@ -45,18 +45,18 @@ struct PCondVariable_ {
 };
 
 P_LIB_API PCondVariable *
-p_cond_variable_new (void)
+ztk_cond_variable_new (void)
 {
 	PCondVariable *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PCondVariable))) == NULL)) {
-		P_ERROR ("PCondVariable::p_cond_variable_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PCondVariable))) == NULL)) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_new: failed to allocate memory");
 		return NULL;
 	}
 
-	if ((ret->lock = p_spinlock_new ()) == NULL) {
-		P_ERROR ("PCondVariable::p_cond_variable_new: failed to initialize");
-		p_free (ret);
+	if ((ret->lock = ztk_spinlock_new ()) == NULL) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_new: failed to initialize");
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -64,20 +64,20 @@ p_cond_variable_new (void)
 }
 
 P_LIB_API void
-p_cond_variable_free (PCondVariable *cond)
+ztk_cond_variable_free (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return;
 
 	if ((cond->wait_count > 0) || (cond->wait_head != NULL))
-		P_WARNING ("PCondVariable::p_cond_variable_free: destroying while threads are waiting");
+		P_WARNING ("PCondVariable::ztk_cond_variable_free: destroying while threads are waiting");
 
-	p_spinlock_free (cond->lock);
-	p_free (cond);
+	ztk_spinlock_free (cond->lock);
+	ztk_free (cond);
 }
 
 P_LIB_API pboolean
-p_cond_variable_wait (PCondVariable	*cond,
+ztk_cond_variable_wait (PCondVariable	*cond,
 		      PMutex		*mutex)
 {
 	PCondThread	*wait_thread;
@@ -87,8 +87,8 @@ p_cond_variable_wait (PCondVariable	*cond,
 	if (P_UNLIKELY (cond == NULL || mutex == NULL))
 		return FALSE;
 
-	if ((wait_thread = p_malloc0 (sizeof (PCondThread))) == NULL) {
-		P_ERROR ("PCondVariable::p_cond_variable_wait: failed to allocate memory");
+	if ((wait_thread = ztk_malloc0 (sizeof (PCondThread))) == NULL) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_wait: failed to allocate memory");
 		return FALSE;
 	}
 
@@ -98,14 +98,14 @@ p_cond_variable_wait (PCondVariable	*cond,
 	signal = IExec->AllocSignal (-1);
 	
 	if (signal == -1) {
-		P_WARNING ("PCondVariable::p_cond_variable_wait: no free signal slot left");
+		P_WARNING ("PCondVariable::ztk_cond_variable_wait: no free signal slot left");
 		return FALSE;
 	}
 
 	wait_thread->sigmask = 1 << signal;
 
-	if (p_spinlock_lock (cond->lock) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_wait: failed to lock internal spinlock");
+	if (ztk_spinlock_lock (cond->lock) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_wait: failed to lock internal spinlock");
 		return FALSE;
 	}
 
@@ -114,22 +114,22 @@ p_cond_variable_wait (PCondVariable	*cond,
 	else
 		cond->wait_head = wait_thread;
 
-	p_atomic_int_inc ((volatile pint *) &cond->wait_count);
+	ztk_atomic_int_inc ((volatile pint *) &cond->wait_count);
 	
-	if (p_spinlock_unlock (cond->lock) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_wait: failed to unlock internal spinlock");
+	if (ztk_spinlock_unlock (cond->lock) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_wait: failed to unlock internal spinlock");
 		return FALSE;
 	}
 
-	if (p_mutex_unlock (mutex) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_wait: failed to unlock mutex");
+	if (ztk_mutex_unlock (mutex) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_wait: failed to unlock mutex");
 		return FALSE;
 	}
 
 	wait_singnals = IExec->Wait (wait_thread->sigmask);
 
-	if (p_mutex_lock (mutex) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_wait: failed to lock mutex");
+	if (ztk_mutex_lock (mutex) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_wait: failed to lock mutex");
 		return FALSE;
 	}
 
@@ -139,21 +139,21 @@ p_cond_variable_wait (PCondVariable	*cond,
 }
 
 P_LIB_API pboolean
-p_cond_variable_signal (PCondVariable *cond)
+ztk_cond_variable_signal (PCondVariable *cond)
 {
 	PCondThread	*wait_thread;
 
 	if (P_UNLIKELY (cond == NULL))
 		return FALSE;
 
-	if (p_spinlock_lock (cond->lock) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_signal: failed to lock internal spinlock");
+	if (ztk_spinlock_lock (cond->lock) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_signal: failed to lock internal spinlock");
 		return FALSE;
 	}
 
 	if (cond->wait_head == NULL) {
-		if (p_spinlock_unlock (cond->lock) != TRUE) {
-			P_ERROR ("PCondVariable::p_cond_variable_signal(1): failed to unlock internal spinlock");
+		if (ztk_spinlock_unlock (cond->lock) != TRUE) {
+			P_ERROR ("PCondVariable::ztk_cond_variable_signal(1): failed to unlock internal spinlock");
 			return FALSE;
 		} else
 			return TRUE;
@@ -162,21 +162,21 @@ p_cond_variable_signal (PCondVariable *cond)
 	wait_thread = cond->wait_head;
 	cond->wait_head = wait_thread->next;
 
-	p_atomic_int_add ((volatile pint *) &cond->wait_count, -1);
+	ztk_atomic_int_add ((volatile pint *) &cond->wait_count, -1);
 
-	if (p_spinlock_unlock (cond->lock) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_signal(2): failed to unlock internal spinlock");
+	if (ztk_spinlock_unlock (cond->lock) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_signal(2): failed to unlock internal spinlock");
 		return FALSE;
 	}
 
 	IExec->Signal (wait_thread->thread, wait_thread->sigmask);
 
-	p_free (wait_thread);
+	ztk_free (wait_thread);
 	return TRUE;
 }
 
 P_LIB_API pboolean
-p_cond_variable_broadcast (PCondVariable *cond)
+ztk_cond_variable_broadcast (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return FALSE;
@@ -184,14 +184,14 @@ p_cond_variable_broadcast (PCondVariable *cond)
 	PCondThread	*cur_thread;
 	PCondThread	*next_thread;
 
-	if (p_spinlock_lock (cond->lock) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_broadcast: failed to lock internal spinlock");
+	if (ztk_spinlock_lock (cond->lock) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_broadcast: failed to lock internal spinlock");
 		return FALSE;
 	}
 
 	if (cond->wait_head == NULL) {
-		if (p_spinlock_unlock (cond->lock) != TRUE) {
-			P_ERROR ("PCondVariable::p_cond_variable_broadcast(1): failed to unlock internal spinlock");
+		if (ztk_spinlock_unlock (cond->lock) != TRUE) {
+			P_ERROR ("PCondVariable::ztk_cond_variable_broadcast(1): failed to unlock internal spinlock");
 			return FALSE;
 		} else
 			return TRUE;
@@ -203,7 +203,7 @@ p_cond_variable_broadcast (PCondVariable *cond)
 		IExec->Signal (cur_thread->thread, cur_thread->sigmask);
 
 		next_thread = cur_thread->next;
-		p_free (cur_thread);
+		ztk_free (cur_thread);
 
 		cur_thread = next_thread;
 	} while (cur_thread != NULL);
@@ -211,8 +211,8 @@ p_cond_variable_broadcast (PCondVariable *cond)
 	cond->wait_head  = NULL;
 	cond->wait_count = 0;
 
-	if (p_spinlock_unlock (cond->lock) != TRUE) {
-		P_ERROR ("PCondVariable::p_cond_variable_broadcast(2): failed to unlock internal spinlock");
+	if (ztk_spinlock_unlock (cond->lock) != TRUE) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_broadcast(2): failed to unlock internal spinlock");
 		return FALSE;
 	}
 
@@ -220,11 +220,11 @@ p_cond_variable_broadcast (PCondVariable *cond)
 }
 
 void
-p_cond_variable_init (void)
+ztk_cond_variable_init (void)
 {
 }
 
 void
-p_cond_variable_shutdown (void)
+ztk_cond_variable_shutdown (void)
 {
 }

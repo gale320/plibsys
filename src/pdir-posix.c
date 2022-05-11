@@ -63,7 +63,7 @@ struct PDir_ {
 };
 
 P_LIB_API PDir *
-p_dir_new (const pchar	*path,
+ztk_dir_new (const pchar	*path,
 	   PError	**error)
 {
 	PDir	*ret;
@@ -71,7 +71,7 @@ p_dir_new (const pchar	*path,
 	pchar	*pathp;
 
 	if (P_UNLIKELY (path == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -79,15 +79,15 @@ p_dir_new (const pchar	*path,
 	}
 
 	if (P_UNLIKELY ((dir = opendir (path)) == NULL)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call opendir() to open directory stream");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PDir))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PDir))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for directory structure");
@@ -96,8 +96,8 @@ p_dir_new (const pchar	*path,
 	}
 
 	ret->dir       = dir;
-	ret->path      = p_strdup (path);
-	ret->orig_path = p_strdup (path);
+	ret->path      = ztk_strdup (path);
+	ret->orig_path = ztk_strdup (path);
 
 	pathp = ret->path + strlen (ret->path) - 1;
 
@@ -108,25 +108,25 @@ p_dir_new (const pchar	*path,
 }
 
 P_LIB_API pboolean
-p_dir_create (const pchar	*path,
+ztk_dir_create (const pchar	*path,
 	      pint		mode,
 	      PError		**error)
 {
 	if (P_UNLIKELY (path == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (p_dir_is_exists (path))
+	if (ztk_dir_is_exists (path))
 		return TRUE;
 
 	if (P_UNLIKELY (mkdir (path, (mode_t) mode) != 0)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call mkdir() to create directory");
 		return FALSE;
 	} else
@@ -134,19 +134,19 @@ p_dir_create (const pchar	*path,
 }
 
 P_LIB_API pboolean
-p_dir_remove (const pchar	*path,
+ztk_dir_remove (const pchar	*path,
 	      PError		**error)
 {
 	if (P_UNLIKELY (path == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (!p_dir_is_exists (path)) {
-		p_error_set_error_p (error,
+	if (!ztk_dir_is_exists (path)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NOT_EXISTS,
 				     0,
 				     "Specified directory doesn't exist");
@@ -154,9 +154,9 @@ p_dir_remove (const pchar	*path,
 	}
 
 	if (P_UNLIKELY (rmdir (path) != 0)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call rmdir() to remove directory");
 		return FALSE;
 	} else
@@ -164,7 +164,7 @@ p_dir_remove (const pchar	*path,
 }
 
 P_LIB_API pboolean
-p_dir_is_exists (const pchar *path)
+ztk_dir_is_exists (const pchar *path)
 {
 	struct stat sb;
 
@@ -175,16 +175,16 @@ p_dir_is_exists (const pchar *path)
 }
 
 P_LIB_API pchar *
-p_dir_get_path (const PDir *dir)
+ztk_dir_get_path (const PDir *dir)
 {
 	if (P_UNLIKELY (dir == NULL))
 		return NULL;
 
-	return p_strdup (dir->orig_path);
+	return ztk_strdup (dir->orig_path);
 }
 
 P_LIB_API PDirEntry *
-p_dir_get_next_entry (PDir	*dir,
+ztk_dir_get_next_entry (PDir	*dir,
 		      PError	**error)
 {
 	PDirEntry	*ret;
@@ -201,7 +201,7 @@ p_dir_get_next_entry (PDir	*dir,
 #endif
 
 	if (P_UNLIKELY (dir == NULL || dir->dir == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -215,10 +215,10 @@ p_dir_get_next_entry (PDir	*dir,
 	name_max = (pint) pathconf (dir->orig_path, _PC_NAME_MAX);
 
 	if (name_max == -1) {
-		if (p_error_get_last_system () == 0)
+		if (ztk_error_get_last_system () == 0)
 			name_max = _POSIX_PATH_MAX;
 		else {
-			p_error_set_error_p (error,
+			ztk_error_set_error_p (error,
 					     (pint) P_ERROR_IO_FAILED,
 					     0,
 					     "Failed to get NAME_MAX using pathconf()");
@@ -229,8 +229,8 @@ p_dir_get_next_entry (PDir	*dir,
 	name_max = (pint) (NAME_MAX);
 #  endif
 
-	if (P_UNLIKELY ((dirent_st = p_malloc0 (sizeof (struct dirent) + name_max + 1)) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((dirent_st = ztk_malloc0 (sizeof (struct dirent) + name_max + 1)) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for internal directory entry");
@@ -238,46 +238,46 @@ p_dir_get_next_entry (PDir	*dir,
 	}
 
 #  ifdef P_DIR_NEED_SIMPLE_R
-	p_error_set_last_system (0);
+	ztk_error_set_last_system (0);
 
 	if ((dir->dir_result = readdir_r (dir->dir, dirent_st)) == NULL) {
-		if (P_UNLIKELY (p_error_get_last_system () != 0)) {
-			p_error_set_error_p (error,
-					     (pint) p_error_get_last_io (),
-					     p_error_get_last_system (),
+		if (P_UNLIKELY (ztk_error_get_last_system () != 0)) {
+			ztk_error_set_error_p (error,
+					     (pint) ztk_error_get_last_io (),
+					     ztk_error_get_last_system (),
 					     "Failed to call readdir_r() to read directory stream");
-			p_free (dirent_st);
+			ztk_free (dirent_st);
 			return NULL;
 		}
 	}
 #  else
 	if (P_UNLIKELY (readdir_r (dir->dir, dirent_st, &dir->dir_result) != 0)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call readdir_r() to read directory stream");
-		p_free (dirent_st);
+		ztk_free (dirent_st);
 		return NULL;
 	}
 #  endif
 #else
 #  ifdef P_DIR_NON_REENTRANT
-	p_error_set_last_system (0);
+	ztk_error_set_last_system (0);
 
 	if ((dir->dir_result = readdir (dir->dir)) == NULL) {
-		if (P_UNLIKELY (p_error_get_last_system () != 0)) {
-			p_error_set_error_p (error,
-					     (pint) p_error_get_last_io (),
-					     p_error_get_last_system (),
+		if (P_UNLIKELY (ztk_error_get_last_system () != 0)) {
+			ztk_error_set_error_p (error,
+					     (pint) ztk_error_get_last_io (),
+					     ztk_error_get_last_system (),
 					     "Failed to call readdir() to read directory stream");
 			return NULL;
 		}
 	}
 #  else
 	if (P_UNLIKELY (readdir_r (dir->dir, &dirent_st, &dir->dir_result) != 0)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_io (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_io (),
+				     ztk_error_get_last_system (),
 				     "Failed to call readdir_r() to read directory stream");
 		return NULL;
 	}
@@ -286,37 +286,37 @@ p_dir_get_next_entry (PDir	*dir,
 
 	if (dir->dir_result == NULL) {
 #ifdef P_DIR_NEED_BUF_ALLOC
-		p_free (dirent_st);
+		ztk_free (dirent_st);
 #endif
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PDirEntry))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PDirEntry))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for directory entry");
 #ifdef P_DIR_NEED_BUF_ALLOC
-		p_free (dirent_st);
+		ztk_free (dirent_st);
 #endif
 		return NULL;
 	}
 
 #ifdef P_DIR_NEED_BUF_ALLOC
-	ret->name = p_strdup (dirent_st->d_name);
-	p_free (dirent_st);
+	ret->name = ztk_strdup (dirent_st->d_name);
+	ztk_free (dirent_st);
 #else
 #  ifdef P_DIR_NON_REENTRANT
-	ret->name = p_strdup (dir->dir_result->d_name);
+	ret->name = ztk_strdup (dir->dir_result->d_name);
 #  else
-	ret->name = p_strdup (dirent_st.d_name);
+	ret->name = ztk_strdup (dirent_st.d_name);
 #  endif
 #endif
 
 	path_len = strlen (dir->path);
 
-	if (P_UNLIKELY ((entry_path = p_malloc0 (path_len + strlen (ret->name) + 2)) == NULL)) {
-		P_WARNING ("PDir::p_dir_get_next_entry: failed to allocate memory for stat()");
+	if (P_UNLIKELY ((entry_path = ztk_malloc0 (path_len + strlen (ret->name) + 2)) == NULL)) {
+		P_WARNING ("PDir::ztk_dir_get_next_entry: failed to allocate memory for stat()");
 		ret->type = P_DIR_ENTRY_TYPE_OTHER;
 		return ret;
 	}
@@ -326,13 +326,13 @@ p_dir_get_next_entry (PDir	*dir,
 	strcat (entry_path + path_len + 1, ret->name);
 
 	if (P_UNLIKELY (stat (entry_path, &sb) != 0)) {
-		P_WARNING ("PDir::p_dir_get_next_entry: stat() failed");
+		P_WARNING ("PDir::ztk_dir_get_next_entry: stat() failed");
 		ret->type = P_DIR_ENTRY_TYPE_OTHER;
-		p_free (entry_path);
+		ztk_free (entry_path);
 		return ret;
 	}
 
-	p_free (entry_path);
+	ztk_free (entry_path);
 
 	if (S_ISDIR (sb.st_mode))
 		ret->type = P_DIR_ENTRY_TYPE_DIR;
@@ -345,11 +345,11 @@ p_dir_get_next_entry (PDir	*dir,
 }
 
 P_LIB_API pboolean
-p_dir_rewind (PDir	*dir,
+ztk_dir_rewind (PDir	*dir,
 	      PError	**error)
 {
 	if (P_UNLIKELY (dir == NULL || dir->dir == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -362,17 +362,17 @@ p_dir_rewind (PDir	*dir,
 }
 
 P_LIB_API void
-p_dir_free (PDir *dir)
+ztk_dir_free (PDir *dir)
 {
 	if (P_UNLIKELY (dir == NULL))
 		return;
 
 	if (P_LIKELY (dir->dir != NULL)) {
 		if (P_UNLIKELY (closedir (dir->dir) != 0))
-			P_ERROR ("PDir::p_dir_free: closedir() failed");
+			P_ERROR ("PDir::ztk_dir_free: closedir() failed");
 	}
 
-	p_free (dir->path);
-	p_free (dir->orig_path);
-	p_free (dir);
+	ztk_free (dir->path);
+	ztk_free (dir->orig_path);
+	ztk_free (dir);
 }

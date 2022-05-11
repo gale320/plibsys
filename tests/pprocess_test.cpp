@@ -32,13 +32,13 @@ P_TEST_CASE_BEGIN (pprocess_general_test)
 {
 	puint32	pid;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	pid = p_process_get_current_pid ();
+	pid = ztk_process_get_current_pid ();
 	P_TEST_CHECK (pid > 0);
-	P_TEST_REQUIRE (p_process_is_running (pid) == TRUE);
+	P_TEST_REQUIRE (ztk_process_is_running (pid) == TRUE);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

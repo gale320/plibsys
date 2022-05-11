@@ -40,8 +40,8 @@
  * are working with large data sets.
  *
  * Before the first usage you must initialize a #PList variable to NULL. After
- * that you can use the p_list_append(), p_list_prepend(), p_list_remove() and
- * p_list_reverse() routines to update that variable:
+ * that you can use the ztk_list_append(), ztk_list_prepend(), ztk_list_remove() and
+ * ztk_list_reverse() routines to update that variable:
  * @code
  * PList       *list;
  * ppointer    data;
@@ -49,17 +49,17 @@
  * list = NULL;
  * data = my_obj_new ();
  *
- * list = p_list_append (list, data);
+ * list = ztk_list_append (list, data);
  * @endcode
  * #PList stores only the pointers to the data, so you must free used memory
- * manually, p_list_free() only frees list's internal memory, not the data it
+ * manually, ztk_list_free() only frees list's internal memory, not the data it
  * stores the pointers for. The best approach to free used memory is the
- * p_list_foreach() routine:
+ * ztk_list_foreach() routine:
  * @code
  * PList    *list;
  * ...
- * p_list_foreach (list, (PFunc) my_free_func, my_data);
- * p_list_free (list);
+ * ztk_list_foreach (list, (PFunc) my_free_func, my_data);
+ * ztk_list_free (list);
  * @endcode
  * Also you can use #P_INT_TO_POINTER and #P_POINTER_TO_INT macros to store
  * integers (up to 32-bit) without allocating memory for them:
@@ -67,11 +67,11 @@
  * PList    *list;
  * pint     a;
  *
- * list = p_list_append (list, P_INT_TO_POINTER (12));
+ * list = ztk_list_append (list, P_INT_TO_POINTER (12));
  * a = P_POINTER_TO_INT (list->data);
  * @endcode
  * #PList can store several nodes with the same pointer value, but
- * p_list_remove() will remove only the first matching node.
+ * ztk_list_remove() will remove only the first matching node.
  *
  * If you need to add large amount of nodes at once it is better to prepend them
  * and then reverse the list.
@@ -108,7 +108,7 @@ struct PList_ {
  * Before appending the first node to the list, @a list argument must be
  * initialized with NULL. Otherwise behavior is unpredictable.
  */
-P_LIB_API PList *	p_list_append	(PList		*list,
+P_LIB_API PList *	ztk_list_append	(PList		*list,
 					 ppointer	data) P_GNUC_WARN_UNUSED_RESULT;
 
 /**
@@ -122,7 +122,7 @@ P_LIB_API PList *	p_list_append	(PList		*list,
  * that node. Note that it removes only the pointer from the @a list, not the
  * data it pointers to, so you need to free the data manually.
  */
-P_LIB_API PList *	p_list_remove	(PList		*list,
+P_LIB_API PList *	ztk_list_remove	(PList		*list,
 					 ppointer	data) P_GNUC_WARN_UNUSED_RESULT;
 
 /**
@@ -136,11 +136,11 @@ P_LIB_API PList *	p_list_remove	(PList		*list,
  * The @a func will receive pointer to the node's data and @a user_data. You can
  * use it to free the data:
  * @code
- * p_list_foreach (list, (PFunc) free, NULL);
- * p_list_free (list);
+ * ztk_list_foreach (list, (PFunc) free, NULL);
+ * ztk_list_free (list);
  * @endcode
  */
-P_LIB_API void		p_list_foreach	(PList		*list,
+P_LIB_API void		ztk_list_foreach	(PList		*list,
 					 PFunc		func,
 					 ppointer	user_data);
 
@@ -153,7 +153,7 @@ P_LIB_API void		p_list_foreach	(PList		*list,
  * pointers stored in the nodes. Don't forget to free all the data stored in the
  * list manually.
  */
-P_LIB_API void		p_list_free	(PList		*list);
+P_LIB_API void		ztk_list_free	(PList		*list);
 
 /**
  * @brief Gets the last node from the list.
@@ -161,7 +161,7 @@ P_LIB_API void		p_list_free	(PList		*list);
  * @return Pointer to the last @a list node, NULL if the @a list is empty.
  * @since 0.0.1
  */
-P_LIB_API PList *	p_list_last	(PList		*list);
+P_LIB_API PList *	ztk_list_last	(PList		*list);
 
 /**
  * @brief Gets the number of list nodes.
@@ -171,7 +171,7 @@ P_LIB_API PList *	p_list_last	(PList		*list);
  * @note This function will iterate through the whole @a list, so don't use it
  * in condition of the for-loop or in the code which is repeated a lot of times.
  */
-P_LIB_API psize		p_list_length	(const PList	*list);
+P_LIB_API psize		ztk_list_length	(const PList	*list);
 
 /**
  * @brief Prepends data to a list.
@@ -183,7 +183,7 @@ P_LIB_API psize		p_list_length	(const PList	*list);
  * Before prepending the first node to the list, @a list argument must be
  * initialized with NULL. Otherwise behavior is unpredictable.
  */
-P_LIB_API PList *	p_list_prepend	(PList		*list,
+P_LIB_API PList *	ztk_list_prepend	(PList		*list,
 					 ppointer	data) P_GNUC_WARN_UNUSED_RESULT;
 
 /**
@@ -192,7 +192,7 @@ P_LIB_API PList *	p_list_prepend	(PList		*list,
  * @return Pointer to the top of the reversed list.
  * @since 0.0.1
  */
-P_LIB_API PList *	p_list_reverse	(PList		*list) P_GNUC_WARN_UNUSED_RESULT;
+P_LIB_API PList *	ztk_list_reverse	(PList		*list) P_GNUC_WARN_UNUSED_RESULT;
 
 P_END_DECLS
 

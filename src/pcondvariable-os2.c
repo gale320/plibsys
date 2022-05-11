@@ -40,12 +40,12 @@ struct PCondVariable_ {
 };
 
 P_LIB_API PCondVariable *
-p_cond_variable_new (void)
+ztk_cond_variable_new (void)
 {
 	PCondVariable *ret;
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PCondVariable))) == NULL)) {
-		P_ERROR ("PCondVariable::p_cond_variable_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PCondVariable))) == NULL)) {
+		P_ERROR ("PCondVariable::ztk_cond_variable_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -53,8 +53,8 @@ p_cond_variable_new (void)
 					   (PHEV) &ret->waiters_sema,
 					   0,
 					   FALSE) != NO_ERROR)) {
-		P_ERROR ("PCondVariable::p_cond_variable_new: failed to initialize");
-		p_free (ret);
+		P_ERROR ("PCondVariable::ztk_cond_variable_new: failed to initialize");
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -62,19 +62,19 @@ p_cond_variable_new (void)
 }
 
 P_LIB_API void
-p_cond_variable_free (PCondVariable *cond)
+ztk_cond_variable_free (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return;
 
 	if (P_UNLIKELY (DosCloseEventSem (cond->waiters_sema) != NO_ERROR))
-		P_WARNING ("PCondVariable::p_cond_variable_free: DosCloseEventSem() failed");
+		P_WARNING ("PCondVariable::ztk_cond_variable_free: DosCloseEventSem() failed");
 
-	p_free (cond);
+	ztk_free (cond);
 }
 
 P_LIB_API pboolean
-p_cond_variable_wait (PCondVariable	*cond,
+ztk_cond_variable_wait (PCondVariable	*cond,
 		      PMutex		*mutex)
 {
 	APIRET ulrc;
@@ -84,8 +84,8 @@ p_cond_variable_wait (PCondVariable	*cond,
 		return FALSE;
 
 	do {
-		p_atomic_int_inc (&cond->waiters_count);
-		p_mutex_unlock (mutex);
+		ztk_atomic_int_inc (&cond->waiters_count);
+		ztk_mutex_unlock (mutex);
 
 		do {
 			ULONG post_count;
@@ -97,38 +97,38 @@ p_cond_variable_wait (PCondVariable	*cond,
 				
 				if (P_UNLIKELY (reset_ulrc != NO_ERROR &&
 						reset_ulrc != ERROR_ALREADY_RESET))
-					P_WARNING ("PCondVariable::p_cond_variable_wait: DosResetEventSem() failed");
+					P_WARNING ("PCondVariable::ztk_cond_variable_wait: DosResetEventSem() failed");
 			}
 		} while (ulrc == NO_ERROR &&
-			 p_atomic_int_compare_and_exchange (&cond->signaled, 1, 0) == FALSE);
+			 ztk_atomic_int_compare_and_exchange (&cond->signaled, 1, 0) == FALSE);
 
-		p_atomic_int_add (&cond->waiters_count, -1);
-		p_mutex_lock (mutex);
+		ztk_atomic_int_add (&cond->waiters_count, -1);
+		ztk_mutex_lock (mutex);
 	} while (ulrc == ERROR_INTERRUPT);
 
 	return (ulrc == NO_ERROR) ? TRUE : FALSE;
 }
 
 P_LIB_API pboolean
-p_cond_variable_signal (PCondVariable *cond)
+ztk_cond_variable_signal (PCondVariable *cond)
 {
 	pboolean result = TRUE;
 
 	if (P_UNLIKELY (cond == NULL))
 		return FALSE;
 
-	if (p_atomic_int_get (&cond->waiters_count) > 0) {
+	if (ztk_atomic_int_get (&cond->waiters_count) > 0) {
 		ULONG	post_count;
 		APIRET	ulrc;
 
-		p_atomic_int_set (&cond->signaled, 1);
+		ztk_atomic_int_set (&cond->signaled, 1);
 
 		ulrc = DosPostEventSem (cond->waiters_sema);
 
 		if (P_UNLIKELY (ulrc != NO_ERROR &&
 				ulrc != ERROR_ALREADY_POSTED &&
 				ulrc != ERROR_TOO_MANY_POSTS)) {
-			P_WARNING ("PCondVariable::p_cond_variable_signal: DosPostEventSem() failed");
+			P_WARNING ("PCondVariable::ztk_cond_variable_signal: DosPostEventSem() failed");
 			result = FALSE;
 		}
 	}
@@ -137,15 +137,15 @@ p_cond_variable_signal (PCondVariable *cond)
 }
 
 P_LIB_API pboolean
-p_cond_variable_broadcast (PCondVariable *cond)
+ztk_cond_variable_broadcast (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return FALSE;
 
 	pboolean result = TRUE;
 
-	while (p_atomic_int_get (&cond->waiters_count) != 0) {
-		if (P_UNLIKELY (p_cond_variable_signal (cond) == FALSE))
+	while (ztk_atomic_int_get (&cond->waiters_count) != 0) {
+		if (P_UNLIKELY (ztk_cond_variable_signal (cond) == FALSE))
 			result = FALSE;
 	}
 
@@ -153,11 +153,11 @@ p_cond_variable_broadcast (PCondVariable *cond)
 }
 
 void
-p_cond_variable_init (void)
+ztk_cond_variable_init (void)
 {
 }
 
 void
-p_cond_variable_shutdown (void)
+ztk_cond_variable_shutdown (void)
 {
 }

@@ -36,7 +36,7 @@
 
 P_BEGIN_DECLS
 
-pboolean	p_tree_bst_insert	(PTreeBaseNode		**root_node,
+pboolean	ztk_tree_bst_insert	(PTreeBaseNode		**root_node,
 					 PCompareDataFunc	compare_func,
 					 ppointer		data,
 					 PDestroyFunc		key_destroy_func,
@@ -44,14 +44,14 @@ pboolean	p_tree_bst_insert	(PTreeBaseNode		**root_node,
 					 ppointer		key,
 					 ppointer		value);
 
-pboolean	p_tree_bst_remove	(PTreeBaseNode		**root_node,
+pboolean	ztk_tree_bst_remove	(PTreeBaseNode		**root_node,
 					 PCompareDataFunc	compare_func,
 					 ppointer		data,
 					 PDestroyFunc		key_destroy_func,
 					 PDestroyFunc		value_destroy_func,
 					 pconstpointer		key);
 
-void		p_tree_bst_node_free	(PTreeBaseNode	*node);
+void		ztk_tree_bst_node_free	(PTreeBaseNode	*node);
 
 P_END_DECLS
 

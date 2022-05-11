@@ -58,18 +58,18 @@ extern "C" void pmem_free (ppointer block)
 static void * producer_test_thread (void *)
 {
 	while (is_working == TRUE) {
-		if (!p_mutex_lock (cond_mutex)) {
+		if (!ztk_mutex_lock (cond_mutex)) {
 			is_working = FALSE;
-			p_cond_variable_broadcast (queue_full_cond);
-			p_uthread_exit (1);
+			ztk_cond_variable_broadcast (queue_full_cond);
+			ztk_uthread_exit (1);
 		}
 
 		while (thread_queue >= PCONDTEST_MAX_QUEUE && is_working == TRUE) {
-			if (!p_cond_variable_wait (queue_empty_cond, cond_mutex)) {
+			if (!ztk_cond_variable_wait (queue_empty_cond, cond_mutex)) {
 				is_working = FALSE;
-				p_cond_variable_broadcast (queue_full_cond);
-				p_mutex_unlock (cond_mutex);
-				p_uthread_exit (1);
+				ztk_cond_variable_broadcast (queue_full_cond);
+				ztk_mutex_unlock (cond_mutex);
+				ztk_uthread_exit (1);
 			}
 		}
 
@@ -78,21 +78,21 @@ static void * producer_test_thread (void *)
 			++thread_wakeups;
 		}
 
-		if (!p_cond_variable_broadcast (queue_full_cond)) {
+		if (!ztk_cond_variable_broadcast (queue_full_cond)) {
 			is_working = FALSE;
-			p_mutex_unlock (cond_mutex);
-			p_uthread_exit (1);
+			ztk_mutex_unlock (cond_mutex);
+			ztk_uthread_exit (1);
 		}
 
-		if (!p_mutex_unlock (cond_mutex)) {
+		if (!ztk_mutex_unlock (cond_mutex)) {
 			is_working = FALSE;
-			p_cond_variable_broadcast (queue_full_cond);
-			p_uthread_exit (1);
+			ztk_cond_variable_broadcast (queue_full_cond);
+			ztk_uthread_exit (1);
 		}
 	}
 
-	p_cond_variable_broadcast (queue_full_cond);
-	p_uthread_exit (0);
+	ztk_cond_variable_broadcast (queue_full_cond);
+	ztk_uthread_exit (0);
 
 	return NULL;
 }
@@ -100,18 +100,18 @@ static void * producer_test_thread (void *)
 static void * consumer_test_thread (void *)
 {
 	while (is_working == TRUE) {
-		if (!p_mutex_lock (cond_mutex)) {
+		if (!ztk_mutex_lock (cond_mutex)) {
 			is_working = FALSE;
-			p_cond_variable_signal (queue_empty_cond);
-			p_uthread_exit (1);
+			ztk_cond_variable_signal (queue_empty_cond);
+			ztk_uthread_exit (1);
 		}
 
 		while (thread_queue <= 0 && is_working == TRUE) {
-			if (!p_cond_variable_wait (queue_full_cond, cond_mutex)) {
+			if (!ztk_cond_variable_wait (queue_full_cond, cond_mutex)) {
 				is_working = FALSE;
-				p_cond_variable_signal (queue_empty_cond);
-				p_mutex_unlock (cond_mutex);
-				p_uthread_exit (1);
+				ztk_cond_variable_signal (queue_empty_cond);
+				ztk_mutex_unlock (cond_mutex);
+				ztk_uthread_exit (1);
 			}
 		}
 
@@ -120,28 +120,28 @@ static void * consumer_test_thread (void *)
 			++thread_wakeups;
 		}
 
-		if (!p_cond_variable_signal (queue_empty_cond)) {
+		if (!ztk_cond_variable_signal (queue_empty_cond)) {
 			is_working = FALSE;
-			p_mutex_unlock (cond_mutex);
-			p_uthread_exit (1);
+			ztk_mutex_unlock (cond_mutex);
+			ztk_uthread_exit (1);
 		}
 
-		if (!p_mutex_unlock (cond_mutex)) {
+		if (!ztk_mutex_unlock (cond_mutex)) {
 			is_working = FALSE;
-			p_cond_variable_signal (queue_empty_cond);
-			p_uthread_exit (1);
+			ztk_cond_variable_signal (queue_empty_cond);
+			ztk_uthread_exit (1);
 		}
 	}
 
-	p_cond_variable_signal (queue_empty_cond);
-	p_uthread_exit (0);
+	ztk_cond_variable_signal (queue_empty_cond);
+	ztk_uthread_exit (0);
 
 	return NULL;
 }
 
 P_TEST_CASE_BEGIN (pcondvariable_nomem_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	PMemVTable vtable;
 
@@ -149,25 +149,25 @@ P_TEST_CASE_BEGIN (pcondvariable_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
-	P_TEST_CHECK (p_cond_variable_new () == NULL);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_cond_variable_new () == NULL);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pcondvariable_bad_input_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	P_TEST_REQUIRE (p_cond_variable_broadcast (NULL) == FALSE);
-	P_TEST_REQUIRE (p_cond_variable_signal (NULL) == FALSE);
-	P_TEST_REQUIRE (p_cond_variable_wait (NULL, NULL) == FALSE);
-	p_cond_variable_free (NULL);
+	P_TEST_REQUIRE (ztk_cond_variable_broadcast (NULL) == FALSE);
+	P_TEST_REQUIRE (ztk_cond_variable_signal (NULL) == FALSE);
+	P_TEST_REQUIRE (ztk_cond_variable_wait (NULL, NULL) == FALSE);
+	ztk_cond_variable_free (NULL);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -175,49 +175,49 @@ P_TEST_CASE_BEGIN (pcondvariable_general_test)
 {
 	PUThread *thr1, *thr2, *thr3;
 
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	queue_empty_cond = p_cond_variable_new ();
+	queue_empty_cond = ztk_cond_variable_new ();
 	P_TEST_REQUIRE (queue_empty_cond != NULL);
-	queue_full_cond = p_cond_variable_new ();
+	queue_full_cond = ztk_cond_variable_new ();
 	P_TEST_REQUIRE (queue_full_cond != NULL);
-	cond_mutex = p_mutex_new ();
+	cond_mutex = ztk_mutex_new ();
 	P_TEST_REQUIRE (cond_mutex != NULL);
 
 	is_working     = TRUE;
 	thread_wakeups = 0;
 	thread_queue   = 0;
 
-	thr1 = p_uthread_create ((PUThreadFunc) producer_test_thread, NULL, TRUE, NULL);
+	thr1 = ztk_uthread_create ((PUThreadFunc) producer_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	thr2 = p_uthread_create ((PUThreadFunc) consumer_test_thread, NULL, TRUE, NULL);
+	thr2 = ztk_uthread_create ((PUThreadFunc) consumer_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	thr3 = p_uthread_create ((PUThreadFunc) consumer_test_thread, NULL, TRUE, NULL);
+	thr3 = ztk_uthread_create ((PUThreadFunc) consumer_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr3 != NULL);
 
-	P_TEST_REQUIRE (p_cond_variable_broadcast (queue_empty_cond) == TRUE);
-	P_TEST_REQUIRE (p_cond_variable_broadcast (queue_full_cond) == TRUE);
+	P_TEST_REQUIRE (ztk_cond_variable_broadcast (queue_empty_cond) == TRUE);
+	P_TEST_REQUIRE (ztk_cond_variable_broadcast (queue_full_cond) == TRUE);
 
-	p_uthread_sleep (4000);
+	ztk_uthread_sleep (4000);
 
 	is_working = FALSE;
 
-	P_TEST_CHECK (p_uthread_join (thr1) == 0);
-	P_TEST_CHECK (p_uthread_join (thr2) == 0);
-	P_TEST_CHECK (p_uthread_join (thr3) == 0);
+	P_TEST_CHECK (ztk_uthread_join (thr1) == 0);
+	P_TEST_CHECK (ztk_uthread_join (thr2) == 0);
+	P_TEST_CHECK (ztk_uthread_join (thr3) == 0);
 
 	P_TEST_REQUIRE (thread_wakeups > 0 && thread_queue >= 0 && thread_queue <= 10);
 
-	p_uthread_unref (thr1);
-	p_uthread_unref (thr2);
-	p_uthread_unref (thr3);
-	p_cond_variable_free (queue_empty_cond);
-	p_cond_variable_free (queue_full_cond);
-	p_mutex_free (cond_mutex);
+	ztk_uthread_unref (thr1);
+	ztk_uthread_unref (thr2);
+	ztk_uthread_unref (thr3);
+	ztk_cond_variable_free (queue_empty_cond);
+	ztk_cond_variable_free (queue_full_cond);
+	ztk_mutex_free (cond_mutex);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

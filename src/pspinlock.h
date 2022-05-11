@@ -39,15 +39,15 @@
  * As the spinlock is based on atomic operations it would have the real meaning
  * only if an underlying atomic model is lock-free (not simulated using the
  * mutex). You can check if the atomic model is lock-free with
- * p_atomic_is_lock_free(). Otherwise usage of spinlocks will be the same as the
+ * ztk_atomic_is_lock_free(). Otherwise usage of spinlocks will be the same as the
  * ordinary mutex.
  *
- * To create a new spinlock primitive the p_spinlock_new() routine should be
- * called, to delete the unused spinlock primitive use p_spinlock_free().
+ * To create a new spinlock primitive the ztk_spinlock_new() routine should be
+ * called, to delete the unused spinlock primitive use ztk_spinlock_free().
  *
- * Use p_spinlock_lock() or p_spinlock_trylock() to synchronize access at the
+ * Use ztk_spinlock_lock() or ztk_spinlock_trylock() to synchronize access at the
  * beginning of the critical section. Only the one thread is allowed to pass
- * this call, others will wait for the p_spinlock_unlock() call which marks the
+ * this call, others will wait for the ztk_spinlock_unlock() call which marks the
  * end of the critical section. This way the critical section code is guarded
  * against concurrent access of multiple threads at once.
  */
@@ -72,7 +72,7 @@ typedef struct PSpinLock_ PSpinLock;
  * @return Pointer to a newly created #PSpinLock object.
  * @since 0.0.1
  */
-P_LIB_API PSpinLock *	p_spinlock_new		(void);
+P_LIB_API PSpinLock *	ztk_spinlock_new		(void);
 
 /**
  * @brief Locks a spinlock.
@@ -84,12 +84,12 @@ P_LIB_API PSpinLock *	p_spinlock_new		(void);
  * instead it will try to lock @a spinlock in an infinite loop.
  *
  * If the atomic model is not lock-free this call will have the same effect
- * as p_mutex_lock().
+ * as ztk_mutex_lock().
  *
  * Do not lock a spinlock recursively - this may lead to an application
  * deadlock.
  */
-P_LIB_API pboolean	p_spinlock_lock		(PSpinLock *spinlock);
+P_LIB_API pboolean	ztk_spinlock_lock		(PSpinLock *spinlock);
 
 /**
  * @brief Tries to lock a spinlock immediately.
@@ -101,12 +101,12 @@ P_LIB_API pboolean	p_spinlock_lock		(PSpinLock *spinlock);
  * locking.
  *
  * If the atomic model is not lock-free this call will have the same effect
- * as p_mutex_trylock().
+ * as ztk_mutex_trylock().
  *
  * Do not lock a spinlock recursively - this may lead to an application
  * deadlock.
  */
-P_LIB_API pboolean	p_spinlock_trylock	(PSpinLock *spinlock);
+P_LIB_API pboolean	ztk_spinlock_trylock	(PSpinLock *spinlock);
 
 /**
  * @brief Releases a locked spinlock.
@@ -119,10 +119,10 @@ P_LIB_API pboolean	p_spinlock_trylock	(PSpinLock *spinlock);
  * spinlock.
  *
  * If the atomic model is not lock-free this call will have the same effect
- * as p_mutex_unlock(), thus it is not safe to call this routine on an unlocked
+ * as ztk_mutex_unlock(), thus it is not safe to call this routine on an unlocked
  * spinlock.
  */
-P_LIB_API pboolean	p_spinlock_unlock	(PSpinLock *spinlock);
+P_LIB_API pboolean	ztk_spinlock_unlock	(PSpinLock *spinlock);
 
 /**
  * @brief Frees #PSpinLock object.
@@ -133,9 +133,9 @@ P_LIB_API pboolean	p_spinlock_unlock	(PSpinLock *spinlock);
  * manually.
  *
  * If the atomic model is not lock-free this call will have the same effect
- * as p_mutex_free().
+ * as ztk_mutex_free().
  */
-P_LIB_API void		p_spinlock_free		(PSpinLock *spinlock);
+P_LIB_API void		ztk_spinlock_free		(PSpinLock *spinlock);
 
 P_END_DECLS
 

@@ -31,23 +31,23 @@
 #include <sys/time.h>
 
 puint64
-p_time_profiler_get_ticks_internal ()
+ztk_time_profiler_get_ticks_internal ()
 {
 	return (puint64) gethrtime ();
 }
 
 puint64
-p_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
+ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 {
 	return (((puint64) gethrtime ()) - profiler->counter) / 1000;
 }
 
 void
-p_time_profiler_init (void)
+ztk_time_profiler_init (void)
 {
 }
 
 void
-p_time_profiler_shutdown (void)
+ztk_time_profiler_shutdown (void)
 {
 }

@@ -33,8 +33,8 @@
 P_TEST_MODULE_INIT ();
 
 static void variadic_function (pint unused, ...);
-static void variadic_function_copy_all (pint unused, p_va_list ap);
-static void variadic_function_copy_trail (pint unused, p_va_list ap);
+static void variadic_function_copy_all (pint unused, ztk_va_list ap);
+static void variadic_function_copy_trail (pint unused, ztk_va_list ap);
 
 /* The "runtime" thingies here are just to avoid compiler warnings */
 /*                                                 In head,          In trail */
@@ -51,7 +51,7 @@ static const puint    puint_var[2]    = {                0,         P_MAXUINT };
 static const pshort   pshort_var[2]   = {       P_MINSHORT,        P_MAXSHORT };
 static const plong    plong_var[2]    = {        P_MINLONG,         P_MAXLONG };
 static const pchar    pchar_var[2]    = {             '\0',               'z' };
-static const ppointer ppointer_var[2] = {             NULL, (ppointer) p_libsys_init };
+static const ppointer ppointer_var[2] = {             NULL, (ppointer) ztk_libsys_init };
 static const pfloat   pfloat_var[2]   = {          -1.234f,            1.234f };
 static const pdouble  pdouble_var[2]  = {           -1.567,             1.567 };
 
@@ -100,7 +100,7 @@ static const pdouble  pdouble_var[2]  = {           -1.567,             1.567 };
 	P_TEST_VA_ARG(ap, pint8, pint8_var[1]);			\
   } while (0)
 
-static void variadic_function_copy_all (pint unused, p_va_list ap)
+static void variadic_function_copy_all (pint unused, ztk_va_list ap)
 {
 	P_UNUSED (unused);
 	P_DEBUG ("Unstacking a copy of all the arguments");
@@ -108,7 +108,7 @@ static void variadic_function_copy_all (pint unused, p_va_list ap)
 	P_TEST_VA_ARG_TRAIL (ap);
 }
 
-static void variadic_function_copy_trail (pint unused, p_va_list ap)
+static void variadic_function_copy_trail (pint unused, ztk_va_list ap)
 {
 	P_UNUSED (unused);
 	P_DEBUG ("Unstacking second part of the arguments");
@@ -117,33 +117,33 @@ static void variadic_function_copy_trail (pint unused, p_va_list ap)
 
 static void variadic_function (pint unused, ...)
 {
-	p_va_list ap;
-	p_va_list ap2;
+	ztk_va_list ap;
+	ztk_va_list ap2;
 
-	p_va_start (ap, unused);
+	ztk_va_start (ap, unused);
 
 	P_DEBUG ("Copy of arguments");
-	p_va_copy (ap2, ap);
+	ztk_va_copy (ap2, ap);
 	variadic_function_copy_all (unused, ap2);
-	p_va_end (ap2);
+	ztk_va_end (ap2);
 
 	P_DEBUG ("Unstacking first part of arguments");
 	P_TEST_VA_ARG_HEAD (ap);
 
 	P_DEBUG ("Copy of arguments at current unstack state, i.e. in the middle");
-	p_va_copy (ap2, ap);
+	ztk_va_copy (ap2, ap);
 	variadic_function_copy_trail (unused, ap2);
-	p_va_end (ap2);
+	ztk_va_end (ap2);
 
 	P_DEBUG ("Unstacking second part of arguments");
 	P_TEST_VA_ARG_TRAIL (ap);
 
-	p_va_end (ap);
+	ztk_va_end (ap);
 }
 
 P_TEST_CASE_BEGIN (pstdarg_general_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	pint32_var[0] = P_MININT16;
 	pint32_var[0] <<= 16;
@@ -176,7 +176,7 @@ P_TEST_CASE_BEGIN (pstdarg_general_test)
 			   ppointer_var[0],
 			   pfloat_var[0],
 			   pdouble_var[0],
-			   /* Cut is here when testing p_va_copy, we stack in reverse order */
+			   /* Cut is here when testing ztk_va_copy, we stack in reverse order */
 			   pdouble_var[1],
 			   pfloat_var[1],
 			   ppointer_var[1],
@@ -194,7 +194,7 @@ P_TEST_CASE_BEGIN (pstdarg_general_test)
 			   puint8_var[1],
 			   pint8_var[1]);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

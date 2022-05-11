@@ -35,32 +35,32 @@ struct PLibraryLoader_ {
 	plibrary_handle	handle;
 };
 
-static void pp_library_loader_clean_handle (plibrary_handle handle);
+static void pztk_library_loader_clean_handle (plibrary_handle handle);
 
 static void
-pp_library_loader_clean_handle (plibrary_handle handle)
+pztk_library_loader_clean_handle (plibrary_handle handle)
 {
 	if (P_UNLIKELY (!FreeLibrary (handle)))
-		P_ERROR ("PLibraryLoader::pp_library_loader_clean_handle: FreeLibrary() failed");
+		P_ERROR ("PLibraryLoader::pztk_library_loader_clean_handle: FreeLibrary() failed");
 }
 
 P_LIB_API PLibraryLoader *
-p_library_loader_new (const pchar *path)
+ztk_library_loader_new (const pchar *path)
 {
 	PLibraryLoader	*loader = NULL;
 	plibrary_handle	handle;
 
-	if (!p_file_is_exists (path))
+	if (!ztk_file_is_exists (path))
 		return NULL;
 
 	if (P_UNLIKELY ((handle = LoadLibraryA (path)) == NULL)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_new: LoadLibraryA() failed");
+		P_ERROR ("PLibraryLoader::ztk_library_loader_new: LoadLibraryA() failed");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((loader = p_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
-		P_ERROR ("PLibraryLoader::p_library_loader_new: failed to allocate memory");
-		pp_library_loader_clean_handle (handle);
+	if (P_UNLIKELY ((loader = ztk_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
+		P_ERROR ("PLibraryLoader::ztk_library_loader_new: failed to allocate memory");
+		pztk_library_loader_clean_handle (handle);
 		return NULL;
 	}
 
@@ -70,7 +70,7 @@ p_library_loader_new (const pchar *path)
 }
 
 P_LIB_API PFuncAddr
-p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
+ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 {
 	PFuncAddr ret_sym = NULL;
 
@@ -83,18 +83,18 @@ p_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 }
 
 P_LIB_API void
-p_library_loader_free (PLibraryLoader *loader)
+ztk_library_loader_free (PLibraryLoader *loader)
 {
 	if (P_UNLIKELY (loader == NULL))
 		return;
 
-	pp_library_loader_clean_handle (loader->handle);
+	pztk_library_loader_clean_handle (loader->handle);
 
-	p_free (loader);
+	ztk_free (loader);
 }
 
 P_LIB_API pchar *
-p_library_loader_get_last_error (PLibraryLoader *loader)
+ztk_library_loader_get_last_error (PLibraryLoader *loader)
 {
 	pchar	*res = NULL;
 	DWORD	err_code;
@@ -102,7 +102,7 @@ p_library_loader_get_last_error (PLibraryLoader *loader)
 
 	P_UNUSED (loader);
 
-	err_code = p_error_get_last_system ();
+	err_code = ztk_error_get_last_system ();
 
 	if (err_code == 0)
 		return NULL;
@@ -116,7 +116,7 @@ p_library_loader_get_last_error (PLibraryLoader *loader)
 				      (LPSTR) &msg_buf,
 				      0,
 				      NULL) != 0)) {
-		res = p_strdup ((pchar *) msg_buf);
+		res = ztk_strdup ((pchar *) msg_buf);
 		LocalFree (msg_buf);
 	}
 
@@ -124,17 +124,17 @@ p_library_loader_get_last_error (PLibraryLoader *loader)
 }
 
 P_LIB_API pboolean
-p_library_loader_is_ref_counted (void)
+ztk_library_loader_is_ref_counted (void)
 {
 	return TRUE;
 }
 
 void
-p_library_loader_init (void)
+ztk_library_loader_init (void)
 {
 }
 
 void
-p_library_loader_shutdown (void)
+ztk_library_loader_shutdown (void)
 {
 }

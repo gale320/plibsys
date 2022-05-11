@@ -62,30 +62,30 @@ static void * reader_thread_func (void *data)
 
 	pint counter = 0;
 
-	while (p_atomic_int_get (&writers_counter) == 0)
-		p_uthread_sleep (10);
+	while (ztk_atomic_int_get (&writers_counter) == 0)
+		ztk_uthread_sleep (10);
 
 	while (is_threads_working == TRUE) {
-		p_uthread_sleep (10);
+		ztk_uthread_sleep (10);
 
-		if (p_rwlock_reader_trylock (test_rwlock) == FALSE) {
-			if (p_rwlock_reader_lock (test_rwlock) == FALSE)
-				p_uthread_exit (-1);
+		if (ztk_rwlock_reader_trylock (test_rwlock) == FALSE) {
+			if (ztk_rwlock_reader_lock (test_rwlock) == FALSE)
+				ztk_uthread_exit (-1);
 		}
 
 		if (strcmp (string_buf, PRWLOCK_TEST_STRING_1) != 0 &&
 		    strcmp (string_buf, PRWLOCK_TEST_STRING_2) != 0) {
-			p_rwlock_reader_unlock (test_rwlock);
-			p_uthread_exit (-1);
+			ztk_rwlock_reader_unlock (test_rwlock);
+			ztk_uthread_exit (-1);
 		}
 
-		if (p_rwlock_reader_unlock (test_rwlock) == FALSE)
-			p_uthread_exit (-1);
+		if (ztk_rwlock_reader_unlock (test_rwlock) == FALSE)
+			ztk_uthread_exit (-1);
 
 		++counter;
 	}
 
-	p_uthread_exit (counter);
+	ztk_uthread_exit (counter);
 
 	return NULL;
 }
@@ -96,11 +96,11 @@ static void * writer_thread_func (void *data)
 	pint counter    = 0;
 
 	while (is_threads_working == TRUE) {
-		p_uthread_sleep (10);
+		ztk_uthread_sleep (10);
 
-		if (p_rwlock_writer_trylock (test_rwlock) == FALSE) {
-			if (p_rwlock_writer_lock (test_rwlock) == FALSE)
-				p_uthread_exit (-1);
+		if (ztk_rwlock_writer_trylock (test_rwlock) == FALSE) {
+			if (ztk_rwlock_writer_lock (test_rwlock) == FALSE)
+				ztk_uthread_exit (-1);
 		}
 
 		memset (string_buf, 0, sizeof (string_buf));
@@ -110,22 +110,22 @@ static void * writer_thread_func (void *data)
 		else
 			strcpy (string_buf, PRWLOCK_TEST_STRING_1);
 
-		if (p_rwlock_writer_unlock (test_rwlock) == FALSE)
-			p_uthread_exit (-1);
+		if (ztk_rwlock_writer_unlock (test_rwlock) == FALSE)
+			ztk_uthread_exit (-1);
 
 		++counter;
 
-		p_atomic_int_inc ((&writers_counter));
+		ztk_atomic_int_inc ((&writers_counter));
 	}
 
-	p_uthread_exit (counter);
+	ztk_uthread_exit (counter);
 
 	return NULL;
 }
 
 P_TEST_CASE_BEGIN (prwlock_nomem_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
 	PMemVTable vtable;
 
@@ -133,59 +133,59 @@ P_TEST_CASE_BEGIN (prwlock_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (p_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (p_rwlock_new () == NULL);
+	P_TEST_CHECK (ztk_rwlock_new () == NULL);
 
-	p_mem_restore_vtable ();
+	ztk_mem_restore_vtable ();
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (prwlock_bad_input_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	P_TEST_CHECK (p_rwlock_reader_lock (NULL) == FALSE);
-	P_TEST_CHECK (p_rwlock_reader_trylock (NULL) == FALSE);
-	P_TEST_CHECK (p_rwlock_reader_unlock (NULL) == FALSE);
-	P_TEST_CHECK (p_rwlock_writer_lock (NULL) == FALSE);
-	P_TEST_CHECK (p_rwlock_writer_trylock (NULL) == FALSE);
-	P_TEST_CHECK (p_rwlock_writer_unlock (NULL) == FALSE);
-	p_rwlock_free (NULL);
+	P_TEST_CHECK (ztk_rwlock_reader_lock (NULL) == FALSE);
+	P_TEST_CHECK (ztk_rwlock_reader_trylock (NULL) == FALSE);
+	P_TEST_CHECK (ztk_rwlock_reader_unlock (NULL) == FALSE);
+	P_TEST_CHECK (ztk_rwlock_writer_lock (NULL) == FALSE);
+	P_TEST_CHECK (ztk_rwlock_writer_trylock (NULL) == FALSE);
+	P_TEST_CHECK (ztk_rwlock_writer_unlock (NULL) == FALSE);
+	ztk_rwlock_free (NULL);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (prwlock_general_test)
 {
-	p_libsys_init ();
+	ztk_libsys_init ();
 
-	test_rwlock = p_rwlock_new ();
+	test_rwlock = ztk_rwlock_new ();
 
 	P_TEST_REQUIRE (test_rwlock != NULL);
 
 	is_threads_working = TRUE;
 	writers_counter    = 0;
 
-	PUThread *reader_thr1 = p_uthread_create ((PUThreadFunc) reader_thread_func,
+	PUThread *reader_thr1 = ztk_uthread_create ((PUThreadFunc) reader_thread_func,
 						  NULL,
 						  TRUE,
 						  NULL);
 
-	PUThread *reader_thr2 = p_uthread_create ((PUThreadFunc) reader_thread_func,
+	PUThread *reader_thr2 = ztk_uthread_create ((PUThreadFunc) reader_thread_func,
 						  NULL,
 						  TRUE,
 						  NULL);
 
-	PUThread *writer_thr1 = p_uthread_create ((PUThreadFunc) writer_thread_func,
+	PUThread *writer_thr1 = ztk_uthread_create ((PUThreadFunc) writer_thread_func,
 						  NULL,
 						  TRUE,
 						  NULL);
 
-	PUThread *writer_thr2 = p_uthread_create ((PUThreadFunc) writer_thread_func,
+	PUThread *writer_thr2 = ztk_uthread_create ((PUThreadFunc) writer_thread_func,
 						  NULL,
 						  TRUE,
 						  NULL);
@@ -195,23 +195,23 @@ P_TEST_CASE_BEGIN (prwlock_general_test)
 	P_TEST_REQUIRE (writer_thr1 != NULL);
 	P_TEST_REQUIRE (writer_thr2 != NULL);
 
-	p_uthread_sleep (10000);
+	ztk_uthread_sleep (10000);
 
 	is_threads_working = FALSE;
 
-	P_TEST_CHECK (p_uthread_join (reader_thr1) > 0);
-	P_TEST_CHECK (p_uthread_join (reader_thr2) > 0);
-	P_TEST_CHECK (p_uthread_join (writer_thr1) > 0);
-	P_TEST_CHECK (p_uthread_join (writer_thr2) > 0);
+	P_TEST_CHECK (ztk_uthread_join (reader_thr1) > 0);
+	P_TEST_CHECK (ztk_uthread_join (reader_thr2) > 0);
+	P_TEST_CHECK (ztk_uthread_join (writer_thr1) > 0);
+	P_TEST_CHECK (ztk_uthread_join (writer_thr2) > 0);
 
-	p_uthread_unref (reader_thr1);
-	p_uthread_unref (reader_thr2);
-	p_uthread_unref (writer_thr1);
-	p_uthread_unref (writer_thr2);
+	ztk_uthread_unref (reader_thr1);
+	ztk_uthread_unref (reader_thr2);
+	ztk_uthread_unref (writer_thr1);
+	ztk_uthread_unref (writer_thr2);
 
-	p_rwlock_free (test_rwlock);
+	ztk_rwlock_free (test_rwlock);
 
-	p_libsys_shutdown ();
+	ztk_libsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

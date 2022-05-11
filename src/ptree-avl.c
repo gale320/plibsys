@@ -32,15 +32,15 @@ typedef struct PTreeAVLNode_ {
 	pint			balance_factor;
 } PTreeAVLNode;
 
-static void pp_tree_avl_rotate_left (PTreeAVLNode *node, PTreeBaseNode **root);
-static void pp_tree_avl_rotate_right (PTreeAVLNode *node, PTreeBaseNode **root);
-static void pp_tree_avl_rotate_left_right (PTreeAVLNode *node, PTreeBaseNode **root);
-static void pp_tree_avl_rotate_right_left (PTreeAVLNode *node, PTreeBaseNode **root);
-static void pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root);
-static void pp_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root);
+static void pztk_tree_avl_rotate_left (PTreeAVLNode *node, PTreeBaseNode **root);
+static void pztk_tree_avl_rotate_right (PTreeAVLNode *node, PTreeBaseNode **root);
+static void pztk_tree_avl_rotate_left_right (PTreeAVLNode *node, PTreeBaseNode **root);
+static void pztk_tree_avl_rotate_right_left (PTreeAVLNode *node, PTreeBaseNode **root);
+static void pztk_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root);
+static void pztk_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root);
 
 static void
-pp_tree_avl_rotate_left (PTreeAVLNode *node, PTreeBaseNode **root)
+pztk_tree_avl_rotate_left (PTreeAVLNode *node, PTreeBaseNode **root)
 {
 	node->parent->base.right = node->base.left;
 
@@ -65,7 +65,7 @@ pp_tree_avl_rotate_left (PTreeAVLNode *node, PTreeBaseNode **root)
 }
 
 static void
-pp_tree_avl_rotate_right (PTreeAVLNode *node, PTreeBaseNode **root)
+pztk_tree_avl_rotate_right (PTreeAVLNode *node, PTreeBaseNode **root)
 {
 	node->parent->base.left = node->base.right;
 
@@ -90,101 +90,101 @@ pp_tree_avl_rotate_right (PTreeAVLNode *node, PTreeBaseNode **root)
 }
 
 static void
-pp_tree_avl_rotate_left_right (PTreeAVLNode *node, PTreeBaseNode **root)
+pztk_tree_avl_rotate_left_right (PTreeAVLNode *node, PTreeBaseNode **root)
 {
-	PTreeAVLNode *tmp_node;
+	PTreeAVLNode *tmztk_node;
 
-	tmp_node = (PTreeAVLNode *) node->base.right;
-	node->base.right = tmp_node->base.left;
+	tmztk_node = (PTreeAVLNode *) node->base.right;
+	node->base.right = tmztk_node->base.left;
 
 	if (node->base.right != NULL)
 		((PTreeAVLNode *) node->base.right)->parent = node;
 
-	tmp_node->parent = node->parent->parent;
+	tmztk_node->parent = node->parent->parent;
 
-	if (P_LIKELY (tmp_node->parent != NULL)) {
-		if (tmp_node->parent->base.left == (PTreeBaseNode *) node->parent)
-			tmp_node->parent->base.left = (PTreeBaseNode *) tmp_node;
+	if (P_LIKELY (tmztk_node->parent != NULL)) {
+		if (tmztk_node->parent->base.left == (PTreeBaseNode *) node->parent)
+			tmztk_node->parent->base.left = (PTreeBaseNode *) tmztk_node;
 		else
-			tmp_node->parent->base.right = (PTreeBaseNode *) tmp_node;
+			tmztk_node->parent->base.right = (PTreeBaseNode *) tmztk_node;
 	} else
-		*root = (PTreeBaseNode *) tmp_node;
+		*root = (PTreeBaseNode *) tmztk_node;
 
-	node->parent->base.left = tmp_node->base.right;
+	node->parent->base.left = tmztk_node->base.right;
 
 	if (node->parent->base.left != NULL)
 		((PTreeAVLNode *) node->parent->base.left)->parent = node->parent;
 
-	tmp_node->base.right = (PTreeBaseNode *) node->parent;
-	((PTreeAVLNode *) tmp_node->base.right)->parent = tmp_node;
+	tmztk_node->base.right = (PTreeBaseNode *) node->parent;
+	((PTreeAVLNode *) tmztk_node->base.right)->parent = tmztk_node;
 
-	tmp_node->base.left = (PTreeBaseNode *) node;
-	node->parent = tmp_node;
+	tmztk_node->base.left = (PTreeBaseNode *) node;
+	node->parent = tmztk_node;
 
 	/* Restore balance factor */
-	if (tmp_node->balance_factor == 1) {
-		((PTreeAVLNode *) tmp_node->base.left)->balance_factor  = 0;
-		((PTreeAVLNode *) tmp_node->base.right)->balance_factor = -1;
-	} else if (tmp_node->balance_factor == -1) {
-		((PTreeAVLNode *) tmp_node->base.left)->balance_factor  = 1;
-		((PTreeAVLNode *) tmp_node->base.right)->balance_factor = 0;
+	if (tmztk_node->balance_factor == 1) {
+		((PTreeAVLNode *) tmztk_node->base.left)->balance_factor  = 0;
+		((PTreeAVLNode *) tmztk_node->base.right)->balance_factor = -1;
+	} else if (tmztk_node->balance_factor == -1) {
+		((PTreeAVLNode *) tmztk_node->base.left)->balance_factor  = 1;
+		((PTreeAVLNode *) tmztk_node->base.right)->balance_factor = 0;
 	} else {
-		((PTreeAVLNode *) tmp_node->base.left)->balance_factor  = 0;
-		((PTreeAVLNode *) tmp_node->base.right)->balance_factor = 0;
+		((PTreeAVLNode *) tmztk_node->base.left)->balance_factor  = 0;
+		((PTreeAVLNode *) tmztk_node->base.right)->balance_factor = 0;
 	}
 
-	tmp_node->balance_factor = 0;
+	tmztk_node->balance_factor = 0;
 }
 
 static void
-pp_tree_avl_rotate_right_left (PTreeAVLNode *node, PTreeBaseNode **root)
+pztk_tree_avl_rotate_right_left (PTreeAVLNode *node, PTreeBaseNode **root)
 {
-	PTreeAVLNode *tmp_node;
+	PTreeAVLNode *tmztk_node;
 
-	tmp_node = (PTreeAVLNode *) node->base.left;
-	node->base.left = tmp_node->base.right;
+	tmztk_node = (PTreeAVLNode *) node->base.left;
+	node->base.left = tmztk_node->base.right;
 
 	if (node->base.left != NULL)
 		((PTreeAVLNode *) node->base.left)->parent = node;
 
-	tmp_node->parent = node->parent->parent;
+	tmztk_node->parent = node->parent->parent;
 
-	if (P_LIKELY (tmp_node->parent != NULL)) {
-		if (tmp_node->parent->base.left == (PTreeBaseNode *) node->parent)
-			tmp_node->parent->base.left = (PTreeBaseNode *) tmp_node;
+	if (P_LIKELY (tmztk_node->parent != NULL)) {
+		if (tmztk_node->parent->base.left == (PTreeBaseNode *) node->parent)
+			tmztk_node->parent->base.left = (PTreeBaseNode *) tmztk_node;
 		else
-			tmp_node->parent->base.right = (PTreeBaseNode *) tmp_node;
+			tmztk_node->parent->base.right = (PTreeBaseNode *) tmztk_node;
 	} else
-		*root = (PTreeBaseNode *) tmp_node;
+		*root = (PTreeBaseNode *) tmztk_node;
 
-	node->parent->base.right = tmp_node->base.left;
+	node->parent->base.right = tmztk_node->base.left;
 
 	if (node->parent->base.right != NULL)
 		((PTreeAVLNode *) node->parent->base.right)->parent = node->parent;
 
-	tmp_node->base.left = (PTreeBaseNode *) node->parent;
-	((PTreeAVLNode *) tmp_node->base.left)->parent = tmp_node;
+	tmztk_node->base.left = (PTreeBaseNode *) node->parent;
+	((PTreeAVLNode *) tmztk_node->base.left)->parent = tmztk_node;
 
-	tmp_node->base.right = (PTreeBaseNode *) node;
-	node->parent = tmp_node;
+	tmztk_node->base.right = (PTreeBaseNode *) node;
+	node->parent = tmztk_node;
 
 	/* Restore balance factor */
-	if (tmp_node->balance_factor == 1) {
-		((PTreeAVLNode *) tmp_node->base.left)->balance_factor  = 0;
-		((PTreeAVLNode *) tmp_node->base.right)->balance_factor = -1;
-	} else if (tmp_node->balance_factor == -1) {
-		((PTreeAVLNode *) tmp_node->base.left)->balance_factor  = 1;
-		((PTreeAVLNode *) tmp_node->base.right)->balance_factor = 0;
+	if (tmztk_node->balance_factor == 1) {
+		((PTreeAVLNode *) tmztk_node->base.left)->balance_factor  = 0;
+		((PTreeAVLNode *) tmztk_node->base.right)->balance_factor = -1;
+	} else if (tmztk_node->balance_factor == -1) {
+		((PTreeAVLNode *) tmztk_node->base.left)->balance_factor  = 1;
+		((PTreeAVLNode *) tmztk_node->base.right)->balance_factor = 0;
 	} else {
-		((PTreeAVLNode *) tmp_node->base.left)->balance_factor  = 0;
-		((PTreeAVLNode *) tmp_node->base.right)->balance_factor = 0;
+		((PTreeAVLNode *) tmztk_node->base.left)->balance_factor  = 0;
+		((PTreeAVLNode *) tmztk_node->base.right)->balance_factor = 0;
 	}
 
-	tmp_node->balance_factor = 0;
+	tmztk_node->balance_factor = 0;
 }
 
 static void
-pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
+pztk_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
 {
 	PTreeAVLNode *parent;
 
@@ -207,7 +207,7 @@ pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
 					 *      / \
 					 *     C   D
 					 */
-					pp_tree_avl_rotate_left_right (node, root);
+					pztk_tree_avl_rotate_left_right (node, root);
 				else
 					/* Case 2: Right rotate
 					 *
@@ -219,7 +219,7 @@ pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
 					 *    / \
 					 *   C   D
 					 */
-					pp_tree_avl_rotate_right (node, root);
+					pztk_tree_avl_rotate_right (node, root);
 
 				break;
 			} else if (parent->balance_factor == -1) {
@@ -242,7 +242,7 @@ pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
 					 *    / \
 					 *   C   D
 					 */
-					pp_tree_avl_rotate_right_left (node, root);
+					pztk_tree_avl_rotate_right_left (node, root);
 				else
 					/* Case 2: Left rotate
 					 *
@@ -254,7 +254,7 @@ pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
 					 *        / \
 					 *       C   D
 					 */
-					pp_tree_avl_rotate_left (node, root);
+					pztk_tree_avl_rotate_left (node, root);
 
 				break;
 			} else if (parent->balance_factor == 1) {
@@ -271,7 +271,7 @@ pp_tree_avl_balance_insert (PTreeAVLNode *node, PTreeBaseNode **root)
 }
 
 static void
-pp_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root)
+pztk_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root)
 {
 	PTreeAVLNode	*parent;
 	PTreeAVLNode	*sibling;
@@ -290,10 +290,10 @@ pp_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root)
 
 				if (sibling->balance_factor == 1)
 					/* Case 1 */
-					pp_tree_avl_rotate_right_left (sibling, root);
+					pztk_tree_avl_rotate_right_left (sibling, root);
 				 else
 					/* Case 2 */
-					pp_tree_avl_rotate_left (sibling, root);
+					pztk_tree_avl_rotate_left (sibling, root);
 
 				node = parent;
 
@@ -313,10 +313,10 @@ pp_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root)
 
 				if (sibling->balance_factor == -1)
 					/* Case 1 */
-					pp_tree_avl_rotate_left_right (sibling, root);
+					pztk_tree_avl_rotate_left_right (sibling, root);
 				else
 					/* Case 2 */
-					pp_tree_avl_rotate_right (sibling, root);
+					pztk_tree_avl_rotate_right (sibling, root);
 
 				node = parent;
 
@@ -336,7 +336,7 @@ pp_tree_avl_balance_remove (PTreeAVLNode *node, PTreeBaseNode **root)
 }
 
 pboolean
-p_tree_avl_insert (PTreeBaseNode	**root_node,
+ztk_tree_avl_insert (PTreeBaseNode	**root_node,
 		   PCompareDataFunc	compare_func,
 		   ppointer		data,
 		   PDestroyFunc		key_destroy_func,
@@ -346,19 +346,19 @@ p_tree_avl_insert (PTreeBaseNode	**root_node,
 {
 	PTreeBaseNode	**cur_node;
 	PTreeBaseNode	*parent_node;
-	pint		cmp_result;
+	pint		cmztk_result;
 
 	cur_node    = root_node;
 	parent_node = *root_node;
 
 	/* Find where to insert the node */
 	while (*cur_node != NULL) {
-		cmp_result = compare_func (key, (*cur_node)->key, data);
+		cmztk_result = compare_func (key, (*cur_node)->key, data);
 
-		if (cmp_result < 0) {
+		if (cmztk_result < 0) {
 			parent_node = *cur_node;
 			cur_node    = &(*cur_node)->left;
-		} else if (cmp_result > 0) {
+		} else if (cmztk_result > 0) {
 			parent_node = *cur_node;
 			cur_node    = &(*cur_node)->right;
 		} else
@@ -379,7 +379,7 @@ p_tree_avl_insert (PTreeBaseNode	**root_node,
 		return FALSE;
 	}
 
-	if (P_UNLIKELY ((*cur_node = p_malloc0 (sizeof (PTreeAVLNode))) == NULL))
+	if (P_UNLIKELY ((*cur_node = ztk_malloc0 (sizeof (PTreeAVLNode))) == NULL))
 		return FALSE;
 
 	(*cur_node)->key   = key;
@@ -389,13 +389,13 @@ p_tree_avl_insert (PTreeBaseNode	**root_node,
 	((PTreeAVLNode *) *cur_node)->parent         = (PTreeAVLNode *) parent_node;
 
 	/* Balance the tree */
-	pp_tree_avl_balance_insert (((PTreeAVLNode *) *cur_node), root_node);
+	pztk_tree_avl_balance_insert (((PTreeAVLNode *) *cur_node), root_node);
 
 	return TRUE;
 }
 
 pboolean
-p_tree_avl_remove (PTreeBaseNode	**root_node,
+ztk_tree_avl_remove (PTreeBaseNode	**root_node,
 		   PCompareDataFunc	compare_func,
 		   ppointer		data,
 		   PDestroyFunc		key_destroy_func,
@@ -406,16 +406,16 @@ p_tree_avl_remove (PTreeBaseNode	**root_node,
 	PTreeBaseNode	*prev_node;
 	PTreeBaseNode	*child_node;
 	PTreeAVLNode	*child_parent;
-	pint		cmp_result;
+	pint		cmztk_result;
 
 	cur_node = *root_node;
 
 	while (cur_node != NULL) {
-		cmp_result = compare_func (key, cur_node->key, data);
+		cmztk_result = compare_func (key, cur_node->key, data);
 
-		if (cmp_result < 0)
+		if (cmztk_result < 0)
 			cur_node = cur_node->left;
-		else if (cmp_result > 0)
+		else if (cmztk_result > 0)
 			cur_node = cur_node->right;
 		else
 			break;
@@ -440,7 +440,7 @@ p_tree_avl_remove (PTreeBaseNode	**root_node,
 	child_node = cur_node->left == NULL ? cur_node->right : cur_node->left;
 
 	if (child_node == NULL)
-		pp_tree_avl_balance_remove ((PTreeAVLNode *) cur_node, root_node);
+		pztk_tree_avl_balance_remove ((PTreeAVLNode *) cur_node, root_node);
 
 	/* Replace node with its child */
 	if (P_UNLIKELY (cur_node == *root_node)) {
@@ -459,7 +459,7 @@ p_tree_avl_remove (PTreeBaseNode	**root_node,
 		((PTreeAVLNode *) child_node)->parent = child_parent;
 
 		/* Balance the tree */
-		pp_tree_avl_balance_remove ((PTreeAVLNode *) child_node, root_node);
+		pztk_tree_avl_balance_remove ((PTreeAVLNode *) child_node, root_node);
 	}
 
 	/* Free unused node */
@@ -469,13 +469,13 @@ p_tree_avl_remove (PTreeBaseNode	**root_node,
 	if (value_destroy_func != NULL)
 		value_destroy_func (cur_node->value);
 
-	p_free (cur_node);
+	ztk_free (cur_node);
 
 	return TRUE;
 }
 
 void
-p_tree_avl_node_free (PTreeBaseNode *node)
+ztk_tree_avl_node_free (PTreeBaseNode *node)
 {
-	p_free (node);
+	ztk_free (node);
 }

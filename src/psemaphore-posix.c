@@ -37,7 +37,7 @@
 #include <semaphore.h>
 #include <errno.h>
 
-#define P_SEM_SUFFIX		"_p_sem_object"
+#define P_SEM_SUFFIX		"_ztk_sem_object"
 
 typedef sem_t psem_hdl;
 
@@ -66,17 +66,17 @@ struct PSemaphore_ {
 	pint			init_val;
 };
 
-static pboolean pp_semaphore_create_handle (PSemaphore *sem, PError **error);
-static void pp_semaphore_clean_handle (PSemaphore *sem);
+static pboolean pztk_semaphore_create_handle (PSemaphore *sem, PError **error);
+static void pztk_semaphore_clean_handle (PSemaphore *sem);
 
 static pboolean
-pp_semaphore_create_handle (PSemaphore	*sem,
+pztk_semaphore_create_handle (PSemaphore	*sem,
 			    PError	**error)
 {
 	pint init_val;
 
 	if (P_UNLIKELY (sem == NULL || sem->platform_key == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -90,11 +90,11 @@ pp_semaphore_create_handle (PSemaphore	*sem,
 					 O_CREAT | O_EXCL,
 					 0660,
 					 init_val)) == P_SEM_INVALID_HDL &&
-		p_error_get_last_system () == EINTR)
+		ztk_error_get_last_system () == EINTR)
 	;
 
 	if (sem->sem_hdl == P_SEM_INVALID_HDL) {
-		if (p_error_get_last_system () == EEXIST) {
+		if (ztk_error_get_last_system () == EEXIST) {
 			if (sem->mode == P_SEM_ACCESS_CREATE)
 				sem_unlink (sem->platform_key);
 			else
@@ -104,18 +104,18 @@ pp_semaphore_create_handle (PSemaphore	*sem,
 							 0,
 							 0,
 							 init_val)) == P_SEM_INVALID_HDL &&
-				p_error_get_last_system () == EINTR)
+				ztk_error_get_last_system () == EINTR)
 			;
 		}
 	} else
 		sem->sem_created = TRUE;
 
 	if (P_UNLIKELY (sem->sem_hdl == P_SEM_INVALID_HDL)) {
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_ipc (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_ipc (),
+				     ztk_error_get_last_system (),
 				     "Failed to call sem_open() to create semaphore");
-		pp_semaphore_clean_handle (sem);
+		pztk_semaphore_clean_handle (sem);
 		return FALSE;
 	}
 
@@ -123,23 +123,23 @@ pp_semaphore_create_handle (PSemaphore	*sem,
 }
 
 static void
-pp_semaphore_clean_handle (PSemaphore *sem)
+pztk_semaphore_clean_handle (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem->sem_hdl != P_SEM_INVALID_HDL &&
 			sem_close (sem->sem_hdl) == -1))
-		P_ERROR ("PSemaphore::pp_semaphore_clean_handle: sem_close() failed");
+		P_ERROR ("PSemaphore::pztk_semaphore_clean_handle: sem_close() failed");
 
 	if (sem->sem_hdl != P_SEM_INVALID_HDL &&
 	    sem->sem_created == TRUE &&
 	    sem_unlink (sem->platform_key) == -1)
-		P_ERROR ("PSemaphore::pp_semaphore_clean_handle: sem_unlink() failed");
+		P_ERROR ("PSemaphore::pztk_semaphore_clean_handle: sem_unlink() failed");
 
 	sem->sem_created = FALSE;
 	sem->sem_hdl = P_SEM_INVALID_HDL;
 }
 
 P_LIB_API PSemaphore *
-p_semaphore_new (const pchar		*name,
+ztk_semaphore_new (const pchar		*name,
 		 pint			init_val,
 		 PSemaphoreAccessMode	mode,
 		 PError			**error)
@@ -148,27 +148,27 @@ p_semaphore_new (const pchar		*name,
 	pchar		*new_name;
 
 	if (P_UNLIKELY (name == NULL || init_val < 0)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = p_malloc0 (sizeof (PSemaphore))) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSemaphore))) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for semaphore");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((new_name = p_malloc0 (strlen (name) + strlen (P_SEM_SUFFIX) + 1)) == NULL)) {
-		p_error_set_error_p (error,
+	if (P_UNLIKELY ((new_name = ztk_malloc0 (strlen (name) + strlen (P_SEM_SUFFIX) + 1)) == NULL)) {
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for semaphore");
-		p_free (ret);
+		ztk_free (ret);
 		return NULL;
 	}
 
@@ -177,17 +177,17 @@ p_semaphore_new (const pchar		*name,
 
 #if defined (P_OS_IRIX) || defined (P_OS_TRU64)
 	/* IRIX and Tru64 prefer filename styled IPC names */
-	ret->platform_key = p_ipc_get_platform_key (new_name, FALSE);
+	ret->platform_key = ztk_ipc_get_platform_key (new_name, FALSE);
 #else
-	ret->platform_key = p_ipc_get_platform_key (new_name, TRUE);
+	ret->platform_key = ztk_ipc_get_platform_key (new_name, TRUE);
 #endif
 	ret->init_val = init_val;
 	ret->mode = mode;
 
-	p_free (new_name);
+	ztk_free (new_name);
 
-	if (P_UNLIKELY (pp_semaphore_create_handle (ret, error) == FALSE)) {
-		p_semaphore_free (ret);
+	if (P_UNLIKELY (pztk_semaphore_create_handle (ret, error) == FALSE)) {
+		ztk_semaphore_free (ret);
 		return NULL;
 	}
 
@@ -195,7 +195,7 @@ p_semaphore_new (const pchar		*name,
 }
 
 P_LIB_API void
-p_semaphore_take_ownership (PSemaphore *sem)
+ztk_semaphore_take_ownership (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem == NULL))
 		return;
@@ -204,42 +204,42 @@ p_semaphore_take_ownership (PSemaphore *sem)
 }
 
 P_LIB_API pboolean
-p_semaphore_acquire (PSemaphore	*sem,
+ztk_semaphore_acquire (PSemaphore	*sem,
 		     PError	**error)
 {
 	pboolean	ret;
 	pint		res;
 
 	if (P_UNLIKELY (sem == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	while ((res = sem_wait (sem->sem_hdl)) == -1 && p_error_get_last_system () == EINTR)
+	while ((res = sem_wait (sem->sem_hdl)) == -1 && ztk_error_get_last_system () == EINTR)
 		;
 
 	ret = (res == 0);
 
 	if (P_UNLIKELY (ret == FALSE))
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_ipc (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_ipc (),
+				     ztk_error_get_last_system (),
 				     "Failed to call sem_wait() on semaphore");
 
 	return ret;
 }
 
 P_LIB_API pboolean
-p_semaphore_release (PSemaphore	*sem,
+ztk_semaphore_release (PSemaphore	*sem,
 		     PError	**error)
 {
 	pboolean ret;
 
 	if (P_UNLIKELY (sem == NULL)) {
-		p_error_set_error_p (error,
+		ztk_error_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -249,24 +249,24 @@ p_semaphore_release (PSemaphore	*sem,
 	ret = (sem_post (sem->sem_hdl) == 0);
 
 	if (P_UNLIKELY (ret == FALSE))
-		p_error_set_error_p (error,
-				     (pint) p_error_get_last_ipc (),
-				     p_error_get_last_system (),
+		ztk_error_set_error_p (error,
+				     (pint) ztk_error_get_last_ipc (),
+				     ztk_error_get_last_system (),
 				     "Failed to call sem_post() on semaphore");
 
 	return ret;
 }
 
 P_LIB_API void
-p_semaphore_free (PSemaphore *sem)
+ztk_semaphore_free (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem == NULL))
 		return;
 
-	pp_semaphore_clean_handle (sem);
+	pztk_semaphore_clean_handle (sem);
 
 	if (P_LIKELY (sem->platform_key != NULL))
-		p_free (sem->platform_key);
+		ztk_free (sem->platform_key);
 
-	p_free (sem);
+	ztk_free (sem);
 }
