@@ -81,7 +81,7 @@ P_BEGIN_DECLS
 typedef struct PMemVTable_ {
 	ppointer	(*malloc)	(psize		n_bytes);	/**< malloc() implementation.	*/
 	ppointer	(*realloc)	(ppointer	mem,
-					 psize		n_bytes);	/**< realloc() implementation.	*/
+	psize		n_bytes);	/**< realloc() implementation.	*/
 	void		(*free)		(ppointer	mem);		/**< free() implementation.	*/
 } PMemVTable;
 

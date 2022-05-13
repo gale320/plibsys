@@ -35,7 +35,7 @@ endif()
 
 macro (plibsys_add_test_executable TEST_NAME SRC_FILE)
         add_executable (${TEST_NAME} ${SRC_FILE})
-        target_link_libraries (${TEST_NAME} plibsys)
+        target_link_libraries (${TEST_NAME} ztk)
         set_target_properties (${TEST_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 
         # QNX requires libm for sqrt() and friends
@@ -60,7 +60,7 @@ macro (plibsys_add_test_executable TEST_NAME SRC_FILE)
         endif()
 
         if (${TEST_NAME} STREQUAL "plibraryloader_test")
-                add_test (NAME ${TEST_NAME} COMMAND ${TEST_NAME} -- "$<TARGET_FILE:plibsys>")
+                add_test (NAME ${TEST_NAME} COMMAND ${TEST_NAME} -- "$<TARGET_FILE:ztk>")
         else()
                 add_test (NAME ${TEST_NAME} COMMAND ${TEST_NAME})
         endif()

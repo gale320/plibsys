@@ -24,8 +24,8 @@
 
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 
-cmake_minimum_required (VERSION 2.8.0)
-project (plibsys C)
+cmake_minimum_required (VERSION 3.18.0)
+project (ztk C)
 
 set (PLIBSYS_VERSION_MAJOR 0)
 set (PLIBSYS_VERSION_MINOR 0)
@@ -34,6 +34,8 @@ set (PLIBSYS_VERSION_NUM 0x000004)
 set (PLIBSYS_VERSION ${PLIBSYS_VERSION_MAJOR}.${PLIBSYS_VERSION_MINOR}.${PLIBSYS_VERSION_PATCH})
 set (PLIBSYS_SOVERSION ${PLIBSYS_VERSION_MAJOR})
 set (VERSION ${PLIBSYS_VERSION})
+
+include(cmake/option.cmake)
 
 set (top_srcdir ${PROJECT_SOURCE_DIR})
 
@@ -47,7 +49,8 @@ if (NOT CMAKE_BUILD_TYPE)
         set (CMAKE_BUILD_TYPE "Debug")
 endif()
 
-subdirs (src)
+include_directories(src/include)
+add_subdirectory(src)
 
 if (PLIBSYS_TESTS)
         enable_testing ()
