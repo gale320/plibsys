@@ -48,7 +48,7 @@
 #  pragma disable_message (368)
 #endif
 
-inline double ztk_test_safe_division (double f1, double f2)
+inline double ztest_safe_division (double f1, double f2)
 {
 	return (f2 < 1.0 && f1 > f2 * P_MAXDOUBLE) ? P_MAXDOUBLE :
 	        (((f2 > 1.0 && f1 < f2 * P_MINDOUBLE) || f1 == 0) ? 0 : f1 / f2);
@@ -58,13 +58,13 @@ inline double ztk_test_safe_division (double f1, double f2)
 #  pragma warning (pop)
 #endif
 
-#define P_TEST_MODULE_FAIL_COUNTER ztk_test_module_fail_counter
-#define P_TEST_SUITE_FAIL_COUNTER ztk_test_suite_fail_counter
+#define P_TEST_MODULE_FAIL_COUNTER ztest_module_fail_counter
+#define P_TEST_SUITE_FAIL_COUNTER ztest_suite_fail_counter
 
 #define P_TEST_MODULE_INIT() static pint P_TEST_MODULE_FAIL_COUNTER = 0
 
 #define P_TEST_CASE_BEGIN(test_case_name)						\
-	pint ztk_test_case_##test_case_name (void)					\
+	pint ztest_case_##test_case_name (void)					\
 	{										\
 		P_TEST_MODULE_FAIL_COUNTER = 0;
 
@@ -95,28 +95,28 @@ inline double ztk_test_safe_division (double f1, double f2)
 
 #define P_TEST_SUITE_RUN_CASE(a) 							\
 	printf ("Running test case: %s\n", #a);						\
-	P_TEST_SUITE_FAIL_COUNTER += (ztk_test_case_##a)()
+	P_TEST_SUITE_FAIL_COUNTER += (ztest_case_##a)()
 
 #define P_TEST_CHECK(a)									\
 	do {										\
 		if (!(a)) {								\
 			printf ("%s:%d: check failed\n", __FILE__, __LINE__);		\
-			ztk_atomic_int_inc (&P_TEST_MODULE_FAIL_COUNTER);			\
+			zatomic_int_inc (&P_TEST_MODULE_FAIL_COUNTER);			\
 		}									\
 	} while (0)
 
 #define P_TEST_CHECK_CLOSE(a, b, eps)							\
 	do {										\
-		double ztk_test_eps_diff = (a) > (b) ? (a) - (b) : (b) - (a);		\
-		double ztk_test_d1 = ztk_test_safe_division (ztk_test_eps_diff,		\
+		double ztest_eps_diff = (a) > (b) ? (a) - (b) : (b) - (a);		\
+		double ztest_d1 = ztest_safe_division (ztest_eps_diff,		\
 							 ((a) < 0.0 ? (-(a)) : (a)));	\
-		double ztk_test_d2 = ztk_test_safe_division (ztk_test_eps_diff,		\
+		double ztest_d2 = ztest_safe_division (ztest_eps_diff,		\
 							 ((b) < 0.0 ? (-(b)) : (b)));	\
-		double ztk_test_tol = (eps) * 0.01;					\
+		double ztest_tol = (eps) * 0.01;					\
 											\
-		if (!(ztk_test_d1 <= ztk_test_tol && ztk_test_d2 <= ztk_test_tol)) {		\
+		if (!(ztest_d1 <= ztest_tol && ztest_d2 <= ztest_tol)) {		\
 			printf ("%s:%d: check failed\n", __FILE__, __LINE__);		\
-			ztk_atomic_int_inc (&P_TEST_MODULE_FAIL_COUNTER);			\
+			zatomic_int_inc (&P_TEST_MODULE_FAIL_COUNTER);			\
 		}									\
 	} while (0)
 

@@ -42,14 +42,14 @@ struct PHashSHA2_256_ {
 	pboolean	is224;
 };
 
-static const puchar pztk_crypto_hash_sha2_256_pad[64] = {
+static const puchar pzcrypto_hash_sha2_256_pad[64] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static const puint32 pztk_crypto_hash_sha2_256_K[] = {
+static const puint32 pzcrypto_hash_sha2_256_K[] = {
 	0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
 	0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
 	0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3,
@@ -68,9 +68,9 @@ static const puint32 pztk_crypto_hash_sha2_256_K[] = {
 	0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
 };
 
-static void pztk_crypto_hash_sha2_256_swaztk_bytes (puint32 *data, puint words);
-static void pztk_crypto_hash_sha2_256_process (PHashSHA2_256 *ctx, const puint32 data[16]);
-static PHashSHA2_256 * pztk_crypto_hash_sha2_256_new_internal (pboolean is224);
+static void pzcrypto_hash_sha2_256_swazbytes (puint32 *data, puint words);
+static void pzcrypto_hash_sha2_256_process (PHashSHA2_256 *ctx, const puint32 data[16]);
+static PHashSHA2_256 * pzcrypto_hash_sha2_256_new_internal (pboolean is224);
 
 #define P_SHA2_256_SHR(val, shift) (((val) & 0xFFFFFFFF) >> (shift))
 #define P_SHA2_256_ROTR(val, shift) (P_SHA2_256_SHR(val, shift) | ((val) << (32 - (shift))))
@@ -91,14 +91,14 @@ static PHashSHA2_256 * pztk_crypto_hash_sha2_256_new_internal (pboolean is224);
 
 #define P_SHA2_256_P(a, b, c, d, e, f, g, h, x, K)				\
 {										\
-	tmztk_sum1 = h + P_SHA2_256_S3 (e) + P_SHA2_256_F1 (e, f, g) + K + x;	\
-	tmztk_sum2 = P_SHA2_256_S2 (a) + P_SHA2_256_F0 (a, b, c);			\
-	d += tmztk_sum1;								\
-	h = tmztk_sum1 + tmztk_sum2;						\
+	tmzsum1 = h + P_SHA2_256_S3 (e) + P_SHA2_256_F1 (e, f, g) + K + x;	\
+	tmzsum2 = P_SHA2_256_S2 (a) + P_SHA2_256_F0 (a, b, c);			\
+	d += tmzsum1;								\
+	h = tmzsum1 + tmzsum2;						\
 }
 
 static void
-pztk_crypto_hash_sha2_256_swaztk_bytes (puint32	*data,
+pzcrypto_hash_sha2_256_swazbytes (puint32	*data,
 				    puint	words)
 {
 #ifdef PLIBSYS_IS_BIGENDIAN
@@ -113,10 +113,10 @@ pztk_crypto_hash_sha2_256_swaztk_bytes (puint32	*data,
 }
 
 static void
-pztk_crypto_hash_sha2_256_process (PHashSHA2_256	*ctx,
+pzcrypto_hash_sha2_256_process (PHashSHA2_256	*ctx,
 				 const puint32	data[16])
 {
-	puint32	tmztk_sum1, tmztk_sum2;
+	puint32	tmzsum1, tmzsum2;
 	puint32 W[64];
 	puint32	A[8];
 	puint	i;
@@ -127,25 +127,25 @@ pztk_crypto_hash_sha2_256_process (PHashSHA2_256	*ctx,
 	memcpy (W, data, 64);
 
 	for (i = 0; i < 16; i += 8) {
-		P_SHA2_256_P (A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i + 0], pztk_crypto_hash_sha2_256_K[i + 0]);
-		P_SHA2_256_P (A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i + 1], pztk_crypto_hash_sha2_256_K[i + 1]);
-		P_SHA2_256_P (A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i + 2], pztk_crypto_hash_sha2_256_K[i + 2]);
-		P_SHA2_256_P (A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i + 3], pztk_crypto_hash_sha2_256_K[i + 3]);
-		P_SHA2_256_P (A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i + 4], pztk_crypto_hash_sha2_256_K[i + 4]);
-		P_SHA2_256_P (A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i + 5], pztk_crypto_hash_sha2_256_K[i + 5]);
-		P_SHA2_256_P (A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i + 6], pztk_crypto_hash_sha2_256_K[i + 6]);
-		P_SHA2_256_P (A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i + 7], pztk_crypto_hash_sha2_256_K[i + 7]);
+		P_SHA2_256_P (A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i + 0], pzcrypto_hash_sha2_256_K[i + 0]);
+		P_SHA2_256_P (A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i + 1], pzcrypto_hash_sha2_256_K[i + 1]);
+		P_SHA2_256_P (A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i + 2], pzcrypto_hash_sha2_256_K[i + 2]);
+		P_SHA2_256_P (A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i + 3], pzcrypto_hash_sha2_256_K[i + 3]);
+		P_SHA2_256_P (A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i + 4], pzcrypto_hash_sha2_256_K[i + 4]);
+		P_SHA2_256_P (A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i + 5], pzcrypto_hash_sha2_256_K[i + 5]);
+		P_SHA2_256_P (A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i + 6], pzcrypto_hash_sha2_256_K[i + 6]);
+		P_SHA2_256_P (A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i + 7], pzcrypto_hash_sha2_256_K[i + 7]);
 	}
 
 	for (i = 16; i < 64; i += 8) {
-		P_SHA2_256_P (A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], P_SHA2_256_R (i + 0), pztk_crypto_hash_sha2_256_K[i + 0]);
-		P_SHA2_256_P (A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], P_SHA2_256_R (i + 1), pztk_crypto_hash_sha2_256_K[i + 1]);
-		P_SHA2_256_P (A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], P_SHA2_256_R (i + 2), pztk_crypto_hash_sha2_256_K[i + 2]);
-		P_SHA2_256_P (A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], P_SHA2_256_R (i + 3), pztk_crypto_hash_sha2_256_K[i + 3]);
-		P_SHA2_256_P (A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], P_SHA2_256_R (i + 4), pztk_crypto_hash_sha2_256_K[i + 4]);
-		P_SHA2_256_P (A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], P_SHA2_256_R (i + 5), pztk_crypto_hash_sha2_256_K[i + 5]);
-		P_SHA2_256_P (A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], P_SHA2_256_R (i + 6), pztk_crypto_hash_sha2_256_K[i + 6]);
-		P_SHA2_256_P (A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], P_SHA2_256_R (i + 7), pztk_crypto_hash_sha2_256_K[i + 7]);
+		P_SHA2_256_P (A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], P_SHA2_256_R (i + 0), pzcrypto_hash_sha2_256_K[i + 0]);
+		P_SHA2_256_P (A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], P_SHA2_256_R (i + 1), pzcrypto_hash_sha2_256_K[i + 1]);
+		P_SHA2_256_P (A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], P_SHA2_256_R (i + 2), pzcrypto_hash_sha2_256_K[i + 2]);
+		P_SHA2_256_P (A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], P_SHA2_256_R (i + 3), pzcrypto_hash_sha2_256_K[i + 3]);
+		P_SHA2_256_P (A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], P_SHA2_256_R (i + 4), pzcrypto_hash_sha2_256_K[i + 4]);
+		P_SHA2_256_P (A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], P_SHA2_256_R (i + 5), pzcrypto_hash_sha2_256_K[i + 5]);
+		P_SHA2_256_P (A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], P_SHA2_256_R (i + 6), pzcrypto_hash_sha2_256_K[i + 6]);
+		P_SHA2_256_P (A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], P_SHA2_256_R (i + 7), pzcrypto_hash_sha2_256_K[i + 7]);
 	}
 
 	for (i = 0; i < 8; i++)
@@ -153,22 +153,22 @@ pztk_crypto_hash_sha2_256_process (PHashSHA2_256	*ctx,
 }
 
 static PHashSHA2_256 *
-pztk_crypto_hash_sha2_256_new_internal (pboolean is224)
+pzcrypto_hash_sha2_256_new_internal (pboolean is224)
 {
 	PHashSHA2_256 *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PHashSHA2_256))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PHashSHA2_256))) == NULL))
 		return NULL;
 
 	ret->is224 = is224;
 
-	ztk_crypto_hash_sha2_256_reset (ret);
+	zcrypto_hash_sha2_256_reset (ret);
 
 	return ret;
 }
 
 void
-ztk_crypto_hash_sha2_256_reset (PHashSHA2_256 *ctx)
+zcrypto_hash_sha2_256_reset (PHashSHA2_256 *ctx)
 {
 	memset (ctx->buf.buf, 0, 64);
 
@@ -199,19 +199,19 @@ ztk_crypto_hash_sha2_256_reset (PHashSHA2_256 *ctx)
 }
 
 PHashSHA2_256 *
-ztk_crypto_hash_sha2_256_new (void)
+zcrypto_hash_sha2_256_new (void)
 {
-	return pztk_crypto_hash_sha2_256_new_internal (FALSE);
+	return pzcrypto_hash_sha2_256_new_internal (FALSE);
 }
 
 PHashSHA2_256 *
-ztk_crypto_hash_sha2_224_new (void)
+zcrypto_hash_sha2_224_new (void)
 {
-	return pztk_crypto_hash_sha2_256_new_internal (TRUE);
+	return pzcrypto_hash_sha2_256_new_internal (TRUE);
 }
 
 void
-ztk_crypto_hash_sha2_256_update (PHashSHA2_256	*ctx,
+zcrypto_hash_sha2_256_update (PHashSHA2_256	*ctx,
 			       const puchar	*data,
 			       psize		len)
 {
@@ -227,8 +227,8 @@ ztk_crypto_hash_sha2_256_update (PHashSHA2_256	*ctx,
 
 	if (left && (puint32) len >= to_fill) {
 		memcpy (ctx->buf.buf + left, data, to_fill);
-		pztk_crypto_hash_sha2_256_swaztk_bytes (ctx->buf.buf_w, 16);
-		pztk_crypto_hash_sha2_256_process (ctx, ctx->buf.buf_w);
+		pzcrypto_hash_sha2_256_swazbytes (ctx->buf.buf_w, 16);
+		pzcrypto_hash_sha2_256_process (ctx, ctx->buf.buf_w);
 
 		data += to_fill;
 		len -= to_fill;
@@ -237,8 +237,8 @@ ztk_crypto_hash_sha2_256_update (PHashSHA2_256	*ctx,
 
 	while (len >= 64) {
 		memcpy (ctx->buf.buf, data, 64);
-		pztk_crypto_hash_sha2_256_swaztk_bytes (ctx->buf.buf_w, 16);
-		pztk_crypto_hash_sha2_256_process (ctx, ctx->buf.buf_w);
+		pzcrypto_hash_sha2_256_swazbytes (ctx->buf.buf_w, 16);
+		pzcrypto_hash_sha2_256_process (ctx, ctx->buf.buf_w);
 
 		data += 64;
 		len -= 64;
@@ -249,7 +249,7 @@ ztk_crypto_hash_sha2_256_update (PHashSHA2_256	*ctx,
 }
 
 void
-ztk_crypto_hash_sha2_256_finish (PHashSHA2_256 *ctx)
+zcrypto_hash_sha2_256_finish (PHashSHA2_256 *ctx)
 {
 	puint32	high, low;
 	pint	left, last;
@@ -262,25 +262,25 @@ ztk_crypto_hash_sha2_256_finish (PHashSHA2_256 *ctx)
 	     | ctx->len_low >> 29;
 
 	if (last > 0)
-		ztk_crypto_hash_sha2_256_update (ctx, pztk_crypto_hash_sha2_256_pad, (psize) last);
+		zcrypto_hash_sha2_256_update (ctx, pzcrypto_hash_sha2_256_pad, (psize) last);
 
 	ctx->buf.buf_w[14] = high;
 	ctx->buf.buf_w[15] = low;
 
-	pztk_crypto_hash_sha2_256_swaztk_bytes (ctx->buf.buf_w, 14);
-	pztk_crypto_hash_sha2_256_process (ctx, ctx->buf.buf_w);
+	pzcrypto_hash_sha2_256_swazbytes (ctx->buf.buf_w, 14);
+	pzcrypto_hash_sha2_256_process (ctx, ctx->buf.buf_w);
 
-	pztk_crypto_hash_sha2_256_swaztk_bytes (ctx->hash, ctx->is224 == FALSE ? 8 : 7);
+	pzcrypto_hash_sha2_256_swazbytes (ctx->hash, ctx->is224 == FALSE ? 8 : 7);
 }
 
 const puchar *
-ztk_crypto_hash_sha2_256_digest (PHashSHA2_256 *ctx)
+zcrypto_hash_sha2_256_digest (PHashSHA2_256 *ctx)
 {
 	return (const puchar *) ctx->hash;
 }
 
 void
-ztk_crypto_hash_sha2_256_free (PHashSHA2_256 *ctx)
+zcrypto_hash_sha2_256_free (PHashSHA2_256 *ctx)
 {
-	ztk_free (ctx);
+	zfree (ctx);
 }

@@ -39,26 +39,26 @@ static void * shm_test_thread (void *arg)
 	PShm		*shm;
 
 	if (arg == NULL)
-		ztk_uthread_exit (1);
+		zuthread_exit (1);
 
 	shm = (PShm *) arg;
 	rand_num = rand () % 127;
-	shm_size = ztk_shm_get_size (shm);
-	addr = ztk_shm_get_address (shm);
+	shm_size = zshm_get_size (shm);
+	addr = zshm_get_address (shm);
 
 	if (shm_size == 0 || addr == NULL)
-		ztk_uthread_exit (1);
+		zuthread_exit (1);
 
-	if (!ztk_shm_lock (shm, NULL))
-		ztk_uthread_exit (1);
+	if (!zshm_lock (shm, NULL))
+		zuthread_exit (1);
 
 	for (puint i = 0; i < shm_size; ++i)
 		*(((pchar *) addr) + i) = (pchar) rand_num;
 
-	if (!ztk_shm_unlock (shm, NULL))
-		ztk_uthread_exit (1);
+	if (!zshm_unlock (shm, NULL))
+		zuthread_exit (1);
 
-	ztk_uthread_exit (0);
+	zuthread_exit (0);
 
 	return NULL;
 }
@@ -83,7 +83,7 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (pshm_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PMemVTable vtable;
 
@@ -91,36 +91,36 @@ P_TEST_CASE_BEGIN (pshm_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (ztk_shm_new ("ztk_shm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL) == NULL);
+	P_TEST_CHECK (zshm_new ("zshm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL) == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pshm_invalid_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_CHECK (ztk_shm_new (NULL, 0, P_SHM_ACCESS_READWRITE, NULL) == NULL);
-	P_TEST_CHECK (ztk_shm_lock (NULL, NULL) == FALSE);
-	P_TEST_CHECK (ztk_shm_unlock (NULL, NULL) == FALSE);
-	P_TEST_CHECK (ztk_shm_get_address (NULL) == NULL);
-	P_TEST_CHECK (ztk_shm_get_size (NULL) == 0);
-	ztk_shm_take_ownership (NULL);
+	P_TEST_CHECK (zshm_new (NULL, 0, P_SHM_ACCESS_READWRITE, NULL) == NULL);
+	P_TEST_CHECK (zshm_lock (NULL, NULL) == FALSE);
+	P_TEST_CHECK (zshm_unlock (NULL, NULL) == FALSE);
+	P_TEST_CHECK (zshm_get_address (NULL) == NULL);
+	P_TEST_CHECK (zshm_get_size (NULL) == 0);
+	zshm_take_ownership (NULL);
 
-	PShm *shm = ztk_shm_new ("ztk_shm_invalid_test", 0, P_SHM_ACCESS_READWRITE, NULL);
-	ztk_shm_take_ownership (shm);
-	ztk_shm_free (shm);
+	PShm *shm = zshm_new ("zshm_invalid_test", 0, P_SHM_ACCESS_READWRITE, NULL);
+	zshm_take_ownership (shm);
+	zshm_free (shm);
 
-	shm = ztk_shm_new ("ztk_shm_invalid_test", 10, (PShmAccessPerms) -1, NULL);
-	ztk_shm_take_ownership (shm);
-	ztk_shm_free (shm);
+	shm = zshm_new ("zshm_invalid_test", 10, (PShmAccessPerms) -1, NULL);
+	zshm_take_ownership (shm);
+	zshm_free (shm);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -133,109 +133,109 @@ P_TEST_CASE_BEGIN (pshm_general_test)
 	ppointer	addr, addr2;
 	pint		i;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	shm = ztk_shm_new ("ztk_shm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL);
+	shm = zshm_new ("zshm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL);
 	P_TEST_REQUIRE (shm != NULL);
-	ztk_shm_take_ownership (shm);
-	ztk_shm_free (shm);
+	zshm_take_ownership (shm);
+	zshm_free (shm);
 
-	shm = ztk_shm_new ("ztk_shm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL);
+	shm = zshm_new ("zshm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL);
 	P_TEST_REQUIRE (shm != NULL);
-	P_TEST_REQUIRE (ztk_shm_get_size (shm) == 1024);
+	P_TEST_REQUIRE (zshm_get_size (shm) == 1024);
 
-	addr = ztk_shm_get_address (shm);
+	addr = zshm_get_address (shm);
 	P_TEST_REQUIRE (addr != NULL);
 
 #ifndef P_OS_HPUX
-	shm2 = ztk_shm_new ("ztk_shm_test_memory_block", 1024, P_SHM_ACCESS_READONLY, NULL);
+	shm2 = zshm_new ("zshm_test_memory_block", 1024, P_SHM_ACCESS_READONLY, NULL);
 
 	if (shm2 == NULL) {
 		/* OK, some systems may want exactly the same permissions */
-		shm2 = ztk_shm_new ("ztk_shm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL);
+		shm2 = zshm_new ("zshm_test_memory_block", 1024, P_SHM_ACCESS_READWRITE, NULL);
 	}
 
 	P_TEST_REQUIRE (shm2 != NULL);
-	P_TEST_REQUIRE (ztk_shm_get_size (shm2) == 1024);
+	P_TEST_REQUIRE (zshm_get_size (shm2) == 1024);
 
-	addr2 = ztk_shm_get_address (shm2);
+	addr2 = zshm_get_address (shm2);
 	P_TEST_REQUIRE (addr2 != NULL);
 #endif
 
 	for (i = 0; i < 512; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm, NULL));
+		P_TEST_CHECK (zshm_lock (shm, NULL));
 		*(((pchar *) addr) + i) = 'a';
-		P_TEST_CHECK (ztk_shm_unlock (shm, NULL));
+		P_TEST_CHECK (zshm_unlock (shm, NULL));
 	}
 
 #ifndef P_OS_HPUX
 	for (i = 0; i < 512; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm2, NULL));
+		P_TEST_CHECK (zshm_lock (shm2, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) == 'a');
-		P_TEST_CHECK (ztk_shm_unlock (shm2, NULL));
+		P_TEST_CHECK (zshm_unlock (shm2, NULL));
 	}
 #else
 	for (i = 0; i < 512; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm, NULL));
+		P_TEST_CHECK (zshm_lock (shm, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) == 'a');
-		P_TEST_CHECK (ztk_shm_unlock (shm, NULL));
+		P_TEST_CHECK (zshm_unlock (shm, NULL));
 	}
 #endif
 
 	for (i = 0; i < 1024; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm, NULL));
+		P_TEST_CHECK (zshm_lock (shm, NULL));
 		*(((pchar *) addr) + i) = 'b';
-		P_TEST_CHECK (ztk_shm_unlock (shm, NULL));
+		P_TEST_CHECK (zshm_unlock (shm, NULL));
 	}
 
 #ifndef P_OS_HPUX
 	for (i = 0; i < 1024; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm2, NULL));
+		P_TEST_CHECK (zshm_lock (shm2, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) != 'c');
-		P_TEST_CHECK (ztk_shm_unlock (shm2, NULL));
+		P_TEST_CHECK (zshm_unlock (shm2, NULL));
 	}
 
 	for (i = 0; i < 1024; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm2, NULL));
+		P_TEST_CHECK (zshm_lock (shm2, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) == 'b');
-		P_TEST_CHECK (ztk_shm_unlock (shm2, NULL));
+		P_TEST_CHECK (zshm_unlock (shm2, NULL));
 	}
 #else
 	for (i = 0; i < 1024; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm, NULL));
+		P_TEST_CHECK (zshm_lock (shm, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) != 'c');
-		P_TEST_CHECK (ztk_shm_unlock (shm, NULL));
+		P_TEST_CHECK (zshm_unlock (shm, NULL));
 	}
 
 	for (i = 0; i < 1024; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm, NULL));
+		P_TEST_CHECK (zshm_lock (shm, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) == 'b');
-		P_TEST_CHECK (ztk_shm_unlock (shm, NULL));
+		P_TEST_CHECK (zshm_unlock (shm, NULL));
 	}
 #endif
 
-	ztk_shm_free (shm);
+	zshm_free (shm);
 
-	shm = ztk_shm_new ("ztk_shm_test_memory_block_2", 1024, P_SHM_ACCESS_READWRITE, NULL);
+	shm = zshm_new ("zshm_test_memory_block_2", 1024, P_SHM_ACCESS_READWRITE, NULL);
 	P_TEST_REQUIRE (shm != NULL);
-	P_TEST_REQUIRE (ztk_shm_get_size (shm) == 1024);
+	P_TEST_REQUIRE (zshm_get_size (shm) == 1024);
 
-	addr = ztk_shm_get_address (shm);
+	addr = zshm_get_address (shm);
 	P_TEST_REQUIRE (addr != NULL);
 
 	for (i = 0; i < 1024; ++i) {
-		P_TEST_CHECK (ztk_shm_lock (shm, NULL));
+		P_TEST_CHECK (zshm_lock (shm, NULL));
 		P_TEST_CHECK (*(((pchar *) addr) + i) != 'b');
-		P_TEST_CHECK (ztk_shm_unlock (shm, NULL));
+		P_TEST_CHECK (zshm_unlock (shm, NULL));
 	}
 
-	ztk_shm_free (shm);
+	zshm_free (shm);
 
 #ifndef P_OS_HPUX
-	ztk_shm_free (shm2);
+	zshm_free (shm2);
 #endif
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -247,41 +247,41 @@ P_TEST_CASE_BEGIN (pshm_thread_test)
 	pint		i, val;
 	pboolean	test_ok;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	srand ((puint) time (NULL));
 
-	shm = ztk_shm_new ("ztk_shm_test_memory_block", 1024 * 1024, P_SHM_ACCESS_READWRITE, NULL);
+	shm = zshm_new ("zshm_test_memory_block", 1024 * 1024, P_SHM_ACCESS_READWRITE, NULL);
 	P_TEST_REQUIRE (shm != NULL);
-	ztk_shm_take_ownership (shm);
-	ztk_shm_free (shm);
+	zshm_take_ownership (shm);
+	zshm_free (shm);
 
-	shm = ztk_shm_new ("ztk_shm_test_memory_block", 1024 * 1024, P_SHM_ACCESS_READWRITE, NULL);
+	shm = zshm_new ("zshm_test_memory_block", 1024 * 1024, P_SHM_ACCESS_READWRITE, NULL);
 	P_TEST_REQUIRE (shm != NULL);
 
-	if (ztk_shm_get_size (shm) != 1024 * 1024) {
-		ztk_shm_free (shm);
-		shm = ztk_shm_new ("ztk_shm_test_memory_block", 1024 * 1024, P_SHM_ACCESS_READWRITE, NULL);
+	if (zshm_get_size (shm) != 1024 * 1024) {
+		zshm_free (shm);
+		shm = zshm_new ("zshm_test_memory_block", 1024 * 1024, P_SHM_ACCESS_READWRITE, NULL);
 		P_TEST_REQUIRE (shm != NULL);
 	}
 
-	P_TEST_REQUIRE (ztk_shm_get_size (shm) == 1024 * 1024);
+	P_TEST_REQUIRE (zshm_get_size (shm) == 1024 * 1024);
 
-	addr = ztk_shm_get_address (shm);
+	addr = zshm_get_address (shm);
 	P_TEST_REQUIRE (addr != NULL);
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) shm_test_thread, (ppointer) shm, TRUE, NULL);
+	thr1 = zuthread_create ((PUThreadFunc) shm_test_thread, (ppointer) shm, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) shm_test_thread, (ppointer) shm, TRUE, NULL);
+	thr2 = zuthread_create ((PUThreadFunc) shm_test_thread, (ppointer) shm, TRUE, NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	thr3 = ztk_uthread_create ((PUThreadFunc) shm_test_thread, (ppointer) shm, TRUE, NULL);
+	thr3 = zuthread_create ((PUThreadFunc) shm_test_thread, (ppointer) shm, TRUE, NULL);
 	P_TEST_REQUIRE (thr3 != NULL);
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == 0);
-	P_TEST_CHECK (ztk_uthread_join (thr2) == 0);
-	P_TEST_CHECK (ztk_uthread_join (thr3) == 0);
+	P_TEST_CHECK (zuthread_join (thr1) == 0);
+	P_TEST_CHECK (zuthread_join (thr2) == 0);
+	P_TEST_CHECK (zuthread_join (thr3) == 0);
 
 	test_ok = TRUE;
 	val = *((pchar *) addr);
@@ -294,12 +294,12 @@ P_TEST_CASE_BEGIN (pshm_thread_test)
 
 	P_TEST_REQUIRE (test_ok == TRUE);
 
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
-	ztk_uthread_unref (thr3);
-	ztk_shm_free (shm);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
+	zuthread_unref (thr3);
+	zshm_free (shm);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

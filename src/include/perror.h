@@ -36,7 +36,7 @@
  *
  * if (error != NULL) {
  *         ...
- *         ztk_error_free (error);
+ *         zerror_free (error);
  * }
  * @endcode
  * Note that you should not initialize a new #PError object before passing the
@@ -46,8 +46,8 @@
  * Most operating systems store the last error code of the most system calls in
  * a thread-specific variable. Moreover, Windows stores the error code of the
  * last socket related call in a separate variable. Use
- * ztk_error_get_last_system() and ztk_error_set_last_system() to access the last
- * system error code, ztk_error_get_last_net() and ztk_error_set_last_net() to
+ * zerror_get_last_system() and zerror_set_last_system() to access the last
+ * system error code, zerror_get_last_net() and zerror_set_last_net() to
  * access the last network error code.
  */
 
@@ -72,7 +72,7 @@ typedef struct PError_ PError;
  * @return Newly initialized #PError object in case of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API PError *	ztk_error_new		(void);
+P_LIB_API PError *	zerror_new		(void);
 
 /**
  * @brief Initializes a new #PError with data.
@@ -82,7 +82,7 @@ P_LIB_API PError *	ztk_error_new		(void);
  * @return Newly initialized #PError object in case of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API PError *	ztk_error_new_literal	(pint		code,
+P_LIB_API PError *	zerror_new_literal	(pint		code,
 						 pint		native_code,
 						 const pchar	*message);
 
@@ -92,7 +92,7 @@ P_LIB_API PError *	ztk_error_new_literal	(pint		code,
  * @return Error message in case of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API const pchar *	ztk_error_get_message	(PError		*error);
+P_LIB_API const pchar *	zerror_get_message	(PError		*error);
 
 /**
  * @brief Gets an error code.
@@ -100,7 +100,7 @@ P_LIB_API const pchar *	ztk_error_get_message	(PError		*error);
  * @return Error code in case of success, 0 otherwise.
  * @since 0.0.1
  */
-P_LIB_API pint		ztk_error_get_code	(PError		*error);
+P_LIB_API pint		zerror_get_code	(PError		*error);
 
 /**
  * @brief Gets a platform native error code, if any.
@@ -110,7 +110,7 @@ P_LIB_API pint		ztk_error_get_code	(PError		*error);
  * @note In some situations there can be no native code error, i.e. when an
  * internal library call failed. Do not rely on this code.
  */
-P_LIB_API pint		ztk_error_get_native_code	(PError		*error);
+P_LIB_API pint		zerror_get_native_code	(PError		*error);
 
 /**
  * @brief Gets an error domain.
@@ -118,7 +118,7 @@ P_LIB_API pint		ztk_error_get_native_code	(PError		*error);
  * @return Error domain in case of success, #P_ERROR_DOMAIN_NONE otherwise.
  * @since 0.0.1
  */
-P_LIB_API PErrorDomain	ztk_error_get_domain	(PError		*error);
+P_LIB_API PErrorDomain	zerror_get_domain	(PError		*error);
 
 /**
  * @brief Creates a copy of a #PError object.
@@ -128,7 +128,7 @@ P_LIB_API PErrorDomain	ztk_error_get_domain	(PError		*error);
  * @note The caller is responsible to free memory of the created object after
  * usage.
  */
-P_LIB_API PError *	ztk_error_copy		(PError		*error);
+P_LIB_API PError *	zerror_copy		(PError		*error);
 
 /**
  * @brief Sets error data.
@@ -138,7 +138,7 @@ P_LIB_API PError *	ztk_error_copy		(PError		*error);
  * @param message Error message.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_error_set_error	(PError		*error,
+P_LIB_API void		zerror_set_error	(PError		*error,
 						 pint		code,
 						 pint		native_code,
 						 const pchar	*message);
@@ -156,7 +156,7 @@ P_LIB_API void		ztk_error_set_error	(PError		*error,
  * error data and assigns it to @a *error. The caller is responsible to free
  * memory of the created object after usage.
  */
-P_LIB_API void		ztk_error_set_error_p	(PError		**error,
+P_LIB_API void		zerror_set_error_p	(PError		**error,
 						 pint		code,
 						 pint		native_code,
 						 const pchar	*message);
@@ -167,7 +167,7 @@ P_LIB_API void		ztk_error_set_error_p	(PError		**error,
  * @param code Error code.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_error_set_code	(PError		*error,
+P_LIB_API void		zerror_set_code	(PError		*error,
 						 pint		code);
 
 /**
@@ -176,7 +176,7 @@ P_LIB_API void		ztk_error_set_code	(PError		*error,
  * @param native_code Platform native error code.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_error_set_native_code	(PError		*error,
+P_LIB_API void		zerror_set_native_code	(PError		*error,
 						 pint		native_code);
 
 /**
@@ -185,7 +185,7 @@ P_LIB_API void		ztk_error_set_native_code	(PError		*error,
  * @param message Error message.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_error_set_message	(PError		*error,
+P_LIB_API void		zerror_set_message	(PError		*error,
 						 const pchar	*message);
 
 /**
@@ -194,55 +194,55 @@ P_LIB_API void		ztk_error_set_message	(PError		*error,
  * @since 0.0.1
  * @note Error code is reseted to 0.
  */
-P_LIB_API void		ztk_error_clear		(PError		*error);
+P_LIB_API void		zerror_clear		(PError		*error);
 
 /**
  * @brief Frees a previously initialized error object.
  * @param error #PError object to free.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_error_free		(PError		*error);
+P_LIB_API void		zerror_free		(PError		*error);
 
 /**
  * @brief Gets the last system native error code.
  * @return Last system native error code.
  * @since 0.0.2
- * @sa ztk_error_get_last_net(), ztk_error_set_last_system(),
- * ztk_error_set_last_net()
+ * @sa zerror_get_last_net(), zerror_set_last_system(),
+ * zerror_set_last_net()
  * @note If you want get an error code for socket-related calls, use
- * ztk_error_get_last_net() instead.
+ * zerror_get_last_net() instead.
  */
 
-P_LIB_API pint		ztk_error_get_last_system	(void);
+P_LIB_API pint		zerror_get_last_system	(void);
 
 /**
  * @brief Gets the last network native error code.
  * @return Last network native error code.
  * @since 0.0.2
- * @sa ztk_error_get_last_system(), ztk_error_set_last_net(),
- * ztk_error_set_last_system()
+ * @sa zerror_get_last_system(), zerror_set_last_net(),
+ * zerror_set_last_system()
  */
-P_LIB_API pint		ztk_error_get_last_net	(void);
+P_LIB_API pint		zerror_get_last_net	(void);
 
 /**
  * @brief Sets the last system native error code.
  * @param code Error code to set.
  * @since 0.0.2
- * @sa ztk_error_set_last_net(), ztk_error_get_last_system(),
- * ztk_error_get_last_net()
+ * @sa zerror_set_last_net(), zerror_get_last_system(),
+ * zerror_get_last_net()
  * @note If you want set an error code for socket-related calls, use
- * ztk_error_set_last_net() instead.
+ * zerror_set_last_net() instead.
  */
-P_LIB_API void		ztk_error_set_last_system	(pint code);
+P_LIB_API void		zerror_set_last_system	(pint code);
 
 /**
  * @brief Sets the last network native error code.
  * @param code Error code to set.
  * @since 0.0.2
- * @sa ztk_error_set_last_system(), ztk_error_get_last_net(),
- * ztk_error_get_last_system()
+ * @sa zerror_set_last_system(), zerror_get_last_net(),
+ * zerror_get_last_system()
  */
-P_LIB_API void		ztk_error_set_last_net	(pint code);
+P_LIB_API void		zerror_set_last_net	(pint code);
 
 P_END_DECLS
 

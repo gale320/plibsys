@@ -44,7 +44,7 @@ struct PError_ {
 };
 
 PErrorIO
-ztk_error_get_io_from_system (pint err_code)
+zerror_get_io_from_system (pint err_code)
 {
 	switch (err_code) {
 	case 0:
@@ -415,13 +415,13 @@ ztk_error_get_io_from_system (pint err_code)
 }
 
 PErrorIO
-ztk_error_get_last_io (void)
+zerror_get_last_io (void)
 {
-	return ztk_error_get_io_from_system (ztk_error_get_last_system ());
+	return zerror_get_io_from_system (zerror_get_last_system ());
 }
 
 PErrorIPC
-ztk_error_get_ipc_from_system (pint err_code)
+zerror_get_ipc_from_system (pint err_code)
 {
 	switch (err_code) {
 	case 0:
@@ -646,41 +646,41 @@ ztk_error_get_ipc_from_system (pint err_code)
 }
 
 PErrorIPC
-ztk_error_get_last_ipc (void)
+zerror_get_last_ipc (void)
 {
-	return ztk_error_get_ipc_from_system (ztk_error_get_last_system ());
+	return zerror_get_ipc_from_system (zerror_get_last_system ());
 }
 
 P_LIB_API PError *
-ztk_error_new (void)
+zerror_new (void)
 {
 	PError *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PError))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PError))) == NULL))
 		return NULL;
 
 	return ret;
 }
 
 P_LIB_API PError *
-ztk_error_new_literal (pint		code,
+zerror_new_literal (pint		code,
 		     pint		native_code,
 		     const pchar	*message)
 {
 	PError *ret;
 
-	if (P_UNLIKELY ((ret = ztk_error_new ()) == NULL))
+	if (P_UNLIKELY ((ret = zerror_new ()) == NULL))
 		return NULL;
 
 	ret->code        = code;
 	ret->native_code = native_code;
-	ret->message     = ztk_strdup (message);
+	ret->message     = zstrdup (message);
 
 	return ret;
 }
 
 P_LIB_API const pchar *
-ztk_error_get_message (PError *error)
+zerror_get_message (PError *error)
 {
 	if (P_UNLIKELY (error == NULL))
 		return NULL;
@@ -689,7 +689,7 @@ ztk_error_get_message (PError *error)
 }
 
 P_LIB_API pint
-ztk_error_get_code (PError *error)
+zerror_get_code (PError *error)
 {
 	if (P_UNLIKELY (error == NULL))
 		return 0;
@@ -698,7 +698,7 @@ ztk_error_get_code (PError *error)
 }
 
 P_LIB_API pint
-ztk_error_get_native_code	(PError	*error)
+zerror_get_native_code	(PError	*error)
 {
 	if (P_UNLIKELY (error == NULL))
 		return 0;
@@ -707,7 +707,7 @@ ztk_error_get_native_code	(PError	*error)
 }
 
 P_LIB_API PErrorDomain
-ztk_error_get_domain (PError *error)
+zerror_get_domain (PError *error)
 {
 	if (P_UNLIKELY (error == NULL))
 		return P_ERROR_DOMAIN_NONE;
@@ -721,14 +721,14 @@ ztk_error_get_domain (PError *error)
 }
 
 P_LIB_API PError *
-ztk_error_copy (PError *error)
+zerror_copy (PError *error)
 {
 	PError *ret;
 
 	if (P_UNLIKELY (error == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret = ztk_error_new_literal (error->code,
+	if (P_UNLIKELY ((ret = zerror_new_literal (error->code,
 						    error->native_code,
 						    error->message)) == NULL))
 		return NULL;
@@ -737,7 +737,7 @@ ztk_error_copy (PError *error)
 }
 
 P_LIB_API void
-ztk_error_set_error (PError	*error,
+zerror_set_error (PError	*error,
 		   pint		code,
 		   pint		native_code,
 		   const pchar	*message)
@@ -746,15 +746,15 @@ ztk_error_set_error (PError	*error,
 		return;
 
 	if (error->message != NULL)
-		ztk_free (error->message);
+		zfree (error->message);
 
 	error->code        = code;
 	error->native_code = native_code;
-	error->message     = ztk_strdup (message);
+	error->message     = zstrdup (message);
 }
 
 P_LIB_API void
-ztk_error_set_error_p (PError		**error,
+zerror_set_error_p (PError		**error,
 		     pint		code,
 		     pint		native_code,
 		     const pchar	*message)
@@ -762,11 +762,11 @@ ztk_error_set_error_p (PError		**error,
 	if (error == NULL || *error != NULL)
 		return;
 
-	*error = ztk_error_new_literal (code, native_code, message);
+	*error = zerror_new_literal (code, native_code, message);
 }
 
 P_LIB_API void
-ztk_error_set_code (PError	*error,
+zerror_set_code (PError	*error,
 		  pint		code)
 {
 	if (P_UNLIKELY (error == NULL))
@@ -776,7 +776,7 @@ ztk_error_set_code (PError	*error,
 }
 
 P_LIB_API void
-ztk_error_set_native_code	(PError	*error,
+zerror_set_native_code	(PError	*error,
 			 pint	native_code)
 {
 	if (P_UNLIKELY (error == NULL))
@@ -786,26 +786,26 @@ ztk_error_set_native_code	(PError	*error,
 }
 
 P_LIB_API void
-ztk_error_set_message (PError		*error,
+zerror_set_message (PError		*error,
 		     const pchar	*message)
 {
 	if (P_UNLIKELY (error == NULL))
 		return;
 
 	if (error->message != NULL)
-		ztk_free (error->message);
+		zfree (error->message);
 
-	error->message = ztk_strdup (message);
+	error->message = zstrdup (message);
 }
 
 P_LIB_API void
-ztk_error_clear (PError *error)
+zerror_clear (PError *error)
 {
 	if (P_UNLIKELY (error == NULL))
 		return;
 
 	if (error->message != NULL)
-		ztk_free (error->message);
+		zfree (error->message);
 
 	error->message     = NULL;
 	error->code        = 0;
@@ -813,19 +813,19 @@ ztk_error_clear (PError *error)
 }
 
 P_LIB_API void
-ztk_error_free (PError	*error)
+zerror_free (PError	*error)
 {
 	if (P_UNLIKELY (error == NULL))
 		return;
 
 	if (error->message != NULL)
-		ztk_free (error->message);
+		zfree (error->message);
 
-	ztk_free (error);
+	zfree (error);
 }
 
 P_LIB_API pint
-ztk_error_get_last_system (void)
+zerror_get_last_system (void)
 {
 #ifdef P_OS_WIN
 	return (pint) GetLastError ();
@@ -844,19 +844,19 @@ ztk_error_get_last_system (void)
 }
 
 P_LIB_API pint
-ztk_error_get_last_net (void)
+zerror_get_last_net (void)
 {
 #if defined (P_OS_WIN)
 	return WSAGetLastError ();
 #elif defined (P_OS_OS2)
 	return sock_errno ();
 #else
-	return ztk_error_get_last_system ();
+	return zerror_get_last_system ();
 #endif
 }
 
 P_LIB_API void
-ztk_error_set_last_system (pint code)
+zerror_set_last_system (pint code)
 {
 #ifdef P_OS_WIN
 	SetLastError (code);
@@ -866,7 +866,7 @@ ztk_error_set_last_system (pint code)
 }
 
 P_LIB_API void
-ztk_error_set_last_net (pint code)
+zerror_set_last_net (pint code)
 {
 #if defined (P_OS_WIN)
 	WSASetLastError (code);

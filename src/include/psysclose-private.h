@@ -40,7 +40,7 @@ P_BEGIN_DECLS
  * @param fd File descriptor to close.
  * @return -1 in case of success, 0 otherwise.
  */
-pint ztk_sys_close (pint fd);
+pint zsys_close (pint fd);
 
 P_END_DECLS
 

@@ -39,12 +39,12 @@ P_BEGIN_DECLS
 
 typedef struct PHashSHA1_ PHashSHA1;
 
-PHashSHA1 *	ztk_crypto_hash_sha1_new		(void);
-void		ztk_crypto_hash_sha1_update	(PHashSHA1 *ctx, const puchar *data, psize len);
-void		ztk_crypto_hash_sha1_finish	(PHashSHA1 *ctx);
-const puchar *	ztk_crypto_hash_sha1_digest	(PHashSHA1 *ctx);
-void		ztk_crypto_hash_sha1_reset	(PHashSHA1 *ctx);
-void		ztk_crypto_hash_sha1_free		(PHashSHA1 *ctx);
+PHashSHA1 *	zcrypto_hash_sha1_new		(void);
+void		zcrypto_hash_sha1_update	(PHashSHA1 *ctx, const puchar *data, psize len);
+void		zcrypto_hash_sha1_finish	(PHashSHA1 *ctx);
+const puchar *	zcrypto_hash_sha1_digest	(PHashSHA1 *ctx);
+void		zcrypto_hash_sha1_reset	(PHashSHA1 *ctx);
+void		zcrypto_hash_sha1_free		(PHashSHA1 *ctx);
 
 P_END_DECLS
 

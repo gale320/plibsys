@@ -53,9 +53,9 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (perror_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	PError *error = ztk_error_new_literal (0, 0, NULL);
+	PError *error = zerror_new_literal (0, 0, NULL);
 	P_TEST_CHECK (error != NULL);
 
 	PMemVTable vtable;
@@ -64,166 +64,166 @@ P_TEST_CASE_BEGIN (perror_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (ztk_error_new () == NULL);
-	P_TEST_CHECK (ztk_error_new_literal (0, 0, NULL) == NULL);
-	P_TEST_CHECK (ztk_error_copy (error) == NULL);
+	P_TEST_CHECK (zerror_new () == NULL);
+	P_TEST_CHECK (zerror_new_literal (0, 0, NULL) == NULL);
+	P_TEST_CHECK (zerror_copy (error) == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_error_free (error);
+	zerror_free (error);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (perror_invalid_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_CHECK (ztk_error_get_message (NULL) == NULL);
-	P_TEST_CHECK (ztk_error_get_code (NULL) == 0);
-	P_TEST_CHECK (ztk_error_get_native_code (NULL) == 0);
-	P_TEST_CHECK (ztk_error_get_domain (NULL) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (ztk_error_copy (NULL) == NULL);
+	P_TEST_CHECK (zerror_get_message (NULL) == NULL);
+	P_TEST_CHECK (zerror_get_code (NULL) == 0);
+	P_TEST_CHECK (zerror_get_native_code (NULL) == 0);
+	P_TEST_CHECK (zerror_get_domain (NULL) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (zerror_copy (NULL) == NULL);
 
 	PError *error = (PError *) 0x1;
 
-	ztk_error_set_code (NULL, 0);
-	ztk_error_set_native_code (NULL, 0);
-	ztk_error_set_message (NULL, NULL);
+	zerror_set_code (NULL, 0);
+	zerror_set_native_code (NULL, 0);
+	zerror_set_message (NULL, NULL);
 
-	ztk_error_set_error (NULL, 0, 0, NULL);
-	ztk_error_set_error_p (NULL, 0, 0, NULL);
+	zerror_set_error (NULL, 0, 0, NULL);
+	zerror_set_error_p (NULL, 0, 0, NULL);
 
-	ztk_error_set_error_p (&error, 0, 0, NULL);
+	zerror_set_error_p (&error, 0, 0, NULL);
 	P_TEST_CHECK (error == (PError *) 0x1);
 
-	ztk_error_clear (NULL);
-	ztk_error_free (NULL);
+	zerror_clear (NULL);
+	zerror_free (NULL);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (perror_general_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	/* Empty initialization test */
-	PError *error = ztk_error_new ();
+	PError *error = zerror_new ();
 
 	P_TEST_CHECK (error != NULL);
-	P_TEST_CHECK (ztk_error_get_code (error) == 0);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (ztk_error_get_message (error) == NULL);
+	P_TEST_CHECK (zerror_get_code (error) == 0);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (zerror_get_message (error) == NULL);
 
-	PError *copy_error = ztk_error_copy (error);
+	PError *copy_error = zerror_copy (error);
 
 	P_TEST_CHECK (copy_error != NULL);
-	P_TEST_CHECK (ztk_error_get_code (copy_error) == 0);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (ztk_error_get_message (copy_error) == NULL);
+	P_TEST_CHECK (zerror_get_code (copy_error) == 0);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (zerror_get_message (copy_error) == NULL);
 
-	ztk_error_free (copy_error);
+	zerror_free (copy_error);
 	copy_error = NULL;
 
-	ztk_error_set_error (error, (pint) P_ERROR_DOMAIN_IO, -10, PERROR_TEST_MESSAGE);
+	zerror_set_error (error, (pint) P_ERROR_DOMAIN_IO, -10, PERROR_TEST_MESSAGE);
 
-	P_TEST_CHECK (ztk_error_get_code (error) == (pint) P_ERROR_DOMAIN_IO);
-	P_TEST_CHECK (ztk_error_get_native_code (error) == -10);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_IO);
-	P_TEST_CHECK (strcmp (ztk_error_get_message (error), PERROR_TEST_MESSAGE) == 0);
+	P_TEST_CHECK (zerror_get_code (error) == (pint) P_ERROR_DOMAIN_IO);
+	P_TEST_CHECK (zerror_get_native_code (error) == -10);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_IO);
+	P_TEST_CHECK (strcmp (zerror_get_message (error), PERROR_TEST_MESSAGE) == 0);
 
 	/* Change internal data */
-	ztk_error_set_code (error, (pint) P_ERROR_DOMAIN_IPC);
-	ztk_error_set_native_code (error, -20);
-	ztk_error_set_message (error, PERROR_TEST_MESSAGE_2);
+	zerror_set_code (error, (pint) P_ERROR_DOMAIN_IPC);
+	zerror_set_native_code (error, -20);
+	zerror_set_message (error, PERROR_TEST_MESSAGE_2);
 
-	P_TEST_CHECK (ztk_error_get_code (error) == (pint) P_ERROR_DOMAIN_IPC);
-	P_TEST_CHECK (ztk_error_get_native_code (error) == -20);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_IPC);
-	P_TEST_CHECK (strcmp (ztk_error_get_message (error), PERROR_TEST_MESSAGE_2) == 0);
+	P_TEST_CHECK (zerror_get_code (error) == (pint) P_ERROR_DOMAIN_IPC);
+	P_TEST_CHECK (zerror_get_native_code (error) == -20);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_IPC);
+	P_TEST_CHECK (strcmp (zerror_get_message (error), PERROR_TEST_MESSAGE_2) == 0);
 
 	/* Revert data back */
-	ztk_error_set_code (error, 10);
-	ztk_error_set_native_code (error, -10);
-	ztk_error_set_message (error, PERROR_TEST_MESSAGE);
+	zerror_set_code (error, 10);
+	zerror_set_native_code (error, -10);
+	zerror_set_message (error, PERROR_TEST_MESSAGE);
 
-	copy_error = ztk_error_copy (error);
+	copy_error = zerror_copy (error);
 
 	P_TEST_CHECK (copy_error != NULL);
-	P_TEST_CHECK (ztk_error_get_code (copy_error) == 10);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (ztk_error_get_native_code (copy_error) == -10);
+	P_TEST_CHECK (zerror_get_code (copy_error) == 10);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (zerror_get_native_code (copy_error) == -10);
 
-	P_TEST_CHECK (strcmp (ztk_error_get_message (copy_error), PERROR_TEST_MESSAGE) == 0);
+	P_TEST_CHECK (strcmp (zerror_get_message (copy_error), PERROR_TEST_MESSAGE) == 0);
 
-	ztk_error_free (copy_error);
+	zerror_free (copy_error);
 	copy_error = NULL;
 
-	ztk_error_set_error (error, 20, -20, PERROR_TEST_MESSAGE_2);
+	zerror_set_error (error, 20, -20, PERROR_TEST_MESSAGE_2);
 
-	P_TEST_CHECK (ztk_error_get_code (error) == 20);
-	P_TEST_CHECK (ztk_error_get_native_code (error) == -20);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (strcmp (ztk_error_get_message (error), PERROR_TEST_MESSAGE_2) == 0);
+	P_TEST_CHECK (zerror_get_code (error) == 20);
+	P_TEST_CHECK (zerror_get_native_code (error) == -20);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (strcmp (zerror_get_message (error), PERROR_TEST_MESSAGE_2) == 0);
 
-	ztk_error_clear (error);
+	zerror_clear (error);
 
-	P_TEST_CHECK (ztk_error_get_code (error) == 0);
-	P_TEST_CHECK (ztk_error_get_native_code (error) == 0);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (ztk_error_get_message (error) == NULL);
+	P_TEST_CHECK (zerror_get_code (error) == 0);
+	P_TEST_CHECK (zerror_get_native_code (error) == 0);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (zerror_get_message (error) == NULL);
 
-	ztk_error_free (error);
+	zerror_free (error);
 	error = NULL;
 
 	/* Literal initialization test */
-	error = ztk_error_new_literal (30, -30, PERROR_TEST_MESSAGE);
+	error = zerror_new_literal (30, -30, PERROR_TEST_MESSAGE);
 
-	P_TEST_CHECK (ztk_error_get_code (error) == 30);
-	P_TEST_CHECK (ztk_error_get_native_code (error) == -30);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (strcmp (ztk_error_get_message (error), PERROR_TEST_MESSAGE) == 0);
+	P_TEST_CHECK (zerror_get_code (error) == 30);
+	P_TEST_CHECK (zerror_get_native_code (error) == -30);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (strcmp (zerror_get_message (error), PERROR_TEST_MESSAGE) == 0);
 
-	copy_error = ztk_error_copy (error);
+	copy_error = zerror_copy (error);
 
 	P_TEST_CHECK (copy_error != NULL);
-	P_TEST_CHECK (ztk_error_get_code (copy_error) == 30);
-	P_TEST_CHECK (ztk_error_get_native_code (copy_error) == -30);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (strcmp (ztk_error_get_message (copy_error), PERROR_TEST_MESSAGE) == 0);
+	P_TEST_CHECK (zerror_get_code (copy_error) == 30);
+	P_TEST_CHECK (zerror_get_native_code (copy_error) == -30);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (strcmp (zerror_get_message (copy_error), PERROR_TEST_MESSAGE) == 0);
 
-	ztk_error_free (copy_error);
-	ztk_error_free (error);
+	zerror_free (copy_error);
+	zerror_free (error);
 
 	/* Through the double pointer */
 	error = NULL;
-	ztk_error_set_error_p (&error, 10, -10, PERROR_TEST_MESSAGE);
+	zerror_set_error_p (&error, 10, -10, PERROR_TEST_MESSAGE);
 
-	P_TEST_CHECK (ztk_error_get_code (error) == 10);
-	P_TEST_CHECK (ztk_error_get_native_code (error) == -10);
-	P_TEST_CHECK (ztk_error_get_domain (error) == P_ERROR_DOMAIN_NONE);
-	P_TEST_CHECK (strcmp (ztk_error_get_message (error), PERROR_TEST_MESSAGE) == 0);
+	P_TEST_CHECK (zerror_get_code (error) == 10);
+	P_TEST_CHECK (zerror_get_native_code (error) == -10);
+	P_TEST_CHECK (zerror_get_domain (error) == P_ERROR_DOMAIN_NONE);
+	P_TEST_CHECK (strcmp (zerror_get_message (error), PERROR_TEST_MESSAGE) == 0);
 
-	ztk_error_free (error);
+	zerror_free (error);
 
 	/* System codes */
-	ztk_error_set_last_system (10);
-	P_TEST_CHECK (ztk_error_get_last_system () == 10);
-	ztk_error_set_last_system (0);
-	P_TEST_CHECK (ztk_error_get_last_system () == 0);
+	zerror_set_last_system (10);
+	P_TEST_CHECK (zerror_get_last_system () == 10);
+	zerror_set_last_system (0);
+	P_TEST_CHECK (zerror_get_last_system () == 0);
 
 #ifndef P_OS_OS2
-	ztk_error_set_last_net (20);
-	P_TEST_CHECK (ztk_error_get_last_net () == 20);
-	ztk_error_set_last_net (0);
-	P_TEST_CHECK (ztk_error_get_last_net () == 0);
+	zerror_set_last_net (20);
+	P_TEST_CHECK (zerror_get_last_net () == 20);
+	zerror_set_last_net (0);
+	P_TEST_CHECK (zerror_get_last_net () == 0);
 #endif
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

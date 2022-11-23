@@ -28,43 +28,43 @@
 
 #include <proto/timer.h>
 
-static puint64 pztk_time_profiler_freq = 1;
+static puint64 pztime_profiler_freq = 1;
 
 puint64
-ztk_time_profiler_get_ticks_internal ()
+ztime_profiler_get_ticks_internal ()
 {
 	struct EClockVal eclock;
 
 	ITimer->ReadEClock (&eclock);
 
-	return (((puint64) eclock.ev_hi) * pztk_time_profiler_freq + (puint64) eclock.ev_lo);
+	return (((puint64) eclock.ev_hi) * pztime_profiler_freq + (puint64) eclock.ev_lo);
 }
 
 puint64
-ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
+ztime_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 {
 	puint64 value;
 
-	value = ztk_time_profiler_get_ticks_internal ();
+	value = ztime_profiler_get_ticks_internal ();
 
 	/* Check for register overflow */
 
 	if (P_UNLIKELY (value < profiler->counter))
-		value += (((puint64) 1) << 32) * pztk_time_profiler_freq;
+		value += (((puint64) 1) << 32) * pztime_profiler_freq;
 
-	return (value - profiler->counter) * 1000000ULL / pztk_time_profiler_freq;
+	return (value - profiler->counter) * 1000000ULL / pztime_profiler_freq;
 }
 
 void
-ztk_time_profiler_init (void)
+ztime_profiler_init (void)
 {
 	struct EClockVal eclock;
 
-	pztk_time_profiler_freq = (puint64) ITimer->ReadEClock (&eclock);
+	pztime_profiler_freq = (puint64) ITimer->ReadEClock (&eclock);
 }
 
 void
-ztk_time_profiler_shutdown (void)
+ztime_profiler_shutdown (void)
 {
-	pztk_time_profiler_freq = 1;
+	pztime_profiler_freq = 1;
 }

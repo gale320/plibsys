@@ -33,7 +33,7 @@
 #define P_STR_MAX_EXPON		308
 
 P_LIB_API pchar *
-ztk_strdup (const pchar *str)
+zstrdup (const pchar *str)
 {
 	pchar	*ret;
 	psize	len;
@@ -43,7 +43,7 @@ ztk_strdup (const pchar *str)
 
 	len = strlen (str) + 1;
 
-	if (P_UNLIKELY ((ret = ztk_malloc (len)) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc (len)) == NULL))
 		return NULL;
 
 	memcpy (ret, str, len);
@@ -52,7 +52,7 @@ ztk_strdup (const pchar *str)
 }
 
 P_LIB_API pchar *
-ztk_strchomp (const pchar *str)
+zstrchomp (const pchar *str)
 {
 	pssize		pos_start, pos_end;
 	psize		str_len;
@@ -75,14 +75,14 @@ ztk_strchomp (const pchar *str)
 		--pos_end;
 
 	if (pos_end < pos_start)
-		return ztk_strdup ("\0");
+		return zstrdup ("\0");
 
 	if (pos_end == pos_start && isspace (* ((const puchar *) (str + pos_end))))
-		return ztk_strdup ("\0");
+		return zstrdup ("\0");
 
 	str_len = (psize) (pos_end - pos_start + 2);
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (str_len)) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (str_len)) == NULL))
 		return NULL;
 
 	memcpy (ret, str + pos_start, str_len - 1);
@@ -92,7 +92,7 @@ ztk_strchomp (const pchar *str)
 }
 
 P_LIB_API pchar *
-ztk_strtok (pchar *str, const pchar *delim, pchar **buf)
+zstrtok (pchar *str, const pchar *delim, pchar **buf)
 {
 	if (P_UNLIKELY (delim == NULL))
 		return str;
@@ -120,7 +120,7 @@ ztk_strtok (pchar *str, const pchar *delim, pchar **buf)
 }
 
 P_LIB_API double
-ztk_strtod (const pchar *str)
+zstrtod (const pchar *str)
 {
 	double	sign;
 	double	value;
@@ -130,7 +130,7 @@ ztk_strtod (const pchar *str)
 	pint	frac;
 	pchar	*orig_str, *strp;
 
-	orig_str = ztk_strchomp (str);
+	orig_str = zstrchomp (str);
 
 	if (P_UNLIKELY (orig_str == NULL))
 		return 0.0;
@@ -199,7 +199,7 @@ ztk_strtod (const pchar *str)
 		}
 	}
 
-	ztk_free (orig_str);
+	zfree (orig_str);
 
 	/* Return signed and scaled floating point result */
 	return sign * (frac ? (value / scale) : (value * scale));

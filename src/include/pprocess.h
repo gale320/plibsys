@@ -31,8 +31,8 @@
  * A process is an executing unit in an operating system with its own address
  * space. Every process can be identified with a unique identifier called PID.
  * To get a PID of the currently running process call
- * ztk_process_get_current_pid(). To check whether a process with a given PID is
- * running up use ztk_process_is_running().
+ * zprocess_get_current_pid(). To check whether a process with a given PID is
+ * running up use zprocess_is_running().
  */
 
 #if !defined (PLIBSYS_H_INSIDE) && !defined (PLIBSYS_COMPILATION)
@@ -52,7 +52,7 @@ P_BEGIN_DECLS
  * @return PID of the calling process.
  * @since 0.0.1
  */
-P_LIB_API puint32	ztk_process_get_current_pid	(void);
+P_LIB_API puint32	zprocess_get_current_pid	(void);
 
 /**
  * @brief Checks whether a process with a given PID is running or not.
@@ -61,7 +61,7 @@ P_LIB_API puint32	ztk_process_get_current_pid	(void);
  * FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	ztk_process_is_running		(puint32 pid);
+P_LIB_API pboolean	zprocess_is_running		(puint32 pid);
 
 P_END_DECLS
 

@@ -76,10 +76,10 @@ struct PLibraryLoader_ {
 	Elf32_Error	last_error;
 };
 
-static Elf32_Handle pztk_library_loader_elf_root = NULL;
+static Elf32_Handle pzlibrary_loader_elf_root = NULL;
 
-static void pztk_library_loader_clean_handle (plibrary_handle handle);
-static pint pztk_library_loader_translate_path (const pchar *in, pchar *out, psize out_len);
+static void pzlibrary_loader_clean_handle (plibrary_handle handle);
+static pint pzlibrary_loader_translate_path (const pchar *in, pchar *out, psize out_len);
 
 /*
  * The following patterns must translate properly:
@@ -114,7 +114,7 @@ static pint pztk_library_loader_translate_path (const pchar *in, pchar *out, psi
  */
 
 static pint
-pztk_library_loader_translate_path (const pchar *in, pchar *out, psize out_len)
+pzlibrary_loader_translate_path (const pchar *in, pchar *out, psize out_len)
 {
 	pchar volume_name[MAXPATHLEN];
 	psize len, volume_name_len;
@@ -411,48 +411,48 @@ pztk_library_loader_translate_path (const pchar *in, pchar *out, psize out_len)
 }
 
 static void
-pztk_library_loader_clean_handle (plibrary_handle handle)
+pzlibrary_loader_clean_handle (plibrary_handle handle)
 {
-	IElf->DLClose (pztk_library_loader_elf_root, handle);
+	IElf->DLClose (pzlibrary_loader_elf_root, handle);
 }
 
 P_LIB_API PLibraryLoader *
-ztk_library_loader_new (const pchar *path)
+zlibrary_loader_new (const pchar *path)
 {
 	PLibraryLoader	*loader = NULL;
 	plibrary_handle	handle  = NULL;
 	pchar		path_buffer[MAXPATHLEN];
 	
-	if (!ztk_file_is_exists (path))
+	if (!zfile_is_exists (path))
 		return NULL;
 
-	if (pztk_library_loader_elf_root == NULL) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: shared library subsystem is not initialized");
+	if (pzlibrary_loader_elf_root == NULL) {
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: shared library subsystem is not initialized");
 		return NULL;
 	}
 
 	if (strlen (path) >= MAXPATHLEN) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: too long file path or name");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: too long file path or name");
 		return NULL;
 	}
 
-	if (pztk_library_loader_translate_path (path, path_buffer, MAXPATHLEN) != 0) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: failed to convert to UNIX path");
+	if (pzlibrary_loader_translate_path (path, path_buffer, MAXPATHLEN) != 0) {
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: failed to convert to UNIX path");
 		return NULL;
 	}
 
 	path = path_buffer;
 
-	handle = IElf->DLOpen (pztk_library_loader_elf_root, (CONST_STRPTR) path, ELF32_RTLD_LOCAL);
+	handle = IElf->DLOpen (pzlibrary_loader_elf_root, (CONST_STRPTR) path, ELF32_RTLD_LOCAL);
 
 	if (P_UNLIKELY (handle == NULL)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: DLOpen() failed");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: DLOpen() failed");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((loader = ztk_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: failed to allocate memory");
-		pztk_library_loader_clean_handle (handle);
+	if (P_UNLIKELY ((loader = zmalloc0 (sizeof (PLibraryLoader))) == NULL)) {
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: failed to allocate memory");
+		pzlibrary_loader_clean_handle (handle);
 		return NULL;
 	}
 
@@ -463,19 +463,19 @@ ztk_library_loader_new (const pchar *path)
 }
 
 P_LIB_API PFuncAddr
-ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
+zlibrary_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 {
 	APTR func_addr = NULL;
 
 	if (P_UNLIKELY (loader == NULL || sym == NULL || loader->handle == NULL))
 		return NULL;
 
-	if (pztk_library_loader_elf_root == NULL) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: shared library subsystem is not initialized");
+	if (pzlibrary_loader_elf_root == NULL) {
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: shared library subsystem is not initialized");
 		return NULL;
 	}
 
-	loader->last_error = IElf->DLSym (pztk_library_loader_elf_root,
+	loader->last_error = IElf->DLSym (pzlibrary_loader_elf_root,
 					  loader->handle,
 					  (CONST_STRPTR) sym,
 					  &func_addr);
@@ -484,18 +484,18 @@ ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 }
 
 P_LIB_API void
-ztk_library_loader_free (PLibraryLoader *loader)
+zlibrary_loader_free (PLibraryLoader *loader)
 {
 	if (P_UNLIKELY (loader == NULL))
 		return;
 
-	pztk_library_loader_clean_handle (loader->handle);
+	pzlibrary_loader_clean_handle (loader->handle);
 
-	ztk_free (loader);
+	zfree (loader);
 }
 
 P_LIB_API pchar *
-ztk_library_loader_get_last_error (PLibraryLoader *loader)
+zlibrary_loader_get_last_error (PLibraryLoader *loader)
 {
 	if (P_UNLIKELY (loader == NULL))
 		return NULL;
@@ -504,49 +504,49 @@ ztk_library_loader_get_last_error (PLibraryLoader *loader)
 		case ELF32_NO_ERROR:
 			return NULL;
 		case ELF32_OUT_OF_MEMORY:
-			return ztk_strdup ("Out of memory");
+			return zstrdup ("Out of memory");
 		case ELF32_INVALID_HANDLE:
-			return ztk_strdup ("Invalid resource handler");
+			return zstrdup ("Invalid resource handler");
 		case ELF32_NO_MORE_RELOCS:
-			return ztk_strdup ("No more relocations left");
+			return zstrdup ("No more relocations left");
 		case ELF32_SECTION_NOT_LOADED:
-			return ztk_strdup ("Section not loaded");
+			return zstrdup ("Section not loaded");
 		case ELF32_UNKNOWN_RELOC:
-			return ztk_strdup ("Unknown relocation");
+			return zstrdup ("Unknown relocation");
 		case ELF32_READ_ERROR:
-			return ztk_strdup ("Read error");
+			return zstrdup ("Read error");
 		case ELF32_INVALID_SDA_BASE:
-			return ztk_strdup ("Invalid SDA base");
+			return zstrdup ("Invalid SDA base");
 		case ELF32_SYMBOL_NOT_FOUND:
-			return ztk_strdup ("Symbol not found");
+			return zstrdup ("Symbol not found");
 		case ELF32_INVALID_NAME:
-			return ztk_strdup ("Invalid procedure name");
+			return zstrdup ("Invalid procedure name");
 		case ELF32_REQUIRED_OBJECT_MISSING:
-			return ztk_strdup ("Required object is missing");
+			return zstrdup ("Required object is missing");
 		default:
-			return ztk_strdup ("Unknown error");
+			return zstrdup ("Unknown error");
 	}
 }
 
 P_LIB_API pboolean
-ztk_library_loader_is_ref_counted (void)
+zlibrary_loader_is_ref_counted (void)
 {
 	return TRUE;
 }
 
 void
-ztk_library_loader_init (void)
+zlibrary_loader_init (void)
 {
 	BPTR		segment_list;
 	Elf32_Handle	elf_handle;
 
-	if (pztk_library_loader_elf_root != NULL)
+	if (pzlibrary_loader_elf_root != NULL)
 		return;
 
 	segment_list = IDOS->GetProcSegList (NULL, GPSLF_RUN);
 
 	if (P_UNLIKELY (segment_list == 0)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_init: GetProcSegList() failed");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_init: GetProcSegList() failed");
 		return;
 	}
 
@@ -554,30 +554,30 @@ ztk_library_loader_init (void)
 						  GSLI_ElfHandle,
 						  &elf_handle,
 						  TAG_DONE) != 1)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_init: GetSegListInfoTags() failed");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_init: GetSegListInfoTags() failed");
 		return;
 	}
 
 	if (P_UNLIKELY (elf_handle == NULL)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_init: failed to finf proper GSLI_ElfHandle");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_init: failed to finf proper GSLI_ElfHandle");
 		return;
 	}
 
-	pztk_library_loader_elf_root = IElf->OpenElfTags (OET_ElfHandle, elf_handle, TAG_DONE);
+	pzlibrary_loader_elf_root = IElf->OpenElfTags (OET_ElfHandle, elf_handle, TAG_DONE);
 
-	if (P_UNLIKELY (pztk_library_loader_elf_root == NULL)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_init: OpenElfTags() failed");
+	if (P_UNLIKELY (pzlibrary_loader_elf_root == NULL)) {
+		P_ERROR ("PLibraryLoader::zlibrary_loader_init: OpenElfTags() failed");
 		return;
 	}
 }
 
 void
-ztk_library_loader_shutdown (void)
+zlibrary_loader_shutdown (void)
 {
-	if (pztk_library_loader_elf_root == NULL)
+	if (pzlibrary_loader_elf_root == NULL)
 		return;
 
-	IElf->CloseElfTags (pztk_library_loader_elf_root, CET_ReClose, TRUE, TAG_DONE);
+	IElf->CloseElfTags (pzlibrary_loader_elf_root, CET_ReClose, TRUE, TAG_DONE);
 
-	pztk_library_loader_elf_root = NULL;
+	pzlibrary_loader_elf_root = NULL;
 }

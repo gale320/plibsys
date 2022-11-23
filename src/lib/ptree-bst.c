@@ -27,7 +27,7 @@
 #include "ptree-bst.h"
 
 pboolean
-ztk_tree_bst_insert (PTreeBaseNode	**root_node,
+ztree_bst_insert (PTreeBaseNode	**root_node,
 		   PCompareDataFunc	compare_func,
 		   ppointer		data,
 		   PDestroyFunc		key_destroy_func,
@@ -36,23 +36,23 @@ ztk_tree_bst_insert (PTreeBaseNode	**root_node,
 		   ppointer		value)
 {
 	PTreeBaseNode	**cur_node;
-	pint		cmztk_result;
+	pint		cmzresult;
 
 	cur_node = root_node;
 
 	while (*cur_node != NULL) {
-		cmztk_result = compare_func (key, (*cur_node)->key, data);
+		cmzresult = compare_func (key, (*cur_node)->key, data);
 
-		if (cmztk_result < 0)
+		if (cmzresult < 0)
 			cur_node = &(*cur_node)->left;
-		else if (cmztk_result > 0)
+		else if (cmzresult > 0)
 			cur_node = &(*cur_node)->right;
 		else
 			break;
 	}
 
 	if ((*cur_node) == NULL) {
-		if (P_UNLIKELY ((*cur_node = ztk_malloc0 (sizeof (PTreeBaseNode))) == NULL))
+		if (P_UNLIKELY ((*cur_node = zmalloc0 (sizeof (PTreeBaseNode))) == NULL))
 			return FALSE;
 
 		(*cur_node)->key   = key;
@@ -74,7 +74,7 @@ ztk_tree_bst_insert (PTreeBaseNode	**root_node,
 }
 
 pboolean
-ztk_tree_bst_remove (PTreeBaseNode	**root_node,
+ztree_bst_remove (PTreeBaseNode	**root_node,
 		   PCompareDataFunc	compare_func,
 		   ppointer		data,
 		   PDestroyFunc		key_destroy_func,
@@ -84,18 +84,18 @@ ztk_tree_bst_remove (PTreeBaseNode	**root_node,
 	PTreeBaseNode	*cur_node;
 	PTreeBaseNode	*prev_node;
 	PTreeBaseNode	**node_pointer;
-	pint		cmztk_result;
+	pint		cmzresult;
 
 	cur_node     = *root_node;
 	node_pointer = root_node;
 
 	while (cur_node != NULL) {
-		cmztk_result = compare_func (key, cur_node->key, data);
+		cmzresult = compare_func (key, cur_node->key, data);
 
-		if (cmztk_result < 0) {
+		if (cmzresult < 0) {
 			node_pointer = &cur_node->left;
 			cur_node     = cur_node->left;
-		} else if (cmztk_result > 0) {
+		} else if (cmzresult > 0) {
 			node_pointer = &cur_node->right;
 			cur_node     = cur_node->right;
 		} else
@@ -128,13 +128,13 @@ ztk_tree_bst_remove (PTreeBaseNode	**root_node,
 	if (value_destroy_func != NULL)
 		value_destroy_func (cur_node->value);
 
-	ztk_free (cur_node);
+	zfree (cur_node);
 
 	return TRUE;
 }
 
 void
-ztk_tree_bst_node_free (PTreeBaseNode *node)
+ztree_bst_node_free (PTreeBaseNode *node)
 {
-	ztk_free (node);
+	zfree (node);
 }

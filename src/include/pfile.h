@@ -28,8 +28,8 @@
  * @brief File operations
  * @author Alexander Saprykin
  *
- * To check file existance use ztk_file_is_exists(). To remove an exisiting file
- * use ztk_file_remove().
+ * To check file existance use zfile_is_exists(). To remove an exisiting file
+ * use zfile_remove().
  *
  * #P_DIR_SEPARATOR provides a platform independent directory separator symbol
  * which you can use to form file or directory path.
@@ -67,7 +67,7 @@ P_BEGIN_DECLS
  * On Windows this call doesn't resolve symbolic links, while on UNIX systems
  * does.
  */
-P_LIB_API pboolean ztk_file_is_exists	(const pchar	*file);
+P_LIB_API pboolean zfile_is_exists	(const pchar	*file);
 
 /**
  * @brief Removes a file from the disk.
@@ -79,7 +79,7 @@ P_LIB_API pboolean ztk_file_is_exists	(const pchar	*file);
  * This call doesn't resolve symbolic links and remove a symbolic link if the
  * given path points to it.
  */
-P_LIB_API pboolean ztk_file_remove	(const pchar	*file,
+P_LIB_API pboolean zfile_remove	(const pchar	*file,
 					 PError		**error);
 
 P_END_DECLS

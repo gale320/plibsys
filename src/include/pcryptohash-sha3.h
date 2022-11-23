@@ -39,40 +39,40 @@ P_BEGIN_DECLS
 
 typedef struct PHashSHA3_ PHashSHA3;
 
-void		ztk_crypto_hash_sha3_update	(PHashSHA3 *ctx, const puchar *data, psize len);
-void		ztk_crypto_hash_sha3_finish	(PHashSHA3 *ctx);
-const puchar *	ztk_crypto_hash_sha3_digest	(PHashSHA3 *ctx);
-void		ztk_crypto_hash_sha3_reset	(PHashSHA3 *ctx);
-void		ztk_crypto_hash_sha3_free		(PHashSHA3 *ctx);
+void		zcrypto_hash_sha3_update	(PHashSHA3 *ctx, const puchar *data, psize len);
+void		zcrypto_hash_sha3_finish	(PHashSHA3 *ctx);
+const puchar *	zcrypto_hash_sha3_digest	(PHashSHA3 *ctx);
+void		zcrypto_hash_sha3_reset	(PHashSHA3 *ctx);
+void		zcrypto_hash_sha3_free		(PHashSHA3 *ctx);
 
-PHashSHA3 *	ztk_crypto_hash_sha3_224_new	(void);
-PHashSHA3 *	ztk_crypto_hash_sha3_256_new	(void);
-PHashSHA3 *	ztk_crypto_hash_sha3_384_new	(void);
-PHashSHA3 *	ztk_crypto_hash_sha3_512_new	(void);
+PHashSHA3 *	zcrypto_hash_sha3_224_new	(void);
+PHashSHA3 *	zcrypto_hash_sha3_256_new	(void);
+PHashSHA3 *	zcrypto_hash_sha3_384_new	(void);
+PHashSHA3 *	zcrypto_hash_sha3_512_new	(void);
 
-#define ztk_crypto_hash_sha3_224_update ztk_crypto_hash_sha3_update
-#define ztk_crypto_hash_sha3_224_finish ztk_crypto_hash_sha3_finish
-#define ztk_crypto_hash_sha3_224_digest ztk_crypto_hash_sha3_digest
-#define ztk_crypto_hash_sha3_224_reset  ztk_crypto_hash_sha3_reset
-#define ztk_crypto_hash_sha3_224_free   ztk_crypto_hash_sha3_free
+#define zcrypto_hash_sha3_224_update zcrypto_hash_sha3_update
+#define zcrypto_hash_sha3_224_finish zcrypto_hash_sha3_finish
+#define zcrypto_hash_sha3_224_digest zcrypto_hash_sha3_digest
+#define zcrypto_hash_sha3_224_reset  zcrypto_hash_sha3_reset
+#define zcrypto_hash_sha3_224_free   zcrypto_hash_sha3_free
 
-#define ztk_crypto_hash_sha3_256_update ztk_crypto_hash_sha3_update
-#define ztk_crypto_hash_sha3_256_finish ztk_crypto_hash_sha3_finish
-#define ztk_crypto_hash_sha3_256_digest ztk_crypto_hash_sha3_digest
-#define ztk_crypto_hash_sha3_256_reset  ztk_crypto_hash_sha3_reset
-#define ztk_crypto_hash_sha3_256_free   ztk_crypto_hash_sha3_free
+#define zcrypto_hash_sha3_256_update zcrypto_hash_sha3_update
+#define zcrypto_hash_sha3_256_finish zcrypto_hash_sha3_finish
+#define zcrypto_hash_sha3_256_digest zcrypto_hash_sha3_digest
+#define zcrypto_hash_sha3_256_reset  zcrypto_hash_sha3_reset
+#define zcrypto_hash_sha3_256_free   zcrypto_hash_sha3_free
 
-#define ztk_crypto_hash_sha3_384_update ztk_crypto_hash_sha3_update
-#define ztk_crypto_hash_sha3_384_finish ztk_crypto_hash_sha3_finish
-#define ztk_crypto_hash_sha3_384_digest ztk_crypto_hash_sha3_digest
-#define ztk_crypto_hash_sha3_384_reset  ztk_crypto_hash_sha3_reset
-#define ztk_crypto_hash_sha3_384_free   ztk_crypto_hash_sha3_free
+#define zcrypto_hash_sha3_384_update zcrypto_hash_sha3_update
+#define zcrypto_hash_sha3_384_finish zcrypto_hash_sha3_finish
+#define zcrypto_hash_sha3_384_digest zcrypto_hash_sha3_digest
+#define zcrypto_hash_sha3_384_reset  zcrypto_hash_sha3_reset
+#define zcrypto_hash_sha3_384_free   zcrypto_hash_sha3_free
 
-#define ztk_crypto_hash_sha3_512_update ztk_crypto_hash_sha3_update
-#define ztk_crypto_hash_sha3_512_finish ztk_crypto_hash_sha3_finish
-#define ztk_crypto_hash_sha3_512_digest ztk_crypto_hash_sha3_digest
-#define ztk_crypto_hash_sha3_512_reset  ztk_crypto_hash_sha3_reset
-#define ztk_crypto_hash_sha3_512_free   ztk_crypto_hash_sha3_free
+#define zcrypto_hash_sha3_512_update zcrypto_hash_sha3_update
+#define zcrypto_hash_sha3_512_finish zcrypto_hash_sha3_finish
+#define zcrypto_hash_sha3_512_digest zcrypto_hash_sha3_digest
+#define zcrypto_hash_sha3_512_reset  zcrypto_hash_sha3_reset
+#define zcrypto_hash_sha3_512_free   zcrypto_hash_sha3_free
 
 P_END_DECLS
 

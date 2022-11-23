@@ -38,7 +38,7 @@ static void clean_error (PError **error)
 	if (error == NULL || *error == NULL)
 		return;
 
-	ztk_error_free (*error);
+	zerror_free (*error);
 	*error = NULL;
 }
 
@@ -47,42 +47,42 @@ static void * semaphore_test_thread (void *)
 	PSemaphore	*sem;
 	pint		i;
 
-	sem = ztk_semaphore_new ("ztk_semaphore_test_object", 1, P_SEM_ACCESS_OPEN, NULL);
+	sem = zsemaphore_new ("zsemaphore_test_object", 1, P_SEM_ACCESS_OPEN, NULL);
 
 	if (sem == NULL)
-		ztk_uthread_exit (1);
+		zuthread_exit (1);
 
 	for (i = 0; i < 1000; ++i) {
-		if (!ztk_semaphore_acquire (sem, NULL)) {
+		if (!zsemaphore_acquire (sem, NULL)) {
 			if (is_thread_exit > 0) {
 				semaphore_test_val = PSEMAPHORE_MAX_VAL;
 				break;
 			}
 
-			ztk_uthread_exit (1);
+			zuthread_exit (1);
 		}
 
 		if (semaphore_test_val == PSEMAPHORE_MAX_VAL)
 			--semaphore_test_val;
 		else {
-			ztk_uthread_sleep (1);
+			zuthread_sleep (1);
 			++semaphore_test_val;
 		}
 
-		if (!ztk_semaphore_release (sem, NULL)) {
+		if (!zsemaphore_release (sem, NULL)) {
 			if (is_thread_exit > 0) {
 				semaphore_test_val = PSEMAPHORE_MAX_VAL;
 				break;
 			}
 
-			ztk_uthread_exit (1);
+			zuthread_exit (1);
 		}
 	}
 
 	++is_thread_exit;
 
-	ztk_semaphore_free (sem);
-	ztk_uthread_exit (0);
+	zsemaphore_free (sem);
+	zuthread_exit (0);
 
 	return NULL;
 }
@@ -107,7 +107,7 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (psemaphore_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PMemVTable vtable;
 
@@ -115,13 +115,13 @@ P_TEST_CASE_BEGIN (psemaphore_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (ztk_semaphore_new ("ztk_semaphore_test_object", 1, P_SEM_ACCESS_CREATE, NULL) == NULL);
+	P_TEST_CHECK (zsemaphore_new ("zsemaphore_test_object", 1, P_SEM_ACCESS_CREATE, NULL) == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -131,45 +131,45 @@ P_TEST_CASE_BEGIN (psemaphore_general_test)
 	PError		*error = NULL;
 	pint		i;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_CHECK (ztk_semaphore_new (NULL, 0, P_SEM_ACCESS_CREATE, &error) == NULL);
+	P_TEST_CHECK (zsemaphore_new (NULL, 0, P_SEM_ACCESS_CREATE, &error) == NULL);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_REQUIRE (ztk_semaphore_acquire (sem, &error) == FALSE);
+	P_TEST_REQUIRE (zsemaphore_acquire (sem, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_REQUIRE (ztk_semaphore_release (sem, &error) == FALSE);
+	P_TEST_REQUIRE (zsemaphore_release (sem, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	ztk_semaphore_take_ownership (sem);
-	ztk_semaphore_free (NULL);
+	zsemaphore_take_ownership (sem);
+	zsemaphore_free (NULL);
 
-	sem = ztk_semaphore_new ("ztk_semaphore_test_object", 10, P_SEM_ACCESS_CREATE, NULL);
+	sem = zsemaphore_new ("zsemaphore_test_object", 10, P_SEM_ACCESS_CREATE, NULL);
 	P_TEST_REQUIRE (sem != NULL);
-	ztk_semaphore_take_ownership (sem);
-	ztk_semaphore_free (sem);
+	zsemaphore_take_ownership (sem);
+	zsemaphore_free (sem);
 
-	sem = ztk_semaphore_new ("ztk_semaphore_test_object", 10, P_SEM_ACCESS_CREATE, NULL);
+	sem = zsemaphore_new ("zsemaphore_test_object", 10, P_SEM_ACCESS_CREATE, NULL);
 	P_TEST_REQUIRE (sem != NULL);
 
 	for (i = 0; i < 10; ++i)
-		P_TEST_CHECK (ztk_semaphore_acquire (sem, NULL));
+		P_TEST_CHECK (zsemaphore_acquire (sem, NULL));
 
 	for (i = 0; i < 10; ++i)
-		P_TEST_CHECK (ztk_semaphore_release (sem, NULL));
+		P_TEST_CHECK (zsemaphore_release (sem, NULL));
 
 	for (i = 0; i < 1000; ++i) {
-		P_TEST_CHECK (ztk_semaphore_acquire (sem, NULL));
-		P_TEST_CHECK (ztk_semaphore_release (sem, NULL));
+		P_TEST_CHECK (zsemaphore_acquire (sem, NULL));
+		P_TEST_CHECK (zsemaphore_release (sem, NULL));
 	}
 
-	ztk_semaphore_free (sem);
+	zsemaphore_free (sem);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -178,42 +178,42 @@ P_TEST_CASE_BEGIN (psemaphore_thread_test)
 	PUThread	*thr1, *thr2;
 	PSemaphore	*sem = NULL;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	sem = ztk_semaphore_new ("ztk_semaphore_test_object", 10, P_SEM_ACCESS_CREATE, NULL);
+	sem = zsemaphore_new ("zsemaphore_test_object", 10, P_SEM_ACCESS_CREATE, NULL);
 	P_TEST_REQUIRE (sem != NULL);
-	ztk_semaphore_take_ownership (sem);
-	ztk_semaphore_free (sem);
+	zsemaphore_take_ownership (sem);
+	zsemaphore_free (sem);
 
 	sem                = NULL;
 	is_thread_exit     = 0;
 	semaphore_test_val = PSEMAPHORE_MAX_VAL;
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) semaphore_test_thread, NULL, TRUE, NULL);
+	thr1 = zuthread_create ((PUThreadFunc) semaphore_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) semaphore_test_thread, NULL, TRUE, NULL);
+	thr2 = zuthread_create ((PUThreadFunc) semaphore_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == 0);
-	P_TEST_CHECK (ztk_uthread_join (thr2) == 0);
+	P_TEST_CHECK (zuthread_join (thr1) == 0);
+	P_TEST_CHECK (zuthread_join (thr2) == 0);
 
 	P_TEST_REQUIRE (semaphore_test_val == PSEMAPHORE_MAX_VAL);
 
-	P_TEST_REQUIRE (ztk_semaphore_acquire (sem, NULL) == FALSE);
-	P_TEST_REQUIRE (ztk_semaphore_release (sem, NULL) == FALSE);
-	ztk_semaphore_free (sem);
-	ztk_semaphore_take_ownership (sem);
+	P_TEST_REQUIRE (zsemaphore_acquire (sem, NULL) == FALSE);
+	P_TEST_REQUIRE (zsemaphore_release (sem, NULL) == FALSE);
+	zsemaphore_free (sem);
+	zsemaphore_take_ownership (sem);
 
-	sem = ztk_semaphore_new ("ztk_semaphore_test_object", 1, P_SEM_ACCESS_OPEN, NULL);
+	sem = zsemaphore_new ("zsemaphore_test_object", 1, P_SEM_ACCESS_OPEN, NULL);
 	P_TEST_REQUIRE (sem != NULL);
-	ztk_semaphore_take_ownership (sem);
-	ztk_semaphore_free (sem);
+	zsemaphore_take_ownership (sem);
+	zsemaphore_free (sem);
 
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

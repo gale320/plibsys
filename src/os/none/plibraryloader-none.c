@@ -26,50 +26,50 @@
 #include "plibraryloader.h"
 
 P_LIB_API PLibraryLoader *
-ztk_library_loader_new (const pchar *path)
+zlibrary_loader_new (const pchar *path)
 {
-	P_ERROR ("PLibraryLoader::ztk_library_loader_new: not implemented");
+	P_ERROR ("PLibraryLoader::zlibrary_loader_new: not implemented");
 	return NULL;
 }
 
 P_LIB_API PFuncAddr
-ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
+zlibrary_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 {
 	P_UNUSED (loader);
 	P_UNUSED (sym);
 
-	P_ERROR ("PLibraryLoader::ztk_library_loader_get_symbol: not implemented");
+	P_ERROR ("PLibraryLoader::zlibrary_loader_get_symbol: not implemented");
 	return NULL;
 }
 
 P_LIB_API void
-ztk_library_loader_free (PLibraryLoader *loader)
+zlibrary_loader_free (PLibraryLoader *loader)
 {
 	P_UNUSED (loader);
-	P_ERROR ("PLibraryLoader::ztk_library_loader_free: not implemented");
+	P_ERROR ("PLibraryLoader::zlibrary_loader_free: not implemented");
 }
 
 P_LIB_API pchar *
-ztk_library_loader_get_last_error (PLibraryLoader *loader)
+zlibrary_loader_get_last_error (PLibraryLoader *loader)
 {
 	P_UNUSED (loader);
 
-	P_ERROR ("PLibraryLoader::ztk_library_loader_get_last_error: not implemented");
+	P_ERROR ("PLibraryLoader::zlibrary_loader_get_last_error: not implemented");
 	return NULL;
 }
 
 P_LIB_API pboolean
-ztk_library_loader_is_ref_counted (void)
+zlibrary_loader_is_ref_counted (void)
 {
 	return FALSE;
 }
 
 void
-ztk_library_loader_init (void)
+zlibrary_loader_init (void)
 {
 }
 
 void
-ztk_library_loader_shutdown (void)
+zlibrary_loader_shutdown (void)
 {
 }

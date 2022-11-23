@@ -35,7 +35,7 @@
 #include <exec/semaphores.h>
 #include <proto/exec.h>
 
-#define P_SEM_SUFFIX	"_ztk_sem_object"
+#define P_SEM_SUFFIX	"_zsem_object"
 #define P_SEM_PRIV_SIZE	(sizeof (psize))
 
 struct PSemaphore_ {
@@ -45,10 +45,10 @@ struct PSemaphore_ {
 	PSemaphoreAccessMode	mode;
 };
 
-static pboolean pztk_semaphore_create_handle (PSemaphore *sem, PError **error);
+static pboolean pzsemaphore_create_handle (PSemaphore *sem, PError **error);
 
 static pboolean
-pztk_semaphore_create_handle (PSemaphore	*sem,
+pzsemaphore_create_handle (PSemaphore	*sem,
 			    PError	**error)
 {
 	struct SignalSemaphore	*sem_sys;
@@ -56,7 +56,7 @@ pztk_semaphore_create_handle (PSemaphore	*sem,
 	pchar			*name;
 
 	if (P_UNLIKELY (sem == NULL || sem->platform_key == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -86,7 +86,7 @@ pztk_semaphore_create_handle (PSemaphore	*sem,
 
 		if (P_UNLIKELY (sem_sys == NULL)) {
 			IExec->Permit ();
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IPC_NO_RESOURCES,
 					     0,
 					     "Failed to call AllocMem() to create semaphore");
@@ -101,7 +101,7 @@ pztk_semaphore_create_handle (PSemaphore	*sem,
 		if (P_UNLIKELY (name == NULL)) {
 			IExec->FreeVec (sem_sys);
 			IExec->Permit ();
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IPC_NO_RESOURCES,
 					     0,
 					     "Failed to call AllocMem() to create semaphore name");
@@ -128,7 +128,7 @@ pztk_semaphore_create_handle (PSemaphore	*sem,
 }
 
 P_LIB_API PSemaphore *
-ztk_semaphore_new (const pchar		*name,
+zsemaphore_new (const pchar		*name,
 		 pint			init_val,
 		 PSemaphoreAccessMode	mode,
 		 PError			**error)
@@ -137,40 +137,40 @@ ztk_semaphore_new (const pchar		*name,
 	pchar		*new_name;
 
 	if (P_UNLIKELY (name == NULL || init_val < 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSemaphore))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSemaphore))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for semaphore");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((new_name = ztk_malloc0 (strlen (name) + strlen (P_SEM_SUFFIX) + 1)) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((new_name = zmalloc0 (strlen (name) + strlen (P_SEM_SUFFIX) + 1)) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for semaphore");
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
 	strcpy (new_name, name);
 	strcat (new_name, P_SEM_SUFFIX);
 
-	ret->platform_key = ztk_ipc_get_platform_key (new_name, FALSE);
+	ret->platform_key = zipc_get_platform_key (new_name, FALSE);
 	ret->mode         = mode;
 
-	ztk_free (new_name);
+	zfree (new_name);
 
-	if (P_UNLIKELY (pztk_semaphore_create_handle (ret, error) == FALSE)) {
-		ztk_semaphore_free (ret);
+	if (P_UNLIKELY (pzsemaphore_create_handle (ret, error) == FALSE)) {
+		zsemaphore_free (ret);
 		return NULL;
 	}
 
@@ -178,7 +178,7 @@ ztk_semaphore_new (const pchar		*name,
 }
 
 P_LIB_API void
-ztk_semaphore_take_ownership (PSemaphore *sem)
+zsemaphore_take_ownership (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem == NULL))
 		return;
@@ -187,11 +187,11 @@ ztk_semaphore_take_ownership (PSemaphore *sem)
 }
 
 P_LIB_API pboolean
-ztk_semaphore_acquire (PSemaphore	*sem,
+zsemaphore_acquire (PSemaphore	*sem,
 		     PError	**error)
 {
 	if (P_UNLIKELY (sem == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -204,11 +204,11 @@ ztk_semaphore_acquire (PSemaphore	*sem,
 }
 
 P_LIB_API pboolean
-ztk_semaphore_release (PSemaphore	*sem,
+zsemaphore_release (PSemaphore	*sem,
 		     PError	**error)
 {
 	if (P_UNLIKELY (sem == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -221,7 +221,7 @@ ztk_semaphore_release (PSemaphore	*sem,
 }
 
 P_LIB_API void
-ztk_semaphore_free (PSemaphore *sem)
+zsemaphore_free (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem == NULL))
 		return;
@@ -244,7 +244,7 @@ ztk_semaphore_free (PSemaphore *sem)
 	}
 
 	if (P_LIKELY (sem->platform_key != NULL))
-		ztk_free (sem->platform_key);
+		zfree (sem->platform_key);
 
-	ztk_free (sem);
+	zfree (sem);
 }

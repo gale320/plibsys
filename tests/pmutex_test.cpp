@@ -54,30 +54,30 @@ static void * mutex_test_thread (void *)
 	pint i;
 
 	for (i = 0; i < 1000; ++i) {
-		if (!ztk_mutex_trylock (global_mutex)) {
-			if (!ztk_mutex_lock (global_mutex))
-				ztk_uthread_exit (1);
+		if (!zmutex_trylock (global_mutex)) {
+			if (!zmutex_lock (global_mutex))
+				zuthread_exit (1);
 		}
 
 		if (mutex_test_val == 10)
 			--mutex_test_val;
 		else {
-			ztk_uthread_sleep (1);
+			zuthread_sleep (1);
 			++mutex_test_val;
 		}
 
-		if (!ztk_mutex_unlock (global_mutex))
-			ztk_uthread_exit (1);
+		if (!zmutex_unlock (global_mutex))
+			zuthread_exit (1);
 	}
 
-	ztk_uthread_exit (0);
+	zuthread_exit (0);
 
 	return NULL;
 }
 
 P_TEST_CASE_BEGIN (pmutex_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PMemVTable vtable;
 
@@ -85,25 +85,25 @@ P_TEST_CASE_BEGIN (pmutex_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
-	P_TEST_CHECK (ztk_mutex_new () == NULL);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmutex_new () == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pmutex_bad_input_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_REQUIRE (ztk_mutex_lock (NULL) == FALSE);
-	P_TEST_REQUIRE (ztk_mutex_unlock (NULL) == FALSE);
-	P_TEST_REQUIRE (ztk_mutex_trylock (NULL) == FALSE);
-	ztk_mutex_free (NULL);
+	P_TEST_REQUIRE (zmutex_lock (NULL) == FALSE);
+	P_TEST_REQUIRE (zmutex_unlock (NULL) == FALSE);
+	P_TEST_REQUIRE (zmutex_trylock (NULL) == FALSE);
+	zmutex_free (NULL);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -111,29 +111,29 @@ P_TEST_CASE_BEGIN (pmutex_general_test)
 {
 	PUThread *thr1, *thr2;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	global_mutex = ztk_mutex_new ();
+	global_mutex = zmutex_new ();
 	P_TEST_REQUIRE (global_mutex != NULL);
 
 	mutex_test_val = 10;
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) mutex_test_thread, NULL, TRUE, NULL);
+	thr1 = zuthread_create ((PUThreadFunc) mutex_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) mutex_test_thread, NULL, TRUE, NULL);
+	thr2 = zuthread_create ((PUThreadFunc) mutex_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == 0);
-	P_TEST_CHECK (ztk_uthread_join (thr2) == 0);
+	P_TEST_CHECK (zuthread_join (thr1) == 0);
+	P_TEST_CHECK (zuthread_join (thr2) == 0);
 
 	P_TEST_REQUIRE (mutex_test_val == 10);
 
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
-	ztk_mutex_free (global_mutex);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
+	zmutex_free (global_mutex);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

@@ -26,7 +26,7 @@
 #include "psysclose-private.h"
 
 pint
-ztk_sys_close (pint fd)
+zsys_close (pint fd)
 {
 	/* On Windows we can only close a socket descriptor */
 	return closesocket (fd) == 0 ? 0 : -1;

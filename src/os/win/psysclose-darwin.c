@@ -87,7 +87,7 @@ extern int close$NOCANCEL (int fd);
 #include "psysclose-private.h"
 
 pint
-ztk_sys_close (pint fd)
+zsys_close (pint fd)
 {
 	return PLIBSYS_CLOSE_INTERFACE (fd);
 }

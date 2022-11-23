@@ -29,12 +29,12 @@
 #include <time.h>
 
 puint64
-ztk_time_profiler_get_ticks_internal ()
+ztime_profiler_get_ticks_internal ()
 {
 	pint64 val;
 
 	if (P_UNLIKELY ((val = (pint64) time (NULL)) == -1)) {
-		P_ERROR ("PTimeProfiler::ztk_time_profiler_get_ticks_internal: time() failed");
+		P_ERROR ("PTimeProfiler::ztime_profiler_get_ticks_internal: time() failed");
 		return 0;
 	}
 
@@ -42,17 +42,17 @@ ztk_time_profiler_get_ticks_internal ()
 }
 
 puint64
-ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
+ztime_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler)
 {
-	return ztk_time_profiler_get_ticks_internal () - profiler->counter;
+	return ztime_profiler_get_ticks_internal () - profiler->counter;
 }
 
 void
-ztk_time_profiler_init (void)
+ztime_profiler_init (void)
 {
 }
 
 void
-ztk_time_profiler_shutdown (void)
+ztime_profiler_shutdown (void)
 {
 }

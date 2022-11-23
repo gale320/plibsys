@@ -30,25 +30,25 @@
  *
  * Usually the system routines for memory management are used: malloc(),
  * realloc(), free() and so on. But it is highly encouraged to use a more
- * general approach: ztk_malloc(), ztk_malloc0(), ztk_realloc() and ztk_free() family of
+ * general approach: zmalloc(), zmalloc0(), zrealloc() and zfree() family of
  * memory management routines. It gives you several advantages:
  * - automatical checking of all input parameters for the NULL values;
  * - ability to use a custom memory allocator.
  * You can also mix these two families of calls, but it is not recommended.
  *
- * By default ztk_* routines are mapped to system calls, thus only NULL-checking
+ * By default z* routines are mapped to system calls, thus only NULL-checking
  * is additionally performed. If you want to use the custom memory allocator,
- * then fill in #PMemVTable structure and pass it to the ztk_mem_set_vtable(). To
- * restore system calls back use ztk_mem_restore_vtable().
+ * then fill in #PMemVTable structure and pass it to the zmem_set_vtable(). To
+ * restore system calls back use zmem_restore_vtable().
  *
  * Be careful when using the custom memory allocator: all memory chunks
  * allocated with the custom allocator must be freed with the same allocator. If
  * the custom allocator was installed after the library initialization call
- * ztk_libsys_init() then you must to restore the original allocator before
- * calling ztk_libsys_shutdown().
+ * zlibsys_init() then you must to restore the original allocator before
+ * calling zlibsys_shutdown().
  *
- * Use ztk_mem_mmap() to allocate system memory using memory mapping and
- * ztk_mem_munmap() to release the mapped memory. This type of allocated memory
+ * Use zmem_mmap() to allocate system memory using memory mapping and
+ * zmem_munmap() to release the mapped memory. This type of allocated memory
  * is not backed physically (does not consume any physical storage) by operating
  * system. It means that every memory page within the allocated region will be
  * committed to physical backend only when you first touch it. Until that
@@ -92,7 +92,7 @@ typedef struct PMemVTable_ {
  * otherwise.
  * @since 0.0.1
  */
-P_LIB_API ppointer	ztk_malloc		(psize			n_bytes);
+P_LIB_API ppointer	zmalloc		(psize			n_bytes);
 
 /**
  * @brief Allocates a memory block for the specified number of bytes and fills
@@ -102,17 +102,17 @@ P_LIB_API ppointer	ztk_malloc		(psize			n_bytes);
  * of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API ppointer	ztk_malloc0		(psize			n_bytes);
+P_LIB_API ppointer	zmalloc0		(psize			n_bytes);
 
 /**
  * @brief Changes the memory block size.
  * @param mem Pointer to the memory block.
  * @param n_bytes New size for @a mem block.
  * @return Pointer to a newlly allocated memory block in case of success (if
- * @a mem is NULL then it acts like ztk_malloc()), NULL otherwise.
+ * @a mem is NULL then it acts like zmalloc()), NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API ppointer	ztk_realloc		(ppointer		mem,
+P_LIB_API ppointer	zrealloc		(ppointer		mem,
 						 psize			n_bytes);
 
 /**
@@ -121,12 +121,12 @@ P_LIB_API ppointer	ztk_realloc		(ppointer		mem,
  * @since 0.0.1
  *
  * You should only call this function for the pointers which were obtained using
- * the ztk_malloc(), ztk_malloc0() and ztk_realloc() routines, otherwise behavior is
+ * the zmalloc(), zmalloc0() and zrealloc() routines, otherwise behavior is
  * unpredictable.
  *
  * Checks the pointer for the NULL value.
  */
-P_LIB_API void		ztk_free			(ppointer		mem);
+P_LIB_API void		zfree			(ppointer		mem);
 
 /**
  * @brief Sets custom memory management routines.
@@ -135,14 +135,14 @@ P_LIB_API void		ztk_free			(ppointer		mem);
  * @note All members of @a table must be non-NULL.
  * @note This call is not thread-safe.
  * @warning Do not forget to set the original memory management routines before
- * calling ztk_libsys_shutdown() if you have used ztk_mem_set_vtable() after the
+ * calling zlibsys_shutdown() if you have used zmem_set_vtable() after the
  * library initialization.
  * @since 0.0.1
  *
  * In most cases you do not need to use this function. Use it only when you know
  * what are you doing!
  */
-P_LIB_API pboolean	ztk_mem_set_vtable	(const PMemVTable	*table);
+P_LIB_API pboolean	zmem_set_vtable	(const PMemVTable	*table);
 
 /**
  * @brief Restores system memory management routines.
@@ -151,7 +151,7 @@ P_LIB_API pboolean	ztk_mem_set_vtable	(const PMemVTable	*table);
  *
  * The following system routines are restored: malloc(), free(), realloc().
  */
-P_LIB_API void		ztk_mem_restore_vtable	(void);
+P_LIB_API void		zmem_restore_vtable	(void);
 
 /**
  * @brief Gets a memory mapped block from the system.
@@ -170,19 +170,19 @@ P_LIB_API void		ztk_mem_restore_vtable	(void);
  * @warning On OS/2 returned memory is mapped to physical storage and can be
  * swapped.
  */
-P_LIB_API ppointer	ztk_mem_mmap		(psize			n_bytes,
+P_LIB_API ppointer	zmem_mmap		(psize			n_bytes,
 						 PError			**error);
 
 /**
  * @brief Unmaps memory back to the system.
  * @param mem Pointer to a memory block previously allocated using the
- * ztk_mem_mmap() call.
+ * zmem_mmap() call.
  * @param n_bytes Size of the memory block in bytes.
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	ztk_mem_munmap		(ppointer		mem,
+P_LIB_API pboolean	zmem_munmap		(ppointer		mem,
 						 psize			n_bytes,
 						 PError			**error);
 

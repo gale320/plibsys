@@ -35,15 +35,15 @@
  * #PUThread provides a convinient way of multithreading support using native
  * routines to provide the best performance on the target system.
  *
- * To create the thread use the ztk_uthread_create() or ztk_uthread_create_full()
+ * To create the thread use the zuthread_create() or zuthread_create_full()
  * routines. Joinable threads allow to wait until their execution is finished
  * before proceeding further. Thus you can synchronize threads' execution within
  * the main thread.
  *
  * A reference counter mechanism is used to keep track of a #PUThread structure.
  * It means that the structure will be freed automatically when the reference
- * counter becomes zero. Use ztk_uthread_ref() to hold the structure and
- * ztk_uthread_unref() to decrement the counter back. A running thread holds a
+ * counter becomes zero. Use zuthread_ref() to hold the structure and
+ * zuthread_unref() to decrement the counter back. A running thread holds a
  * reference to itself structure, so you do not require to hold a reference
  * to the thread while it is running.
  *
@@ -59,10 +59,10 @@
  * (i.e. Linux). Windows always respects thread priorities.
  *
  * To put the current thread (even if it was not created using the #PUThread
- * routines) in a sleep state use ztk_uthread_sleep().
+ * routines) in a sleep state use zuthread_sleep().
  *
  * You can give a hint to the scheduler that the current thread do not need an
- * execution time with the ztk_uthread_yield() routine. This is useful when some
+ * execution time with the zuthread_yield() routine. This is useful when some
  * of the threads are in an idle state so you do not want to waste a CPU time.
  * This only tells to the scheduler to skip the current scheduling cycle for the
  * calling thread, though the scheduler can ingnore it.
@@ -73,13 +73,13 @@
  * own token value though using the same token object.
  *
  * After creating the TLS reference key every thread can use it to access a
- * local-specific value. Use the ztk_uthread_local_new() call to create the TLS
+ * local-specific value. Use the zuthread_local_new() call to create the TLS
  * reference key and pass it to every thread which needs local-specific values.
  * You can also provide a destroy notification function which would be called
  * upon a TLS key removal which is usually performed on the thread exit.
  *
- * There are two calls to set a TLS key's value: ztk_uthread_set_local() and
- * ztk_uthread_replace_local(). The only difference is that the former one calls
+ * There are two calls to set a TLS key's value: zuthread_set_local() and
+ * zuthread_replace_local(). The only difference is that the former one calls
  * the provided destroy notification function before replacing the old value.
  *
  * Thread names are used on most of operating systems for debugging purposes,
@@ -131,10 +131,10 @@ typedef enum PUThreadPriority_ {
  * @param name Thread name, maybe NULL.
  * @return Pointer to #PUThread in case of success, NULL otherwise.
  * @since 0.0.1
- * @note Unreference the returned value after use with ztk_uthread_unref(). You do
- * not need to call ztk_uthread_ref() explicitly on the returned value.
+ * @note Unreference the returned value after use with zuthread_unref(). You do
+ * not need to call zuthread_ref() explicitly on the returned value.
  */
-P_LIB_API PUThread *	ztk_uthread_create_full	(PUThreadFunc		func,
+P_LIB_API PUThread *	zuthread_create_full	(PUThreadFunc		func,
 						 ppointer		data,
 						 pboolean		joinable,
 						 PUThreadPriority	prio,
@@ -143,17 +143,17 @@ P_LIB_API PUThread *	ztk_uthread_create_full	(PUThreadFunc		func,
 
 /**
  * @brief Creates a #PUThread and starts it. A short version of
- * ztk_uthread_create_full().
+ * zuthread_create_full().
  * @param func Main thread function to run.
  * @param data Pointer to pass into the thread main function, may be NULL.
  * @param joinable Whether to create a joinable thread or not.
  * @param name Thread name, maybe NULL.
  * @return Pointer to #PUThread in case of success, NULL otherwise.
  * @since 0.0.1
- * @note Unreference the returned value after use with ztk_uthread_unref(). You do
- * not need to call ztk_uthread_ref() explicitly on the returned value.
+ * @note Unreference the returned value after use with zuthread_unref(). You do
+ * not need to call zuthread_ref() explicitly on the returned value.
  */
-P_LIB_API PUThread *	ztk_uthread_create	(PUThreadFunc		func,
+P_LIB_API PUThread *	zuthread_create	(PUThreadFunc		func,
 						 ppointer		data,
 						 pboolean		joinable,
 						 const pchar		*name);
@@ -163,7 +163,7 @@ P_LIB_API PUThread *	ztk_uthread_create	(PUThreadFunc		func,
  * @param code Exit code.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_uthread_exit		(pint			code);
+P_LIB_API void		zuthread_exit		(pint			code);
 
 /**
  * @brief Waits for the selected thread to become finished.
@@ -172,7 +172,7 @@ P_LIB_API void		ztk_uthread_exit		(pint			code);
  * @since 0.0.1
  * @note Thread must be joinable to return the non-negative result.
  */
-P_LIB_API pint		ztk_uthread_join		(PUThread		*thread);
+P_LIB_API pint		zuthread_join		(PUThread		*thread);
 
 /**
  * @brief Sleeps the current thread (caller) for a specified amount of time.
@@ -180,7 +180,7 @@ P_LIB_API pint		ztk_uthread_join		(PUThread		*thread);
  * @return 0 in case of success, -1 otherwise.
  * @since 0.0.1
  */
-P_LIB_API pint		ztk_uthread_sleep		(puint32		msec);
+P_LIB_API pint		zuthread_sleep		(puint32		msec);
 
 /**
  * @brief Sets a thread priority.
@@ -189,7 +189,7 @@ P_LIB_API pint		ztk_uthread_sleep		(puint32		msec);
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	ztk_uthread_set_priority	(PUThread		*thread,
+P_LIB_API pboolean	zuthread_set_priority	(PUThread		*thread,
 						 PUThreadPriority	prio);
 
 /**
@@ -200,7 +200,7 @@ P_LIB_API pboolean	ztk_uthread_set_priority	(PUThread		*thread,
  * The scheduler shouldn't give time ticks for the current thread during the
  * current period, but it may ignore this call.
  */
-P_LIB_API void		ztk_uthread_yield		(void);
+P_LIB_API void		zuthread_yield		(void);
 
 /**
  * @brief Gets an ID of the current (caller) thread.
@@ -210,7 +210,7 @@ P_LIB_API void		ztk_uthread_yield		(void);
  * This is a platform-dependent type. You shouldn't treat it as a number, it
  * only gives you the uniquer ID of the thread accross the system.
  */
-P_LIB_API P_HANDLE	ztk_uthread_current_id	(void);
+P_LIB_API P_HANDLE	zuthread_current_id	(void);
 
 /**
  * @brief Gets a thread structure of the current (caller) thread.
@@ -223,7 +223,7 @@ P_LIB_API P_HANDLE	ztk_uthread_current_id	(void);
  * outside the library. But you should not use thread manipulation routines over
  * that structure.
  */
-P_LIB_API PUThread *	ztk_uthread_current	(void);
+P_LIB_API PUThread *	zuthread_current	(void);
 
 /**
  * @brief Gets the ideal number of threads for the system based on the number of
@@ -231,7 +231,7 @@ P_LIB_API PUThread *	ztk_uthread_current	(void);
  * @return Ideal number of threads, 1 in case of failed detection.
  * @since 0.0.3
  */
-P_LIB_API pint		ztk_uthread_ideal_count	(void);
+P_LIB_API pint		zuthread_ideal_count	(void);
 
 /**
  * @brief Increments a thread reference counter
@@ -240,7 +240,7 @@ P_LIB_API pint		ztk_uthread_ideal_count	(void);
  * @note The #PUThread object will not be removed until the reference counter is
  * positive.
  */
-P_LIB_API void		ztk_uthread_ref		(PUThread		*thread);
+P_LIB_API void		zuthread_ref		(PUThread		*thread);
 
 /**
  * @brief Decrements a thread reference counter
@@ -249,7 +249,7 @@ P_LIB_API void		ztk_uthread_ref		(PUThread		*thread);
  * @note When the reference counter becomes zero the #PUThread is removed from
  * the memory.
  */
-P_LIB_API void		ztk_uthread_unref		(PUThread		*thread);
+P_LIB_API void		zuthread_unref		(PUThread		*thread);
 
 /**
  * @brief Create a new TLS reference key.
@@ -257,7 +257,7 @@ P_LIB_API void		ztk_uthread_unref		(PUThread		*thread);
  * @return New TLS reference key in case of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API PUThreadKey *	ztk_uthread_local_new	(PDestroyFunc		free_func);
+P_LIB_API PUThreadKey *	zuthread_local_new	(PDestroyFunc		free_func);
 
 /**
  * @brief Frees a TLS reference key.
@@ -267,7 +267,7 @@ P_LIB_API PUThreadKey *	ztk_uthread_local_new	(PDestroyFunc		free_func);
  * It doesn't remove the TLS key itself but only removes a reference used to
  * access the TLS slot.
  */
-P_LIB_API void		ztk_uthread_local_free	(PUThreadKey		*key);
+P_LIB_API void		zuthread_local_free	(PUThreadKey		*key);
 
 /**
  * @brief Gets a TLS value.
@@ -277,7 +277,7 @@ P_LIB_API void		ztk_uthread_local_free	(PUThreadKey		*key);
  * @note This call may fail only in case of abnormal use or program behavior,
  * the NULL value will be returned to tolerance the failure.
  */
-P_LIB_API ppointer	ztk_uthread_get_local	(PUThreadKey		*key);
+P_LIB_API ppointer	zuthread_get_local	(PUThreadKey		*key);
 
 /**
  * @brief Sets a TLS value.
@@ -287,9 +287,9 @@ P_LIB_API ppointer	ztk_uthread_get_local	(PUThreadKey		*key);
  * @note This call may fail only in case of abnormal use or program behavior.
  *
  * It doesn't call the destructor notification function provided with
- * ztk_uthread_local_new().
+ * zuthread_local_new().
  */
-P_LIB_API void		ztk_uthread_set_local	(PUThreadKey		*key,
+P_LIB_API void		zuthread_set_local	(PUThreadKey		*key,
 						 ppointer		value);
 
 /**
@@ -300,10 +300,10 @@ P_LIB_API void		ztk_uthread_set_local	(PUThreadKey		*key,
  * @note This call may fail only in case of abnormal use or program behavior.
  *
  * This call does perform the notification function provided with
- * ztk_uthread_local_new() on the old TLS value. This is the only difference with
- * ztk_uthread_set_local().
+ * zuthread_local_new() on the old TLS value. This is the only difference with
+ * zuthread_set_local().
  */
-P_LIB_API void		ztk_uthread_replace_local	(PUThreadKey		*key,
+P_LIB_API void		zuthread_replace_local	(PUThreadKey		*key,
 						 ppointer		value);
 
 P_END_DECLS

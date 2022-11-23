@@ -44,46 +44,46 @@ struct PRWLock_ {
 };
 
 P_LIB_API PRWLock *
-ztk_rwlock_new (void)
+zrwlock_new (void)
 {
 	PRWLock *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PRWLock))) == NULL)) {
-		P_ERROR ("PRWLock::ztk_rwlock_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PRWLock))) == NULL)) {
+		P_ERROR ("PRWLock::zrwlock_new: failed to allocate memory");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret->mutex = ztk_mutex_new ()) == NULL)) {
-		P_ERROR ("PRWLock::ztk_rwlock_new: failed to allocate mutex");
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->mutex = zmutex_new ()) == NULL)) {
+		P_ERROR ("PRWLock::zrwlock_new: failed to allocate mutex");
+		zfree (ret);
 	}
 
-	if (P_UNLIKELY ((ret->read_cv = ztk_cond_variable_new ()) == NULL)) {
-		P_ERROR ("PRWLock::ztk_rwlock_new: failed to allocate condition variable for read");
-		ztk_mutex_free (ret->mutex);
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->read_cv = zcond_variable_new ()) == NULL)) {
+		P_ERROR ("PRWLock::zrwlock_new: failed to allocate condition variable for read");
+		zmutex_free (ret->mutex);
+		zfree (ret);
 	}
 
-	if (P_UNLIKELY ((ret->write_cv = ztk_cond_variable_new ()) == NULL)) {
-		P_ERROR ("PRWLock::ztk_rwlock_new: failed to allocate condition variable for write");
-		ztk_cond_variable_free (ret->read_cv);
-		ztk_mutex_free (ret->mutex);
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->write_cv = zcond_variable_new ()) == NULL)) {
+		P_ERROR ("PRWLock::zrwlock_new: failed to allocate condition variable for write");
+		zcond_variable_free (ret->read_cv);
+		zmutex_free (ret->mutex);
+		zfree (ret);
 	}
 
 	return ret;
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_lock (PRWLock *lock)
+zrwlock_reader_lock (PRWLock *lock)
 {
 	pboolean wait_ok;
 
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_mutex_lock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_reader_lock: ztk_mutex_lock() failed");
+	if (P_UNLIKELY (zmutex_lock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_reader_lock: zmutex_lock() failed");
 		return FALSE;
 	}
 
@@ -94,10 +94,10 @@ ztk_rwlock_reader_lock (PRWLock *lock)
 							      P_RWLOCK_READER_COUNT (lock->waiting_threads) + 1);
 
 		while (P_RWLOCK_WRITER_COUNT (lock->active_threads)) {
-			wait_ok = ztk_cond_variable_wait (lock->read_cv, lock->mutex);
+			wait_ok = zcond_variable_wait (lock->read_cv, lock->mutex);
 
 			if (P_UNLIKELY (wait_ok == FALSE)) {
-				P_ERROR ("PRWLock::ztk_rwlock_reader_lock: ztk_cond_variable_wait() failed");
+				P_ERROR ("PRWLock::zrwlock_reader_lock: zcond_variable_wait() failed");
 				break;
 			}
 		}
@@ -110,8 +110,8 @@ ztk_rwlock_reader_lock (PRWLock *lock)
 		lock->active_threads = P_RWLOCK_SET_READERS (lock->active_threads,
 							     P_RWLOCK_READER_COUNT (lock->active_threads) + 1);
 
-	if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_reader_lock: ztk_mutex_unlock() failed");
+	if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_reader_lock: zmutex_unlock() failed");
 		return FALSE;
 	}
 
@@ -119,19 +119,19 @@ ztk_rwlock_reader_lock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_trylock (PRWLock *lock)
+zrwlock_reader_trylock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_mutex_lock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_reader_trylock: ztk_mutex_lock() failed");
+	if (P_UNLIKELY (zmutex_lock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_reader_trylock: zmutex_lock() failed");
 		return FALSE;
 	}
 
 	if (P_RWLOCK_WRITER_COUNT (lock->active_threads)) {
-		if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE))
-			P_ERROR ("PRWLock::ztk_rwlock_reader_trylock: ztk_mutex_unlock() failed(1)");
+		if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE))
+			P_ERROR ("PRWLock::zrwlock_reader_trylock: zmutex_unlock() failed(1)");
 
 		return FALSE;
 	}
@@ -139,8 +139,8 @@ ztk_rwlock_reader_trylock (PRWLock *lock)
 	lock->active_threads = P_RWLOCK_SET_READERS (lock->active_threads,
 						     P_RWLOCK_READER_COUNT (lock->active_threads) + 1);
 
-	if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_reader_trylock: ztk_mutex_unlock() failed(2)");
+	if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_reader_trylock: zmutex_unlock() failed(2)");
 		return FALSE;
 	}
 
@@ -148,7 +148,7 @@ ztk_rwlock_reader_trylock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_unlock (PRWLock *lock)
+zrwlock_reader_unlock (PRWLock *lock)
 {
 	puint32		reader_count;
 	pboolean	signal_ok;
@@ -156,16 +156,16 @@ ztk_rwlock_reader_unlock (PRWLock *lock)
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_mutex_lock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_reader_unlock: ztk_mutex_lock() failed");
+	if (P_UNLIKELY (zmutex_lock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_reader_unlock: zmutex_lock() failed");
 		return FALSE;
 	}
 
 	reader_count = P_RWLOCK_READER_COUNT (lock->active_threads);
 
 	if (P_UNLIKELY (reader_count == 0)) {
-		if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE))
-			P_ERROR ("PRWLock::ztk_rwlock_reader_unlock: ztk_mutex_unlock() failed(1)");
+		if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE))
+			P_ERROR ("PRWLock::zrwlock_reader_unlock: zmutex_unlock() failed(1)");
 
 		return TRUE;
 	}
@@ -175,13 +175,13 @@ ztk_rwlock_reader_unlock (PRWLock *lock)
 	signal_ok = TRUE;
 
 	if (reader_count == 1 && P_RWLOCK_WRITER_COUNT (lock->waiting_threads))
-		signal_ok = ztk_cond_variable_signal (lock->write_cv);
+		signal_ok = zcond_variable_signal (lock->write_cv);
 
 	if (P_UNLIKELY (signal_ok == FALSE))
-		P_ERROR ("PRWLock::ztk_rwlock_reader_unlock: ztk_cond_variable_signal() failed");
+		P_ERROR ("PRWLock::zrwlock_reader_unlock: zcond_variable_signal() failed");
 
-	if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_reader_unlock: ztk_mutex_unlock() failed(2)");
+	if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_reader_unlock: zmutex_unlock() failed(2)");
 		return FALSE;
 	}
 
@@ -189,15 +189,15 @@ ztk_rwlock_reader_unlock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_lock (PRWLock *lock)
+zrwlock_writer_lock (PRWLock *lock)
 {
 	pboolean wait_ok;
 
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_mutex_lock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_writer_lock: ztk_mutex_lock() failed");
+	if (P_UNLIKELY (zmutex_lock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_writer_lock: zmutex_lock() failed");
 		return FALSE;
 	}
 
@@ -208,10 +208,10 @@ ztk_rwlock_writer_lock (PRWLock *lock)
 							      P_RWLOCK_WRITER_COUNT (lock->waiting_threads) + 1);
 
 		while (lock->active_threads) {
-			wait_ok = ztk_cond_variable_wait (lock->write_cv, lock->mutex);
+			wait_ok = zcond_variable_wait (lock->write_cv, lock->mutex);
 
 			if (P_UNLIKELY (wait_ok == FALSE)) {
-				P_ERROR ("PRWLock::ztk_rwlock_writer_lock: ztk_cond_variable_wait() failed");
+				P_ERROR ("PRWLock::zrwlock_writer_lock: zcond_variable_wait() failed");
 				break;
 			}
 		}
@@ -223,8 +223,8 @@ ztk_rwlock_writer_lock (PRWLock *lock)
 	if (P_LIKELY (wait_ok == TRUE))
 		lock->active_threads = P_RWLOCK_SET_WRITERS (lock->active_threads, 1);
 
-	if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_writer_lock: ztk_mutex_unlock() failed");
+	if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_writer_lock: zmutex_unlock() failed");
 		return FALSE;
 	}
 
@@ -232,27 +232,27 @@ ztk_rwlock_writer_lock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_trylock (PRWLock *lock)
+zrwlock_writer_trylock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_mutex_lock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_writer_trylock: ztk_mutex_lock() failed");
+	if (P_UNLIKELY (zmutex_lock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_writer_trylock: zmutex_lock() failed");
 		return FALSE;
 	}
 
 	if (lock->active_threads) {
-		if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE))
-			P_ERROR ("PRWLock::ztk_rwlock_writer_trylock: ztk_mutex_unlock() failed(1)");
+		if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE))
+			P_ERROR ("PRWLock::zrwlock_writer_trylock: zmutex_unlock() failed(1)");
 
 		return FALSE;
 	}
 
 	lock->active_threads = P_RWLOCK_SET_WRITERS (lock->active_threads, 1);
 
-	if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_writer_trylock: ztk_mutex_unlock() failed(2)");
+	if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_writer_trylock: zmutex_unlock() failed(2)");
 		return FALSE;
 	}
 
@@ -260,15 +260,15 @@ ztk_rwlock_writer_trylock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_unlock (PRWLock *lock)
+zrwlock_writer_unlock (PRWLock *lock)
 {
 	pboolean signal_ok;
 
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_mutex_lock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_writer_unlock: ztk_mutex_lock() failed");
+	if (P_UNLIKELY (zmutex_lock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_writer_unlock: zmutex_lock() failed");
 		return FALSE;
 	}
 
@@ -277,19 +277,19 @@ ztk_rwlock_writer_unlock (PRWLock *lock)
 	signal_ok = TRUE;
 
 	if (P_RWLOCK_WRITER_COUNT (lock->waiting_threads)) {
-		if (P_UNLIKELY (ztk_cond_variable_signal (lock->write_cv) == FALSE)) {
-			P_ERROR ("PRWLock::ztk_rwlock_writer_unlock: ztk_cond_variable_signal() failed");
+		if (P_UNLIKELY (zcond_variable_signal (lock->write_cv) == FALSE)) {
+			P_ERROR ("PRWLock::zrwlock_writer_unlock: zcond_variable_signal() failed");
 			signal_ok = FALSE;
 		}
 	} else if (P_RWLOCK_READER_COUNT (lock->waiting_threads)) {
-		if (P_UNLIKELY (ztk_cond_variable_broadcast (lock->read_cv) == FALSE)) {
-			P_ERROR ("PRWLock::ztk_rwlock_writer_unlock: ztk_cond_variable_broadcast() failed");
+		if (P_UNLIKELY (zcond_variable_broadcast (lock->read_cv) == FALSE)) {
+			P_ERROR ("PRWLock::zrwlock_writer_unlock: zcond_variable_broadcast() failed");
 			signal_ok = FALSE;
 		}
 	}
 
-	if (P_UNLIKELY (ztk_mutex_unlock (lock->mutex) == FALSE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_writer_unlock: ztk_mutex_unlock() failed");
+	if (P_UNLIKELY (zmutex_unlock (lock->mutex) == FALSE)) {
+		P_ERROR ("PRWLock::zrwlock_writer_unlock: zmutex_unlock() failed");
 		return FALSE;
 	}
 
@@ -297,30 +297,30 @@ ztk_rwlock_writer_unlock (PRWLock *lock)
 }
 
 P_LIB_API void
-ztk_rwlock_free (PRWLock *lock)
+zrwlock_free (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return;
 
 	if (P_UNLIKELY (lock->active_threads))
-		P_WARNING ("PRWLock::ztk_rwlock_free: destroying while active threads are present");
+		P_WARNING ("PRWLock::zrwlock_free: destroying while active threads are present");
 
 	if (P_UNLIKELY (lock->waiting_threads))
-		P_WARNING ("PRWLock::ztk_rwlock_free: destroying while waiting threads are present");
+		P_WARNING ("PRWLock::zrwlock_free: destroying while waiting threads are present");
 
-	ztk_mutex_free (lock->mutex);
-	ztk_cond_variable_free (lock->read_cv);
-	ztk_cond_variable_free (lock->write_cv);
+	zmutex_free (lock->mutex);
+	zcond_variable_free (lock->read_cv);
+	zcond_variable_free (lock->write_cv);
 
-	ztk_free (lock);
+	zfree (lock);
 }
 
 void
-ztk_rwlock_init (void)
+zrwlock_init (void)
 {
 }
 
 void
-ztk_rwlock_shutdown (void)
+zrwlock_shutdown (void)
 {
 }

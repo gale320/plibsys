@@ -33,20 +33,20 @@
  * threads. It is used to protected shared data structures from concurrent
  * modifications which could lead to unpredictable behavior.
  *
- * When entering a critical section a thread must call ztk_mutex_lock() to get a
+ * When entering a critical section a thread must call zmutex_lock() to get a
  * lock. If another thread is already holding the lock all other threads will
- * be suspended until the lock is released with ztk_mutex_unlock(). After
+ * be suspended until the lock is released with zmutex_unlock(). After
  * releasing the lock one of the waiting threads is resumed to continue
  * execution. On most systems it is not specified whether a mutex waiting queue
  * is fair (FIFO) or not.
  *
  * The typical mutex usage:
  * @code
- * ztk_mutex_lock (mutex);
+ * zmutex_lock (mutex);
  *
  * ... code in critical section ...
  *
- * ztk_mutex_unlock (mutex);
+ * zmutex_unlock (mutex);
  * @endcode
  * You can also think of the mutex as a binary semaphore.
  *
@@ -79,7 +79,7 @@ typedef struct PMutex_ PMutex;
  * @return Pointer to a newly created #PMutex object.
  * @since 0.0.1
  */
-P_LIB_API PMutex *	ztk_mutex_new	(void);
+P_LIB_API PMutex *	zmutex_new	(void);
 
 /**
  * @brief Locks a mutex.
@@ -92,7 +92,7 @@ P_LIB_API PMutex *	ztk_mutex_new	(void);
  * Forces the calling thread to sleep until @a mutex becomes available for
  * locking.
  */
-P_LIB_API pboolean	ztk_mutex_lock	(PMutex *mutex);
+P_LIB_API pboolean	zmutex_lock	(PMutex *mutex);
 
 /**
  * @brief Tries to lock a mutex immediately.
@@ -105,7 +105,7 @@ P_LIB_API pboolean	ztk_mutex_lock	(PMutex *mutex);
  * Tries to lock @a mutex and returns immediately if it is not available for
  * locking.
  */
-P_LIB_API pboolean	ztk_mutex_trylock	(PMutex *mutex);
+P_LIB_API pboolean	zmutex_trylock	(PMutex *mutex);
 
 /**
  * @brief Releases a locked mutex.
@@ -120,7 +120,7 @@ P_LIB_API pboolean	ztk_mutex_trylock	(PMutex *mutex);
  * It's implementation dependent whether only the same thread can lock and
  * unlock the same mutex.
  */
-P_LIB_API pboolean	ztk_mutex_unlock	(PMutex *mutex);
+P_LIB_API pboolean	zmutex_unlock	(PMutex *mutex);
 
 /**
  * @brief Frees #PMutex object.
@@ -129,7 +129,7 @@ P_LIB_API pboolean	ztk_mutex_unlock	(PMutex *mutex);
  * @warning It doesn't unlock @a mutex before freeing memory, so you should do
  * it manually.
  */
-P_LIB_API void		ztk_mutex_free	(PMutex *mutex);
+P_LIB_API void		zmutex_free	(PMutex *mutex);
 
 P_END_DECLS
 

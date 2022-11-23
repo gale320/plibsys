@@ -32,19 +32,19 @@ struct PCondVariable_ {
 };
 
 P_LIB_API PCondVariable *
-ztk_cond_variable_new (void)
+zcond_variable_new (void)
 {
 	return NULL;
 }
 
 P_LIB_API void
-ztk_cond_variable_free (PCondVariable *cond)
+zcond_variable_free (PCondVariable *cond)
 {
 	P_UNUSED (cond);
 }
 
 P_LIB_API pboolean
-ztk_cond_variable_wait (PCondVariable	*cond,
+zcond_variable_wait (PCondVariable	*cond,
 		      PMutex		*mutex)
 {
 	P_UNUSED (cond);
@@ -54,7 +54,7 @@ ztk_cond_variable_wait (PCondVariable	*cond,
 }
 
 P_LIB_API pboolean
-ztk_cond_variable_signal (PCondVariable *cond)
+zcond_variable_signal (PCondVariable *cond)
 {
 	P_UNUSED (cond);
 
@@ -62,7 +62,7 @@ ztk_cond_variable_signal (PCondVariable *cond)
 }
 
 P_LIB_API pboolean
-ztk_cond_variable_broadcast (PCondVariable *cond)
+zcond_variable_broadcast (PCondVariable *cond)
 {
 	P_UNUSED (cond);
 
@@ -70,11 +70,11 @@ ztk_cond_variable_broadcast (PCondVariable *cond)
 }
 
 void
-ztk_cond_variable_init (void)
+zcond_variable_init (void)
 {
 }
 
 void
-ztk_cond_variable_shutdown (void)
+zcond_variable_shutdown (void)
 {
 }

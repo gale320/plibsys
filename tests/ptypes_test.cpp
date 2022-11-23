@@ -30,7 +30,7 @@ P_TEST_MODULE_INIT ();
 
 P_TEST_CASE_BEGIN (ptypes_general_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	P_TEST_CHECK (P_BYTE_ORDER == P_LITTLE_ENDIAN ||
 		     P_BYTE_ORDER == P_BIG_ENDIAN);
@@ -64,13 +64,13 @@ P_TEST_CASE_BEGIN (ptypes_general_test)
 	P_TEST_CHECK (sizeof (pulong) == PLIBSYS_SIZEOF_LONG);
 	P_TEST_CHECK (sizeof (poffset) == 8);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptypes_pointers_convert_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	ppointer pointer = P_INT_TO_POINTER (128);
 	P_TEST_CHECK (P_POINTER_TO_INT (pointer) == 128);
@@ -87,13 +87,13 @@ P_TEST_CASE_BEGIN (ptypes_pointers_convert_test)
 	pointer = PSIZE_TO_POINTER (psize_val);
 	P_TEST_CHECK (PPOINTER_TO_PSIZE (psize_val) == 1024);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptypes_min_max_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	P_TEST_CHECK (P_MININT8 == (pint8) 0x80);
 	P_TEST_CHECK (P_MAXINT8 == (pint8) 0x7F);
@@ -130,13 +130,13 @@ P_TEST_CASE_BEGIN (ptypes_min_max_test)
 		}
 	}
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptypes_modifiers_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	psize size_val = 256;
 	printf ("%#" PSIZE_MODIFIER "x\n", size_val);
@@ -166,13 +166,13 @@ P_TEST_CASE_BEGIN (ptypes_modifiers_test)
 	poffset poffset_val = 8192;
 	printf ("%#" POFFSET_MODIFIER "x\n", poffset_val);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptypes_formats_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	pssize ssize_val = -256;
 	printf ("%" PSSIZE_FORMAT "\n", ssize_val);
@@ -202,13 +202,13 @@ P_TEST_CASE_BEGIN (ptypes_formats_test)
 	poffset poffset_val = 8192;
 	printf ("%" POFFSET_FORMAT "\n", poffset_val);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptypes_host_network_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	if (P_BYTE_ORDER == P_LITTLE_ENDIAN) {
 		pint16 pint16_val = PINT16_TO_BE (0xFFE0);
@@ -311,13 +311,13 @@ P_TEST_CASE_BEGIN (ptypes_host_network_test)
 			P_TEST_CHECK (PSSIZE_FROM_LE (pssize_val) == (pssize) 0x00F00000);
 		}
 
-		puint16_val = ztk_htons (0x0020);
+		puint16_val = zhtons (0x0020);
 		P_TEST_CHECK (puint16_val == (puint16) 0x2000);
-		P_TEST_CHECK (ztk_ntohs (puint16_val) == (puint16) 0x0020);
+		P_TEST_CHECK (zntohs (puint16_val) == (puint16) 0x0020);
 
-		puint32_val = ztk_htonl (0x00000040);
+		puint32_val = zhtonl (0x00000040);
 		P_TEST_CHECK (puint32_val == (puint32) 0x40000000);
-		P_TEST_CHECK (ztk_ntohl (puint32_val) == (puint32) 0x00000040);
+		P_TEST_CHECK (zntohl (puint32_val) == (puint32) 0x00000040);
 	} else {
 		pint16 pint16_val = PINT16_TO_LE (0xFFE0);
 		P_TEST_CHECK (pint16_val == (pint16) 0xE0FF);
@@ -419,13 +419,13 @@ P_TEST_CASE_BEGIN (ptypes_host_network_test)
 			P_TEST_CHECK (PSSIZE_FROM_BE (pssize_val) == (pssize) 0x00F00000);
 		}
 
-		puint16_val = ztk_htons (0x0020);
+		puint16_val = zhtons (0x0020);
 		P_TEST_CHECK (puint16_val == (puint16) 0x0020);
-		P_TEST_CHECK (ztk_ntohs (puint16_val) == (puint16) 0x0020);
+		P_TEST_CHECK (zntohs (puint16_val) == (puint16) 0x0020);
 
-		puint32_val = ztk_htonl (0x00000040);
+		puint32_val = zhtonl (0x00000040);
 		P_TEST_CHECK (puint32_val == (puint32) 0x00000040);
-		P_TEST_CHECK (ztk_ntohl (puint32_val) == (puint32) 0x00000040);
+		P_TEST_CHECK (zntohl (puint32_val) == (puint32) 0x00000040);
 	}
 
 	puint16 puint16_val = PUINT16_SWAP_BYTES (0x0020);
@@ -440,7 +440,7 @@ P_TEST_CASE_BEGIN (ptypes_host_network_test)
 	P_TEST_CHECK (puint64_val == (puint64) 0x8000000000000000ULL);
 	P_TEST_CHECK (PUINT64_SWAP_BYTES (puint64_val) == (puint64) 0x0000000000000080ULL);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

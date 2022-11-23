@@ -61,52 +61,52 @@
  * different action sequences for data exchanging.
  *
  * For connection oriented sockets the server side acts as following:
- * - creates a socket using ztk_socket_new();
- * - binds the socket to a particular local address using ztk_socket_bind();
- * - starts to listen incoming connections using ztk_socket_listen();
+ * - creates a socket using zsocket_new();
+ * - binds the socket to a particular local address using zsocket_bind();
+ * - starts to listen incoming connections using zsocket_listen();
  * - takes an incoming connection from the internal queue using
- * ztk_socket_accept().
+ * zsocket_accept().
  *
  * The client side acts as following:
- * - creates a socket using ztk_socket_new();
- * - binds the socket to a particular local address using ztk_socket_bind();
- * - connects to the server using ztk_socket_connect().
+ * - creates a socket using zsocket_new();
+ * - binds the socket to a particular local address using zsocket_bind();
+ * - connects to the server using zsocket_connect().
  *
  * After the connection was successfully established, both the sides can send
- * and receive data from each other using ztk_socket_send() and
- * ztk_socket_receive(). Binding of the client socket is actually optional.
+ * and receive data from each other using zsocket_send() and
+ * zsocket_receive(). Binding of the client socket is actually optional.
  *
  * When using connection-less sockets, all is a bit simpler. There is no server
  * side or client side - anyone can send and receive data without establishing a
  * connection. Just create a socket, bind it to a local address and send/receive
- * data using ztk_socket_send_to() and ztk_socket_receive(). You can also call
- * ztk_socket_connect() on a connection-less socket to prevent passing the target
- * address each time when sending data and then use ztk_socket_send() instead of
- * ztk_socket_send_to(). This time binding is required.
+ * data using zsocket_send_to() and zsocket_receive(). You can also call
+ * zsocket_connect() on a connection-less socket to prevent passing the target
+ * address each time when sending data and then use zsocket_send() instead of
+ * zsocket_send_to(). This time binding is required.
  *
  * #PSocket can operate in blocking and non-blocking (async) modes. By default
  * it is in the blocking mode. When using #PSocket in the blocking mode each
  * non-immediate call on it will block a caller thread until an I/O operation
- * will be completed. For example, the ztk_socket_accept() call can wait for an
+ * will be completed. For example, the zsocket_accept() call can wait for an
  * incoming connection for some time, and calling it on a blocking socket will
  * prevent the caller thread from further execution until it receives a new
  * incoming connection. In the non-blocking mode any call will return
  * immediately and you must check its result. You can set the socket mode using
- * ztk_socket_set_blocking().
+ * zsocket_set_blocking().
  *
  * #PSocket always puts a socket descriptor (or SOCKET handle on Windows) into
  * the non-blocking mode and emulates the blocking mode if required. If you need
  * to perform some hacks and need blocking behavior from the descriptor for some
- * reason, use ztk_socket_get_fd() to get an internal socket descriptor (SOCKET
+ * reason, use zsocket_get_fd() to get an internal socket descriptor (SOCKET
  * handle on Windows).
  *
  * The close-on-exec flag is always set on the socket desciptor. Use
- * ztk_socket_get_fd() to overwrite this behavior.
+ * zsocket_get_fd() to overwrite this behavior.
  *
  * #PSocket ignores the SIGPIPE signal on UNIX systems if possible. Take it into
  * account if you want to handle this signal.
  *
- * Note that before using the #PSocket API you must call ztk_libsys_init() in
+ * Note that before using the #PSocket API you must call zlibsys_init() in
  * order to initialize system resources (on UNIX this will do nothing, but on
  * Windows this routine is required). Usually this routine should be called on a
  * program's start.
@@ -116,30 +116,30 @@
  * PSocketAddress *addr;
  * PSocket	  *sock;
  *
- * ztk_libsys_init ();
+ * zlibsys_init ();
  * ...
- * if ((addr = ztk_socket_address_new ("127.0.0.1", 5432)) == NULL) {
+ * if ((addr = zsocket_address_new ("127.0.0.1", 5432)) == NULL) {
  *	...
  * }
  *
- * if ((sock = ztk_socket_new (P_SOCKET_FAMILY_INET,
+ * if ((sock = zsocket_new (P_SOCKET_FAMILY_INET,
  *			     P_SOCKET_TYPE_DATAGRAM,
  *			     P_SOCKET_PROTOCOL_UDP)) == NULL) {
- *	ztk_socket_address_free (addr);
+ *	zsocket_address_free (addr);
  *	...
  * }
  *
- * if (!ztk_socket_bind (sock, addr, FALSE)) {
- *	ztk_socket_address_free(addr);
- *	ztk_socket_free(sock);
+ * if (!zsocket_bind (sock, addr, FALSE)) {
+ *	zsocket_address_free(addr);
+ *	zsocket_free(sock);
  *	...
  * }
  *
  * ...
- * ztk_socket_address_free (addr);
- * ztk_socket_close (sock);
- * ztk_socket_free (sock);
- * ztk_libsys_shutdown ();
+ * zsocket_address_free (addr);
+ * zsocket_close (sock);
+ * zsocket_free (sock);
+ * zlibsys_shutdown ();
  * @endcode
  * Here a UDP socket was created, bound to the localhost address and the port
  * @a 5432. Do not forget to close the socket and free memory after its usage.
@@ -196,7 +196,7 @@ typedef struct PSocket_ PSocket;
  * @param[out] error Error report object, NULL to ignore.
  * @return Pointer to #PSocket in case of success, NULL otherwise.
  * @since 0.0.1
- * @sa ztk_socket_new(), ztk_socket_get_fd()
+ * @sa zsocket_new(), zsocket_get_fd()
  *
  * The given file descriptor @a fd will be put in a non-blocking mode. #PSocket
  * will emulate a blocking mode if required.
@@ -205,7 +205,7 @@ typedef struct PSocket_ PSocket;
  * fail to get a socket family from the descriptor thus failing to construct the
  * #PSocket object.
  */
-P_LIB_API PSocket *		ztk_socket_new_from_fd		(pint 			fd,
+P_LIB_API PSocket *		zsocket_new_from_fd		(pint 			fd,
 								 PError			**error);
 
 /**
@@ -219,13 +219,13 @@ P_LIB_API PSocket *		ztk_socket_new_from_fd		(pint 			fd,
  * @note If all the given parameters are not compatible with each other, then
  * the function will fail. Use #P_SOCKET_PROTOCOL_DEFAULT to automatically
  * match the best protocol for a particular @a type.
- * @sa #PSocketFamily, #PSocketType, #PSocketProtocol, ztk_socket_new_from_fd()
+ * @sa #PSocketFamily, #PSocketType, #PSocketProtocol, zsocket_new_from_fd()
  *
  * The @a protocol is passed directly to the operating system socket() call,
  * #PSocketProtocol has the same values as the system definitions. You can pass
  * any existing protocol value to this call if you know it exactly.
  */
-P_LIB_API PSocket *		ztk_socket_new 			(PSocketFamily		family,
+P_LIB_API PSocket *		zsocket_new 			(PSocketFamily		family,
 								 PSocketType		type,
 								 PSocketProtocol	protocol,
 								 PError			**error);
@@ -235,9 +235,9 @@ P_LIB_API PSocket *		ztk_socket_new 			(PSocketFamily		family,
  * @param socket #PSocket to get the file descriptor for.
  * @return File descriptor in case of success, -1 otherwise.
  * @since 0.0.1
- * @sa ztk_socket_new_from_fd()
+ * @sa zsocket_new_from_fd()
  */
-P_LIB_API pint			ztk_socket_get_fd 		(const PSocket		*socket);
+P_LIB_API pint			zsocket_get_fd 		(const PSocket		*socket);
 
 /**
  * @brief Gets a @a socket address family.
@@ -245,23 +245,23 @@ P_LIB_API pint			ztk_socket_get_fd 		(const PSocket		*socket);
  * @return #PSocketFamily in case of success, #P_SOCKET_FAMILY_UNKNOWN
  * otherwise.
  * @since 0.0.1
- * @sa #PSocketFamily, ztk_socket_new()
+ * @sa #PSocketFamily, zsocket_new()
  *
  * The socket address family specifies address space which will be used to
  * communicate with other sockets. For now, the INET and INET6 families are
  * supported. The INET6 family is available only if the operating system
  * supports it.
  */
-P_LIB_API PSocketFamily		ztk_socket_get_family 		(const PSocket		*socket);
+P_LIB_API PSocketFamily		zsocket_get_family 		(const PSocket		*socket);
 
 /**
  * @brief Gets a @a socket type.
  * @param socket #PSocket to get the type for.
  * @return #PSocketType in case of success, #P_SOCKET_TYPE_UNKNOWN otherwise.
  * @since 0.0.1
- * @sa #PSocketType, ztk_socket_new()
+ * @sa #PSocketType, zsocket_new()
  */
-P_LIB_API PSocketType		ztk_socket_get_type 		(const PSocket		*socket);
+P_LIB_API PSocketType		zsocket_get_type 		(const PSocket		*socket);
 
 /**
  * @brief Gets a @a socket data transfer protocol.
@@ -269,16 +269,16 @@ P_LIB_API PSocketType		ztk_socket_get_type 		(const PSocket		*socket);
  * @return #PSocketProtocol in case of success, #P_SOCKET_PROTOCOL_UNKNOWN
  * otherwise.
  * @since 0.0.1
- * @sa #PSocketProtocol, ztk_socket_new()
+ * @sa #PSocketProtocol, zsocket_new()
  */
-P_LIB_API PSocketProtocol	ztk_socket_get_protocol		(const PSocket		*socket);
+P_LIB_API PSocketProtocol	zsocket_get_protocol		(const PSocket		*socket);
 
 /**
  * @brief Checks whether the SO_KEEPALIVE flag is enabled.
  * @param socket #PSocket to check the SO_KEEPALIVE flag for.
  * @return TRUE if the SO_KEEPALIVE flag is enabled, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_set_keepalive()
+ * @sa zsocket_set_keepalive()
  *
  * This option only has effect for connection oriented sockets. After a
  * connection has been established between two sockets, they periodically send
@@ -292,7 +292,7 @@ P_LIB_API PSocketProtocol	ztk_socket_get_protocol		(const PSocket		*socket);
  * for a long time, so such an option helps to detect died clients faster
  * without sending them real data. It's some kind of garbage collecting.
  */
-P_LIB_API pboolean		ztk_socket_get_keepalive		(const PSocket		*socket);
+P_LIB_API pboolean		zsocket_get_keepalive		(const PSocket		*socket);
 
 /**
  * @brief Checks whether @a socket is used in a blocking mode.
@@ -301,19 +301,19 @@ P_LIB_API pboolean		ztk_socket_get_keepalive		(const PSocket		*socket);
  * @note A blocking socket will wait for an I/O operation to be completed before
  * returning to the caller function.
  * @since 0.0.1
- * @sa ztk_socket_set_blocking()
+ * @sa zsocket_set_blocking()
  *
  * The underlying socket descriptor is always set to the non-blocking mode by
  * default and #PSocket emulates the blocking mode if required.
  */
-P_LIB_API pboolean		ztk_socket_get_blocking		(PSocket 		*socket);
+P_LIB_API pboolean		zsocket_get_blocking		(PSocket 		*socket);
 
 /**
  * @brief Gets a @a socket listen backlog parameter.
  * @param socket #PSocket to get the listen backlog parameter for.
  * @return Listen backlog parameter in case of success, -1 otherwise.
  * @since 0.0.1
- * @sa ztk_socket_set_listen_backlog(), ztk_socket_listen()
+ * @sa zsocket_set_listen_backlog(), zsocket_listen()
  *
  * This parameter only has meaning for the connection oriented sockets. The
  * backlog parameter specifies how much pending connections from other clients
@@ -325,7 +325,7 @@ P_LIB_API pboolean		ztk_socket_get_blocking		(PSocket 		*socket);
  * Some systems may not allow to set it to high values. By default #PSocket
  * attempts to set it to 5.
  */
-P_LIB_API pint			ztk_socket_get_listen_backlog	(const PSocket 		*socket);
+P_LIB_API pint			zsocket_get_listen_backlog	(const PSocket 		*socket);
 
 /**
  * @brief Gets a @a socket timeout for blocking I/O operations.
@@ -333,7 +333,7 @@ P_LIB_API pint			ztk_socket_get_listen_backlog	(const PSocket 		*socket);
  * @return Timeout for blocking I/O operations in milliseconds, -1 in case of
  * fail.
  * @since 0.0.1
- * @sa ztk_socket_set_timeout(), ztk_socket_io_condition_wait()
+ * @sa zsocket_set_timeout(), zsocket_io_condition_wait()
  *
  * For a blocking socket a timeout value means maximum amount of time for which
  * a blocking call will wait until a newtwork I/O operation completes. If the
@@ -341,12 +341,12 @@ P_LIB_API pint			ztk_socket_get_listen_backlog	(const PSocket 		*socket);
  * the error set to #P_ERROR_IO_TIMED_OUT.
  *
  * For a non-blocking socket the timeout affects only on the
- * ztk_socket_io_condition_wait() maximum waiting time.
+ * zsocket_io_condition_wait() maximum waiting time.
  *
  * Zero timeout means that the operation which requires a time to complete
  * network I/O will be blocked until the operation finishes or error occurres.
  */
-P_LIB_API pint			ztk_socket_get_timeout		(const PSocket		*socket);
+P_LIB_API pint			zsocket_get_timeout		(const PSocket		*socket);
 
 /**
  * @brief Gets a @a socket local (bound) address.
@@ -355,12 +355,12 @@ P_LIB_API pint			ztk_socket_get_timeout		(const PSocket		*socket);
  * @return #PSocketAddress with the socket local address in case of success,
  * NULL otherwise.
  * @since 0.0.1
- * @sa ztk_socket_bind()
+ * @sa zsocket_bind()
  *
- * If the @a socket was not bound explicitly with ztk_socket_bind() or implicitly
- * with ztk_socket_connect(), the call will fail.
+ * If the @a socket was not bound explicitly with zsocket_bind() or implicitly
+ * with zsocket_connect(), the call will fail.
  */
-P_LIB_API PSocketAddress *	ztk_socket_get_local_address	(const PSocket 		*socket,
+P_LIB_API PSocketAddress *	zsocket_get_local_address	(const PSocket 		*socket,
 								 PError			**error);
 
 /**
@@ -370,15 +370,15 @@ P_LIB_API PSocketAddress *	ztk_socket_get_local_address	(const PSocket 		*socket
  * @return #PSocketAddress with the socket endpoint remote address in case of
  * success, NULL otherwise.
  * @since 0.0.1
- * @sa ztk_socket_connect()
+ * @sa zsocket_connect()
  *
  * If the @a socket was not connected to the endpoint address with
- * ztk_socket_connect(), the call will fail.
+ * zsocket_connect(), the call will fail.
  *
  * @warning On Syllable this call will always return NULL for connection-less
  * sockets (though connecting is possible).
  */
-P_LIB_API PSocketAddress *	ztk_socket_get_remote_address	(const PSocket 		*socket,
+P_LIB_API PSocketAddress *	zsocket_get_remote_address	(const PSocket 		*socket,
 								 PError			**error);
 
 /**
@@ -386,37 +386,37 @@ P_LIB_API PSocketAddress *	ztk_socket_get_remote_address	(const PSocket 		*socke
  * @param socket #PSocket to check a connection for.
  * @return TRUE if the @a socket is connected, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_connect(), ztk_socket_check_connect_result()
+ * @sa zsocket_connect(), zsocket_check_connect_result()
  *
  * This function doesn't check if the socket is still connected, it only checks
- * whether the ztk_socket_connect() call was successfully performed on the
+ * whether the zsocket_connect() call was successfully performed on the
  * @a socket.
  */
-P_LIB_API pboolean		ztk_socket_is_connected		(const PSocket		*socket);
+P_LIB_API pboolean		zsocket_is_connected		(const PSocket		*socket);
 
 /**
  * @brief Checks whether a @a socket is closed.
  * @param socket #PSocket to check a closed state.
  * @return TRUE if the @a socket is closed, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_close(), ztk_socket_shutdown()
+ * @sa zsocket_close(), zsocket_shutdown()
  *
  * If the socket is in a non-blocking mode this call will not return TRUE until
- * ztk_socket_check_connect_result() is called. The socket will be closed if
- * ztk_socket_shutdown() is called for both the directions.
+ * zsocket_check_connect_result() is called. The socket will be closed if
+ * zsocket_shutdown() is called for both the directions.
  */
-P_LIB_API pboolean		ztk_socket_is_closed		(const PSocket		*socket);
+P_LIB_API pboolean		zsocket_is_closed		(const PSocket		*socket);
 
 /**
- * @brief Checks a connection state after calling ztk_socket_connect().
+ * @brief Checks a connection state after calling zsocket_connect().
  * @param socket #PSocket to check the connection state for.
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE if was no error, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_io_condition_wait()
+ * @sa zsocket_io_condition_wait()
  * @warning Not supported on Syllable for connection-less sockets.
  *
- * Usually this call is used after calling ztk_socket_connect() on a socket in a
+ * Usually this call is used after calling zsocket_connect() on a socket in a
  * non-blocking mode to check the connection state. If call returns the FALSE
  * result then the connection checking call has failed or there was an error
  * during the connection and you should check the last error using an @a error
@@ -425,11 +425,11 @@ P_LIB_API pboolean		ztk_socket_is_closed		(const PSocket		*socket);
  * If the socket is still pending for the connection you will get the
  * #P_ERROR_IO_IN_PROGRESS error code.
  *
- * After calling ztk_socket_connect() on a non-blocking socket, you can wait for
- * a connection operation to be finished using ztk_socket_io_condition_wait()
+ * After calling zsocket_connect() on a non-blocking socket, you can wait for
+ * a connection operation to be finished using zsocket_io_condition_wait()
  * with the #P_SOCKET_IO_CONDITION_POLLOUT option.
  */
-P_LIB_API pboolean		ztk_socket_check_connect_result	(PSocket		*socket,
+P_LIB_API pboolean		zsocket_check_connect_result	(PSocket		*socket,
 								 PError			**error);
 
 /**
@@ -437,11 +437,11 @@ P_LIB_API pboolean		ztk_socket_check_connect_result	(PSocket		*socket,
  * @param socket #PSocket to set the SO_KEEPALIVE flag for.
  * @param keepalive Value for the SO_KEEPALIVE flag.
  * @since 0.0.1
- * @sa ztk_socket_get_keepalive()
+ * @sa zsocket_get_keepalive()
  *
- * See ztk_socket_get_keepalive() documentation for a description of this option.
+ * See zsocket_get_keepalive() documentation for a description of this option.
  */
-P_LIB_API void			ztk_socket_set_keepalive		(PSocket 		*socket,
+P_LIB_API void			zsocket_set_keepalive		(PSocket 		*socket,
 								 pboolean		keepalive);
 
 /**
@@ -454,9 +454,9 @@ P_LIB_API void			ztk_socket_set_keepalive		(PSocket 		*socket,
  * scheduling granularity, so the actual timeout can be greater than specified
  * one.
  * @since 0.0.1
- * @sa ztk_socket_get_blocking()
+ * @sa zsocket_get_blocking()
  */
-P_LIB_API void			ztk_socket_set_blocking		(PSocket 		*socket,
+P_LIB_API void			zsocket_set_blocking		(PSocket 		*socket,
 								 pboolean		blocking);
 
 /**
@@ -464,15 +464,15 @@ P_LIB_API void			ztk_socket_set_blocking		(PSocket 		*socket,
  * @param socket #PSocket to set the listen backlog parameter for.
  * @param backlog Value for the listen backlog parameter.
  * @note This parameter can take effect only if it was set before calling
- * ztk_socket_listen(). Otherwise it will be ignored by underlying socket
+ * zsocket_listen(). Otherwise it will be ignored by underlying socket
  * system calls.
  * @since 0.0.1
- * @sa ztk_socket_get_listen_backlog()
+ * @sa zsocket_get_listen_backlog()
  *
- * See ztk_socket_get_listen_backlog() documentation for a description of this
+ * See zsocket_get_listen_backlog() documentation for a description of this
  * option.
  */
-P_LIB_API void			ztk_socket_set_listen_backlog	(PSocket		*socket,
+P_LIB_API void			zsocket_set_listen_backlog	(PSocket		*socket,
 								 pint			backlog);
 
 /**
@@ -480,11 +480,11 @@ P_LIB_API void			ztk_socket_set_listen_backlog	(PSocket		*socket,
  * @param socket #PSocket to set the @a timeout for.
  * @param timeout Timeout value in milliseconds.
  * @since 0.0.1
- * @sa ztk_socket_get_timeoout(), ztk_socket_io_condition_wait()
+ * @sa zsocket_get_timeoout(), zsocket_io_condition_wait()
  *
- * See ztk_socket_get_timeout() documentation for a description of this option.
+ * See zsocket_get_timeout() documentation for a description of this option.
  */
-P_LIB_API void			ztk_socket_set_timeout		(PSocket		*socket,
+P_LIB_API void			zsocket_set_timeout		(PSocket		*socket,
 								 pint			timeout);
 
 /**
@@ -495,7 +495,7 @@ P_LIB_API void			ztk_socket_set_timeout		(PSocket		*socket,
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_get_local_address()
+ * @sa zsocket_get_local_address()
  *
  * The @a allow_reuse option allows to resolve address conflicts for several
  * bound sockets. It controls the SO_REUSEADDR socket flag.
@@ -506,7 +506,7 @@ P_LIB_API void			ztk_socket_set_timeout		(PSocket		*socket,
  * the socket can be also bound for the any network interface (i.e. 0.0.0.0
  * network address) and a particular port. If you will try to bind another
  * socket without the @a allow_reuse option to a particular network address
- * (i.e. 127.0.0.1) and the same port, the ztk_socket_bind() call will fail.
+ * (i.e. 127.0.0.1) and the same port, the zsocket_bind() call will fail.
  *
  * With the @a allow_reuse option the system will resolve this conflict: the
  * socket will be bound to the particular address and port (and will receive
@@ -530,7 +530,7 @@ P_LIB_API void			ztk_socket_set_timeout		(PSocket		*socket,
  * to TRUE, while a client socket shouldn't set this option to TRUE. If you
  * restart the client quickly with the same address it can fail to bind.
  */
-P_LIB_API pboolean		ztk_socket_bind			(const PSocket 		*socket,
+P_LIB_API pboolean		zsocket_bind			(const PSocket 		*socket,
 								 PSocketAddress		*address,
 								 pboolean		allow_reuse,
 								 PError			**error);
@@ -542,14 +542,14 @@ P_LIB_API pboolean		ztk_socket_bind			(const PSocket 		*socket,
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_is_connected(), ztk_socket_check_connect_result(),
- * ztk_socket_get_remote_address(), ztk_socket_io_condition_wait()
+ * @sa zsocket_is_connected(), zsocket_check_connect_result(),
+ * zsocket_get_remote_address(), zsocket_io_condition_wait()
  * @warning On Syllable this method changes a local port of the connection
  * oriented socket in case of success.
  *
  * Calling this method on the connection-less socket will bind it to the remote
- * address and the ztk_socket_send() method can be used instead of
- * ztk_socket_send_to(), so you do not need to specify the remote (target) address
+ * address and the zsocket_send() method can be used instead of
+ * zsocket_send_to(), so you do not need to specify the remote (target) address
  * each time you need to send data. The socket will also discard incoming data
  * from other addresses. The same call again will re-bind it to another remote
  * address.
@@ -559,11 +559,11 @@ P_LIB_API pboolean		ztk_socket_bind			(const PSocket 		*socket,
  * fail.
  *
  * If the @a socket is in a non-blocking mode, then you can wait for the
- * connection using ztk_socket_io_condition_wait() with the
+ * connection using zsocket_io_condition_wait() with the
  * #P_SOCKET_IO_CONDITION_POLLOUT parameter. You should check the connection
- * result after that using ztk_socket_check_connect_result().
+ * result after that using zsocket_check_connect_result().
  */
-P_LIB_API pboolean		ztk_socket_connect		(PSocket		*socket,
+P_LIB_API pboolean		zsocket_connect		(PSocket		*socket,
 								 PSocketAddress		*address,
 								 PError			**error);
 
@@ -573,19 +573,19 @@ P_LIB_API pboolean		ztk_socket_connect		(PSocket		*socket,
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_get_listen_backlog(), ztk_socket_set_listen_backlog()
+ * @sa zsocket_get_listen_backlog(), zsocket_set_listen_backlog()
  *
  * This call has meaning only for connection oriented sockets. Before starting
  * to accept incoming connections, the socket must be put into the passive mode
- * using ztk_socket_listen(). After that ztk_socket_accept() can be used to
+ * using zsocket_listen(). After that zsocket_accept() can be used to
  * accept incoming connections.
  *
  * Maximum number of pending connections is defined by the backlog parameter,
- * see ztk_socket_get_listen_backlog() documentation for more information. The
- * backlog parameter must be set before calling ztk_socket_listen() to take
+ * see zsocket_get_listen_backlog() documentation for more information. The
+ * backlog parameter must be set before calling zsocket_listen() to take
  * effect.
  */
-P_LIB_API pboolean		ztk_socket_listen			(PSocket 		*socket,
+P_LIB_API pboolean		zsocket_listen			(PSocket 		*socket,
 								 PError			**error);
 
 /**
@@ -597,10 +597,10 @@ P_LIB_API pboolean		ztk_socket_listen			(PSocket 		*socket,
  * @since 0.0.1
  *
  * This call has meaning only for connection oriented sockets. The socket can
- * accept new incoming connections only after calling ztk_socket_bind() and
- * ztk_socket_listen().
+ * accept new incoming connections only after calling zsocket_bind() and
+ * zsocket_listen().
  */
-P_LIB_API PSocket *		ztk_socket_accept			(const PSocket		*socket,
+P_LIB_API PSocket *		zsocket_accept			(const PSocket		*socket,
 								 PError			**error);
 
 /**
@@ -613,16 +613,16 @@ P_LIB_API PSocket *		ztk_socket_accept			(const PSocket		*socket,
  * @note If the @a socket is in a blocking mode, then the caller will be blocked
  * until data arrives.
  * @since 0.0.1
- * @sa ztk_socket_receive_from(), ztk_socket_connect()
+ * @sa zsocket_receive_from(), zsocket_connect()
  *
  * If the @a buflen is less than the received data size, only @a buflen bytes of
  * data will be written to the @a buffer, and excess bytes may be discarded
  * depending on a socket message type.
  *
  * This call is normally used only with the a connected socket, see
- * ztk_socket_connect().
+ * zsocket_connect().
  */
-P_LIB_API pssize		ztk_socket_receive		(const PSocket		*socket,
+P_LIB_API pssize		zsocket_receive		(const PSocket		*socket,
 								 pchar			*buffer,
 								 psize			buflen,
 								 PError			**error);
@@ -639,7 +639,7 @@ P_LIB_API pssize		ztk_socket_receive		(const PSocket		*socket,
  * @note If the @a socket is in a blocking mode, then the caller will be blocked
  * until data arrives.
  * @since 0.0.1
- * @sa ztk_socket_receive()
+ * @sa zsocket_receive()
  *
  * If the @a buflen is less than the received data size, only @a buflen bytes of
  * data will be written to the @a buffer, and excess bytes may be discarded
@@ -647,7 +647,7 @@ P_LIB_API pssize		ztk_socket_receive		(const PSocket		*socket,
  *
  * This call is normally used only with a connection-less socket.
  */
-P_LIB_API pssize		ztk_socket_receive_from		(const PSocket 		*socket,
+P_LIB_API pssize		zsocket_receive_from		(const PSocket 		*socket,
 								 PSocketAddress		**address,
 								 pchar 			*buffer,
 								 psize			buflen,
@@ -663,13 +663,13 @@ P_LIB_API pssize		ztk_socket_receive_from		(const PSocket 		*socket,
  * @note If the @a socket is in a blocking mode, then the caller will be blocked
  * until data sent.
  * @since 0.0.1
- * @sa ztk_socket_send_to()
+ * @sa zsocket_send_to()
  *
  * Do not use this call for connection-less sockets which are not connected to a
- * remote address using ztk_socket_connect() because it will always fail, use
- * ztk_socket_send_to() instead.
+ * remote address using zsocket_connect() because it will always fail, use
+ * zsocket_send_to() instead.
  */
-P_LIB_API pssize		ztk_socket_send			(const PSocket		*socket,
+P_LIB_API pssize		zsocket_send			(const PSocket		*socket,
 								 const pchar		*buffer,
 								 psize			buflen,
 								 PError			**error);
@@ -685,14 +685,14 @@ P_LIB_API pssize		ztk_socket_send			(const PSocket		*socket,
  * @note If the @a socket is in a blocking mode, then the caller will be blocked
  * until data sent.
  * @since 0.0.1
- * @sa ztk_socket_send()
+ * @sa zsocket_send()
  *
  * This call is used when dealing with connection-less sockets. You can bind
- * such a socket to a remote address using ztk_socket_connect() and use
- * ztk_socket_send() instead. If you are working with connection oriented sockets
- * then use ztk_socket_send() after establishing a connection.
+ * such a socket to a remote address using zsocket_connect() and use
+ * zsocket_send() instead. If you are working with connection oriented sockets
+ * then use zsocket_send() after establishing a connection.
  */
-P_LIB_API pssize		ztk_socket_send_to		(const PSocket		*socket,
+P_LIB_API pssize		zsocket_send_to		(const PSocket		*socket,
 								 PSocketAddress		*address,
 								 const pchar		*buffer,
 								 psize			buflen,
@@ -704,13 +704,13 @@ P_LIB_API pssize		ztk_socket_send_to		(const PSocket		*socket,
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_free(), ztk_socket_is_closed()
+ * @sa zsocket_free(), zsocket_is_closed()
  *
  * For connection oriented sockets some time is required to completely close
- * a socket connection. See documentation for ztk_socket_bind() for more
+ * a socket connection. See documentation for zsocket_bind() for more
  * information.
  */
-P_LIB_API pboolean		ztk_socket_close			(PSocket		*socket,
+P_LIB_API pboolean		zsocket_close			(PSocket		*socket,
 								 PError			**error);
 
 /**
@@ -728,7 +728,7 @@ P_LIB_API pboolean		ztk_socket_close			(PSocket		*socket,
  * direction. It is often used to gracefully close a connection for a connection
  * oriented socket.
  */
-P_LIB_API pboolean		ztk_socket_shutdown		(PSocket		*socket,
+P_LIB_API pboolean		zsocket_shutdown		(PSocket		*socket,
 								 pboolean		shutdown_read,
 								 pboolean		shutdown_write,
 								 PError			**error);
@@ -737,9 +737,9 @@ P_LIB_API pboolean		ztk_socket_shutdown		(PSocket		*socket,
  * @brief Closes a @a socket (if not closed yet) and frees its resources.
  * @param socket #PSocket to free resources from.
  * @since 0.0.1
- * @sa ztk_socket_close()
+ * @sa zsocket_close()
  */
-P_LIB_API void			ztk_socket_free			(PSocket 		*socket);
+P_LIB_API void			zsocket_free			(PSocket 		*socket);
 
 /**
  * @brief Sets the @a socket buffer size for a given data transfer direction.
@@ -751,7 +751,7 @@ P_LIB_API void			ztk_socket_free			(PSocket 		*socket);
  * @since 0.0.1
  * @warning Not supported on Syllable.
  */
-P_LIB_API pboolean		ztk_socket_set_buffer_size	(const PSocket		*socket,
+P_LIB_API pboolean		zsocket_set_buffer_size	(const PSocket		*socket,
 								 PSocketDirection	dir,
 								 psize			size,
 								 PError			**error);
@@ -763,14 +763,14 @@ P_LIB_API pboolean		ztk_socket_set_buffer_size	(const PSocket		*socket,
  * @param[out] error Error report object, NULL to ignore.
  * @return TRUE if @a condition has been met, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_get_timeout(), ztk_socket_set_timeout()
+ * @sa zsocket_get_timeout(), zsocket_set_timeout()
  *
  * Waits until @a condition will be met on @a socket or an error occurred. If
- * timeout was set using ztk_socket_set_timeout() and a network I/O operation
+ * timeout was set using zsocket_set_timeout() and a network I/O operation
  * doesn't finish until timeout expired, call will fail with
  * #P_ERROR_IO_TIMED_OUT error code.
  */
-P_LIB_API pboolean		ztk_socket_io_condition_wait	(const PSocket		*socket,
+P_LIB_API pboolean		zsocket_io_condition_wait	(const PSocket		*socket,
 								 PSocketIOCondition	condition,
 								 PError			**error);
 

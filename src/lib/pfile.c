@@ -32,7 +32,7 @@
 #endif
 
 P_LIB_API pboolean
-ztk_file_is_exists (const pchar *file)
+zfile_is_exists (const pchar *file)
 {
 #ifdef P_OS_WIN
 	DWORD attrs;
@@ -51,13 +51,13 @@ ztk_file_is_exists (const pchar *file)
 }
 
 P_LIB_API pboolean
-ztk_file_remove (const pchar	*file,
+zfile_remove (const pchar	*file,
 	       PError		**error)
 {
 	pboolean result;
 
 	if (P_UNLIKELY (file == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -71,9 +71,9 @@ ztk_file_remove (const pchar	*file,
 #endif
 
 	if (P_UNLIKELY (!result))
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to remove file");
 
 	return result;

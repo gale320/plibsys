@@ -27,11 +27,11 @@
 #include "pdir.h"
 
 P_LIB_API void
-ztk_dir_entry_free (PDirEntry *entry)
+zdir_entry_free (PDirEntry *entry)
 {
 	if (P_UNLIKELY (entry == NULL))
 		return;
 
-	ztk_free (entry->name);
-	ztk_free (entry);
+	zfree (entry->name);
+	zfree (entry);
 }

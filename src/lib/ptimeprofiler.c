@@ -27,44 +27,44 @@
 #include "ptimeprofiler.h"
 #include "ptimeprofiler-private.h"
 
-extern puint64 ztk_time_profiler_get_ticks_internal (void);
-extern puint64 ztk_time_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler);
+extern puint64 ztime_profiler_get_ticks_internal (void);
+extern puint64 ztime_profiler_elapsed_usecs_internal (const PTimeProfiler *profiler);
 
 P_LIB_API PTimeProfiler *
-ztk_time_profiler_new ()
+ztime_profiler_new ()
 {
 	PTimeProfiler *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PTimeProfiler))) == NULL)) {
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PTimeProfiler))) == NULL)) {
 		P_ERROR ("PTimeProfiler: failed to allocate memory");
 		return NULL;
 	}
 
-	ret->counter = ztk_time_profiler_get_ticks_internal ();
+	ret->counter = ztime_profiler_get_ticks_internal ();
 
 	return ret;
 }
 
 P_LIB_API void
-ztk_time_profiler_reset (PTimeProfiler *profiler)
+ztime_profiler_reset (PTimeProfiler *profiler)
 {
 	if (P_UNLIKELY (profiler == NULL))
 		return;
 
-	profiler->counter = ztk_time_profiler_get_ticks_internal ();
+	profiler->counter = ztime_profiler_get_ticks_internal ();
 }
 
 P_LIB_API puint64
-ztk_time_profiler_elapsed_usecs (const PTimeProfiler *profiler)
+ztime_profiler_elapsed_usecs (const PTimeProfiler *profiler)
 {
 	if (P_UNLIKELY (profiler == NULL))
 		return 0;
 
-	return ztk_time_profiler_elapsed_usecs_internal (profiler);
+	return ztime_profiler_elapsed_usecs_internal (profiler);
 }
 
 P_LIB_API void
-ztk_time_profiler_free (PTimeProfiler *profiler)
+ztime_profiler_free (PTimeProfiler *profiler)
 {
-	ztk_free (profiler);
+	zfree (profiler);
 }

@@ -58,17 +58,17 @@ struct PUThreadDestructor_ {
 	PUThreadDestructor	*next;
 };
 
-static PUThreadDestructor * volatile pztk_uthread_tls_destructors = NULL;
+static PUThreadDestructor * volatile pzuthread_tls_destructors = NULL;
 
-static PMutex *pztk_uthread_tls_mutex = NULL;
+static PMutex *pzuthread_tls_mutex = NULL;
 
-static pint pztk_uthread_get_beos_priority (PUThreadPriority prio);
-static pint pztk_uthread_get_tls_key (PUThreadKey *key);
-static void pztk_uthread_clean_destructors (void);
-static pint pztk_uthread_beos_proxy (ppointer data);
+static pint pzuthread_get_beos_priority (PUThreadPriority prio);
+static pint pzuthread_get_tls_key (PUThreadKey *key);
+static void pzuthread_clean_destructors (void);
+static pint pzuthread_beos_proxy (ppointer data);
 
 static pint
-pztk_uthread_get_beos_priority (PUThreadPriority prio)
+pzuthread_get_beos_priority (PUThreadPriority prio)
 {
 	switch (prio) {
 		case P_UTHREAD_PRIORITY_INHERIT:
@@ -78,7 +78,7 @@ pztk_uthread_get_beos_priority (PUThreadPriority prio)
 			memset (&thr_info, 0, sizeof (thr_info));
 
 			if (P_UNLIKELY (get_thread_info (find_thread (NULL), &thr_info) != B_OK)) {
-				P_WARNING ("PUThread::pztk_uthread_get_beos_priority: failed to get thread info");
+				P_WARNING ("PUThread::pzuthread_get_beos_priority: failed to get thread info");
 				return B_NORMAL_PRIORITY;
 			} else
 				return thr_info.priority;
@@ -102,16 +102,16 @@ pztk_uthread_get_beos_priority (PUThreadPriority prio)
 }
 
 static pint
-pztk_uthread_get_tls_key (PUThreadKey *key)
+pzuthread_get_tls_key (PUThreadKey *key)
 {
 	pint thread_key;
 
-	thread_key = ztk_atomic_int_get ((const volatile pint *) &key->key);
+	thread_key = zatomic_int_get ((const volatile pint *) &key->key);
 
 	if (P_LIKELY (thread_key >= 0))
 		return thread_key;
 
-	ztk_mutex_lock (pztk_uthread_tls_mutex);
+	zmutex_lock (pzuthread_tls_mutex);
 
 	thread_key = key->key;
 
@@ -119,33 +119,33 @@ pztk_uthread_get_tls_key (PUThreadKey *key)
 		PUThreadDestructor *destr = NULL;
 
 		if (key->free_func != NULL) {
-			if (P_UNLIKELY ((destr = ztk_malloc0 (sizeof (PUThreadDestructor))) == NULL)) {
-				P_ERROR ("PUThread::pztk_uthread_get_tls_key: failed to allocate memory");
-				ztk_mutex_unlock (pztk_uthread_tls_mutex);
+			if (P_UNLIKELY ((destr = zmalloc0 (sizeof (PUThreadDestructor))) == NULL)) {
+				P_ERROR ("PUThread::pzuthread_get_tls_key: failed to allocate memory");
+				zmutex_unlock (pzuthread_tls_mutex);
 				return -1;
 			}
 		}
 
 		if (P_UNLIKELY ((thread_key = tls_allocate ()) < 0)) {
-			P_ERROR ("PUThread::pztk_uthread_get_tls_key: tls_allocate() failed");
-			ztk_free (destr);
-			ztk_mutex_unlock (pztk_uthread_tls_mutex);
+			P_ERROR ("PUThread::pzuthread_get_tls_key: tls_allocate() failed");
+			zfree (destr);
+			zmutex_unlock (pzuthread_tls_mutex);
 			return -1;
 		}
 
 		if (destr != NULL) {
 			destr->key_idx   = thread_key;
 			destr->free_func = key->free_func;
-			destr->next      = pztk_uthread_tls_destructors;
+			destr->next      = pzuthread_tls_destructors;
 
 			/* At the same time thread exit could be performed at there is no
 			 * lock for the global destructor list */
-			if (P_UNLIKELY (ztk_atomic_pointer_compare_and_exchange ((void * volatile *) &pztk_uthread_tls_destructors,
+			if (P_UNLIKELY (zatomic_pointer_compare_and_exchange ((void * volatile *) &pzuthread_tls_destructors,
 									       (void *) destr->next,
 									       (void *) destr) == FALSE)) {
-				P_ERROR ("PUThread::pztk_uthread_get_tls_key: ztk_atomic_pointer_compare_and_exchange() failed");
-				ztk_free (destr);
-				ztk_mutex_unlock (pztk_uthread_tls_mutex);
+				P_ERROR ("PUThread::pzuthread_get_tls_key: zatomic_pointer_compare_and_exchange() failed");
+				zfree (destr);
+				zmutex_unlock (pzuthread_tls_mutex);
 				return -1;
 			}
 		}
@@ -153,13 +153,13 @@ pztk_uthread_get_tls_key (PUThreadKey *key)
 		key->key = thread_key;
 	}
 
-	ztk_mutex_unlock (pztk_uthread_tls_mutex);
+	zmutex_unlock (pzuthread_tls_mutex);
 
 	return thread_key;
 }
 
 static void 
-pztk_uthread_clean_destructors (void)
+pzuthread_clean_destructors (void)
 {
 	pboolean was_called;
 
@@ -168,7 +168,7 @@ pztk_uthread_clean_destructors (void)
 
 		was_called = FALSE;
 
-		destr = (PUThreadDestructor *) ztk_atomic_pointer_get ((const void * volatile *) &pztk_uthread_tls_destructors);
+		destr = (PUThreadDestructor *) zatomic_pointer_get ((const void * volatile *) &pzuthread_tls_destructors);
 
 		while (destr != NULL) {
 			ppointer value;
@@ -187,55 +187,55 @@ pztk_uthread_clean_destructors (void)
 }
 
 static pint
-pztk_uthread_beos_proxy (ppointer data)
+pzuthread_beos_proxy (ppointer data)
 {
 	PUThread *thread = data;
 
 	thread->proxy (thread);
 
-	pztk_uthread_clean_destructors ();
+	pzuthread_clean_destructors ();
 
 	return 0;
 }
 
 void
-ztk_uthread_init_internal (void)
+zuthread_init_internal (void)
 {
-	if (P_LIKELY (pztk_uthread_tls_mutex == NULL))
-		pztk_uthread_tls_mutex = ztk_mutex_new ();
+	if (P_LIKELY (pzuthread_tls_mutex == NULL))
+		pzuthread_tls_mutex = zmutex_new ();
 }
 
 void
-ztk_uthread_shutdown_internal (void)
+zuthread_shutdown_internal (void)
 {
 	PUThreadDestructor *destr;
 
-	pztk_uthread_clean_destructors ();
+	pzuthread_clean_destructors ();
 
-	destr = pztk_uthread_tls_destructors;
+	destr = pzuthread_tls_destructors;
 
 	while (destr != NULL) {
 		PUThreadDestructor *next_destr = destr->next;
 
-		ztk_free (destr);
+		zfree (destr);
 		destr = next_destr;
 	}
 
-	pztk_uthread_tls_destructors = NULL;
+	pzuthread_tls_destructors = NULL;
 
-	if (P_LIKELY (pztk_uthread_tls_mutex != NULL)) {
-		ztk_mutex_free (pztk_uthread_tls_mutex);
-		pztk_uthread_tls_mutex = NULL;
+	if (P_LIKELY (pzuthread_tls_mutex != NULL)) {
+		zmutex_free (pzuthread_tls_mutex);
+		pzuthread_tls_mutex = NULL;
 	}
 }
 
 void
-ztk_uthread_win32_thread_detach (void)
+zuthread_win32_thread_detach (void)
 {
 }
 
 PUThread *
-ztk_uthread_create_internal (PUThreadFunc		func,
+zuthread_create_internal (PUThreadFunc		func,
 			   pboolean		joinable,
 			   PUThreadPriority	prio,
 			   psize		stack_size)
@@ -244,25 +244,25 @@ ztk_uthread_create_internal (PUThreadFunc		func,
 
 	P_UNUSED (stack_size);
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PUThread))) == NULL)) {
-		P_ERROR ("PUThread::ztk_uthread_create_internal: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PUThread))) == NULL)) {
+		P_ERROR ("PUThread::zuthread_create_internal: failed to allocate memory");
 		return NULL;
 	}
 
 	ret->proxy = func;
 
-	if (P_UNLIKELY ((ret->hdl = spawn_thread ((thread_func) pztk_uthread_beos_proxy,
+	if (P_UNLIKELY ((ret->hdl = spawn_thread ((thread_func) pzuthread_beos_proxy,
 						  "",
-						  pztk_uthread_get_beos_priority (prio),
+						  pzuthread_get_beos_priority (prio),
 						  ret)) < B_OK)) {
-		P_ERROR ("PUThread::ztk_uthread_create_internal: spawn_thread() failed");
-		ztk_free (ret);
+		P_ERROR ("PUThread::zuthread_create_internal: spawn_thread() failed");
+		zfree (ret);
 		return NULL;
 	}
 
 	if (P_UNLIKELY (resume_thread (ret->hdl) != B_OK)) {
-		P_ERROR ("PUThread::ztk_uthread_create_internal: resume_thread() failed");
-		ztk_free (ret);
+		P_ERROR ("PUThread::zuthread_create_internal: resume_thread() failed");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -273,14 +273,14 @@ ztk_uthread_create_internal (PUThreadFunc		func,
 }
 
 void
-ztk_uthread_exit_internal (void)
+zuthread_exit_internal (void)
 {
-	pztk_uthread_clean_destructors ();
+	pzuthread_clean_destructors ();
 	exit_thread (0);
 }
 
 void
-ztk_uthread_wait_internal (PUThread *thread)
+zuthread_wait_internal (PUThread *thread)
 {
 	status_t exit_value;
 
@@ -288,7 +288,7 @@ ztk_uthread_wait_internal (PUThread *thread)
 }
 
 void
-ztk_uthread_set_name_internal (PUThread *thread)
+zuthread_set_name_internal (PUThread *thread)
 {
 	pchar    *thr_name   = NULL;
 	psize    namelen     = 0;
@@ -299,8 +299,8 @@ ztk_uthread_set_name_internal (PUThread *thread)
 	namelen  = strlen (thr_name);
 
 	if (namelen > B_OS_NAME_LENGTH - 1) {
-		if (P_UNLIKELY ((thr_name = ztk_malloc0 (namelen + 1)) == NULL)) {
-			P_ERROR ("PUThread::ztk_uthread_set_name_internal: failed to allocate memory");
+		if (P_UNLIKELY ((thr_name = zmalloc0 (namelen + 1)) == NULL)) {
+			P_ERROR ("PUThread::zuthread_set_name_internal: failed to allocate memory");
 			return;
 		}
 
@@ -310,33 +310,33 @@ ztk_uthread_set_name_internal (PUThread *thread)
 	}
 
 	if (rename_thread (thread->hdl, thr_name) != 0)
-		P_WARNING ("PUThread::ztk_uthread_set_name_internal: failed to set thread system name");
+		P_WARNING ("PUThread::zuthread_set_name_internal: failed to set thread system name");
 
 	if (is_alloc == TRUE)
-		ztk_free (thr_name);
+		zfree (thr_name);
 }
 
 void
-ztk_uthread_free_internal (PUThread *thread)
+zuthread_free_internal (PUThread *thread)
 {
-	ztk_free (thread);
+	zfree (thread);
 }
 
 P_LIB_API void
-ztk_uthread_yield (void)
+zuthread_yield (void)
 {
 	snooze ((bigtime_t) 0);
 }
 
 P_LIB_API pboolean
-ztk_uthread_set_priority (PUThread		*thread,
+zuthread_set_priority (PUThread		*thread,
 			PUThreadPriority	prio)
 {
 	if (P_UNLIKELY (thread == NULL))
 		return FALSE;
 
-	if (set_thread_priority (thread->hdl, pztk_uthread_get_beos_priority (prio)) < B_OK) {
-		P_ERROR ("PUThread::ztk_uthread_create_internal: set_thread_priority() failed");
+	if (set_thread_priority (thread->hdl, pzuthread_get_beos_priority (prio)) < B_OK) {
+		P_ERROR ("PUThread::zuthread_create_internal: set_thread_priority() failed");
 		return FALSE;
 	}
 
@@ -346,18 +346,18 @@ ztk_uthread_set_priority (PUThread		*thread,
 }
 
 P_LIB_API P_HANDLE
-ztk_uthread_current_id (void)
+zuthread_current_id (void)
 {
 	return (P_HANDLE) ((psize) find_thread (NULL));
 }
 
 P_LIB_API PUThreadKey *
-ztk_uthread_local_new (PDestroyFunc free_func)
+zuthread_local_new (PDestroyFunc free_func)
 {
 	PUThreadKey *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PUThreadKey))) == NULL)) {
-		P_ERROR ("PUThread::ztk_uthread_local_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PUThreadKey))) == NULL)) {
+		P_ERROR ("PUThread::zuthread_local_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -368,23 +368,23 @@ ztk_uthread_local_new (PDestroyFunc free_func)
 }
 
 P_LIB_API void
-ztk_uthread_local_free (PUThreadKey *key)
+zuthread_local_free (PUThreadKey *key)
 {
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	ztk_free (key);
+	zfree (key);
 }
 
 P_LIB_API ppointer
-ztk_uthread_get_local (PUThreadKey *key)
+zuthread_get_local (PUThreadKey *key)
 {
 	pint tls_key;
 
 	if (P_UNLIKELY (key == NULL))
 		return NULL;
 
-	tls_key = pztk_uthread_get_tls_key (key);
+	tls_key = pzuthread_get_tls_key (key);
 
 	if (P_LIKELY (tls_key >= 0))
 		return tls_get (tls_key);
@@ -393,7 +393,7 @@ ztk_uthread_get_local (PUThreadKey *key)
 }
 
 P_LIB_API void
-ztk_uthread_set_local (PUThreadKey	*key,
+zuthread_set_local (PUThreadKey	*key,
 		     ppointer		value)
 {
 	pint tls_key;
@@ -401,14 +401,14 @@ ztk_uthread_set_local (PUThreadKey	*key,
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	tls_key = pztk_uthread_get_tls_key (key); 
+	tls_key = pzuthread_get_tls_key (key); 
 
 	if (tls_key >= 0)
 		tls_set (tls_key, value);
 }
 
 P_LIB_API void
-ztk_uthread_replace_local	(PUThreadKey	*key,
+zuthread_replace_local	(PUThreadKey	*key,
 			 ppointer	value)
 {
 	pint		tls_key;
@@ -417,7 +417,7 @@ ztk_uthread_replace_local	(PUThreadKey	*key,
 	if (P_UNLIKELY (key == NULL))
 		return;
 
-	tls_key = pztk_uthread_get_tls_key (key);
+	tls_key = pzuthread_get_tls_key (key);
 
 	if (P_UNLIKELY (tls_key < 0))
 		return;

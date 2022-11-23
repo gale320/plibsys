@@ -32,13 +32,13 @@ struct PRWLock_ {
 };
 
 P_LIB_API PRWLock *
-ztk_rwlock_new (void)
+zrwlock_new (void)
 {
 	return NULL;
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_lock (PRWLock *lock)
+zrwlock_reader_lock (PRWLock *lock)
 {
 	P_UNUSED (lock);
 
@@ -46,7 +46,7 @@ ztk_rwlock_reader_lock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_trylock (PRWLock *lock)
+zrwlock_reader_trylock (PRWLock *lock)
 {
 	P_UNUSED (lock);
 
@@ -54,7 +54,7 @@ ztk_rwlock_reader_trylock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_unlock (PRWLock *lock)
+zrwlock_reader_unlock (PRWLock *lock)
 {
 	P_UNUSED (lock);
 
@@ -62,7 +62,7 @@ ztk_rwlock_reader_unlock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_lock (PRWLock *lock)
+zrwlock_writer_lock (PRWLock *lock)
 {
 	P_UNUSED (lock);
 
@@ -70,7 +70,7 @@ ztk_rwlock_writer_lock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_trylock (PRWLock *lock)
+zrwlock_writer_trylock (PRWLock *lock)
 {
 	P_UNUSED (lock);
 
@@ -78,7 +78,7 @@ ztk_rwlock_writer_trylock (PRWLock *lock)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_unlock (PRWLock *lock)
+zrwlock_writer_unlock (PRWLock *lock)
 {
 	P_UNUSED (lock);
 
@@ -86,18 +86,18 @@ ztk_rwlock_writer_unlock (PRWLock *lock)
 }
 
 P_LIB_API void
-ztk_rwlock_free (PRWLock *lock)
+zrwlock_free (PRWLock *lock)
 {
 	P_UNUSED (lock);
 }
 
 void
-ztk_rwlock_init (void)
+zrwlock_init (void)
 {
 }
 
 void
-ztk_rwlock_shutdown (void)
+zrwlock_shutdown (void)
 {
 }
 

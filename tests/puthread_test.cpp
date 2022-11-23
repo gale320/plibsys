@@ -62,8 +62,8 @@ extern "C" void pmem_free (ppointer block)
 
 extern "C" void free_with_check (ppointer mem)
 {
-	ztk_free (mem);
-	ztk_atomic_int_inc (&free_counter);
+	zfree (mem);
+	zatomic_int_inc (&free_counter);
 }
 
 static void * test_thread_func (void *data)
@@ -71,27 +71,27 @@ static void * test_thread_func (void *data)
 	pint *counter = static_cast < pint * > (data);
 
 	if ((*counter) == 1) {
-		thread1_id  = ztk_uthread_current_id ();
-		thread1_obj = ztk_uthread_current ();
+		thread1_id  = zuthread_current_id ();
+		thread1_obj = zuthread_current ();
 	} else {
-		thread2_id  = ztk_uthread_current_id ();
-		thread2_obj = ztk_uthread_current ();
+		thread2_id  = zuthread_current_id ();
+		thread2_obj = zuthread_current ();
 	}
 
-	ztk_uthread_set_local (tls_key, (ppointer) ztk_uthread_current_id ());
+	zuthread_set_local (tls_key, (ppointer) zuthread_current_id ());
 
 	*counter = 0;
 
 	while (is_threads_working == TRUE) {
-		ztk_uthread_sleep (10);
+		zuthread_sleep (10);
 		++(*counter);
-		ztk_uthread_yield ();
+		zuthread_yield ();
 
-		if (ztk_uthread_get_local (tls_key) != (ppointer) ztk_uthread_current_id ())
-			ztk_uthread_exit (-1);
+		if (zuthread_get_local (tls_key) != (ppointer) zuthread_current_id ())
+			zuthread_exit (-1);
 	}
 
-	ztk_uthread_exit (*counter);
+	zuthread_exit (*counter);
 
 	return NULL;
 }
@@ -103,14 +103,14 @@ static void * test_thread_nonjoinable_func (void *data)
 	is_threads_working = TRUE;
 
 	for (int i = thread_to_wakes; i > 0; --i) {
-		ztk_uthread_sleep (10);
+		zuthread_sleep (10);
 		++(*counter);
-		ztk_uthread_yield ();
+		zuthread_yield ();
 	}
 
 	is_threads_working = FALSE;
 
-	ztk_uthread_exit (0);
+	zuthread_exit (0);
 
 	return NULL;
 }
@@ -119,48 +119,48 @@ static void * test_thread_tls_func (void *data)
 {
 	pint self_thread_free = *((pint *) data);
 
-	pint *tls_value = (pint *) ztk_malloc0 (sizeof (pint));
+	pint *tls_value = (pint *) zmalloc0 (sizeof (pint));
 	*tls_value = 0;
-	ztk_uthread_set_local (tls_key, (ppointer) tls_value);
+	zuthread_set_local (tls_key, (ppointer) tls_value);
 
 	pint prev_tls = 0;
 	pint counter  = 0;
 
 	while (is_threads_working == TRUE) {
-		ztk_uthread_sleep (10);
+		zuthread_sleep (10);
 
-		pint *last_tls = (pint *) ztk_uthread_get_local (tls_key);
+		pint *last_tls = (pint *) zuthread_get_local (tls_key);
 
 		if ((*last_tls) != prev_tls)
-			ztk_uthread_exit (-1);
+			zuthread_exit (-1);
 
-		pint *tls_new_value = (pint *) ztk_malloc0 (sizeof (pint));
+		pint *tls_new_value = (pint *) zmalloc0 (sizeof (pint));
 
 		*tls_new_value = (*last_tls) + 1;
 		prev_tls       = (*last_tls) + 1;
 
-		ztk_uthread_replace_local (tls_key, (ppointer) tls_new_value);
+		zuthread_replace_local (tls_key, (ppointer) tls_new_value);
 
 		if (self_thread_free)
-			ztk_free (last_tls);
+			zfree (last_tls);
 
 		++counter;
 
-		ztk_uthread_yield ();
+		zuthread_yield ();
 	}
 
 	if (self_thread_free) {
-		pint *last_tls = (pint *) ztk_uthread_get_local (tls_key);
+		pint *last_tls = (pint *) zuthread_get_local (tls_key);
 
 		if ((*last_tls) != prev_tls)
-			ztk_uthread_exit (-1);
+			zuthread_exit (-1);
 
-		ztk_free (last_tls);
+		zfree (last_tls);
 
-		ztk_uthread_replace_local (tls_key, (ppointer) NULL);
+		zuthread_replace_local (tls_key, (ppointer) NULL);
 	}
 
-	ztk_uthread_exit (counter);
+	zuthread_exit (counter);
 
 	return NULL;
 }
@@ -169,22 +169,22 @@ static void * test_thread_tls_create_func (void *data)
 {
 	P_UNUSED (data);
 
-	pint *tls_value = (pint *) ztk_malloc0 (sizeof (pint));
+	pint *tls_value = (pint *) zmalloc0 (sizeof (pint));
 	*tls_value = 0;
-	ztk_uthread_set_local (tls_key, (ppointer) tls_value);
+	zuthread_set_local (tls_key, (ppointer) tls_value);
 
-	pint *tls_value_2 = (pint *) ztk_malloc0 (sizeof (pint));
+	pint *tls_value_2 = (pint *) zmalloc0 (sizeof (pint));
 	*tls_value_2 = 0;
-	ztk_uthread_set_local (tls_key_2, (ppointer) tls_value_2);
+	zuthread_set_local (tls_key_2, (ppointer) tls_value_2);
 
 	return NULL;
 }
 
 P_TEST_CASE_BEGIN (puthread_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	PUThreadKey *thread_key = ztk_uthread_local_new (ztk_free);
+	PUThreadKey *thread_key = zuthread_local_new (zfree);
 	P_TEST_CHECK (thread_key != NULL);
 
 	PMemVTable vtable;
@@ -193,77 +193,77 @@ P_TEST_CASE_BEGIN (puthread_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
 	thread_wakes_1 = 0;
 	thread_wakes_2 = 0;
 
-	P_TEST_CHECK (ztk_uthread_create ((PUThreadFunc) test_thread_func,
+	P_TEST_CHECK (zuthread_create ((PUThreadFunc) test_thread_func,
 					(ppointer) &thread_wakes_1,
 					TRUE,
 					NULL) == NULL);
 
-	P_TEST_CHECK (ztk_uthread_create_full ((PUThreadFunc) test_thread_func,
+	P_TEST_CHECK (zuthread_create_full ((PUThreadFunc) test_thread_func,
 					     (ppointer) &thread_wakes_2,
 					     TRUE,
 					     P_UTHREAD_PRIORITY_NORMAL,
 					     0,
 					     NULL) == NULL);
 
-	P_TEST_CHECK (ztk_uthread_current () == NULL);
-	P_TEST_CHECK (ztk_uthread_local_new (NULL) == NULL);
+	P_TEST_CHECK (zuthread_current () == NULL);
+	P_TEST_CHECK (zuthread_local_new (NULL) == NULL);
 
-	ztk_uthread_exit (0);
+	zuthread_exit (0);
 
-	ztk_uthread_set_local (thread_key, PINT_TO_POINTER (10));
+	zuthread_set_local (thread_key, PINT_TO_POINTER (10));
 
-	ppointer tls_value = ztk_uthread_get_local (thread_key);
+	ppointer tls_value = zuthread_get_local (thread_key);
 
 	if (tls_value != NULL) {
 		P_TEST_CHECK (tls_value == PINT_TO_POINTER (10));
-		ztk_uthread_set_local (thread_key, NULL);
+		zuthread_set_local (thread_key, NULL);
 	}
 
-	ztk_uthread_replace_local (thread_key, PINT_TO_POINTER (12));
+	zuthread_replace_local (thread_key, PINT_TO_POINTER (12));
 
-	tls_value = ztk_uthread_get_local (thread_key);
+	tls_value = zuthread_get_local (thread_key);
 
 	if (tls_value != NULL) {
 		P_TEST_CHECK (tls_value == PINT_TO_POINTER (12));
-		ztk_uthread_set_local (thread_key, NULL);
+		zuthread_set_local (thread_key, NULL);
 	}
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_uthread_local_free (thread_key);
+	zuthread_local_free (thread_key);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (puthread_bad_input_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_CHECK (ztk_uthread_create (NULL, NULL, FALSE, NULL) == NULL);
-	P_TEST_CHECK (ztk_uthread_create_full (NULL, NULL, FALSE, P_UTHREAD_PRIORITY_NORMAL, 0, NULL) == NULL);
-	P_TEST_CHECK (ztk_uthread_join (NULL) == -1);
-	P_TEST_CHECK (ztk_uthread_set_priority (NULL, P_UTHREAD_PRIORITY_NORMAL) == FALSE);
-	P_TEST_CHECK (ztk_uthread_get_local (NULL) == NULL);
-	ztk_uthread_set_local (NULL, NULL);
-	ztk_uthread_replace_local (NULL, NULL);
-	ztk_uthread_ref (NULL);
-	ztk_uthread_unref (NULL);
-	ztk_uthread_local_free (NULL);
-	ztk_uthread_exit (0);
+	P_TEST_CHECK (zuthread_create (NULL, NULL, FALSE, NULL) == NULL);
+	P_TEST_CHECK (zuthread_create_full (NULL, NULL, FALSE, P_UTHREAD_PRIORITY_NORMAL, 0, NULL) == NULL);
+	P_TEST_CHECK (zuthread_join (NULL) == -1);
+	P_TEST_CHECK (zuthread_set_priority (NULL, P_UTHREAD_PRIORITY_NORMAL) == FALSE);
+	P_TEST_CHECK (zuthread_get_local (NULL) == NULL);
+	zuthread_set_local (NULL, NULL);
+	zuthread_replace_local (NULL, NULL);
+	zuthread_ref (NULL);
+	zuthread_unref (NULL);
+	zuthread_local_free (NULL);
+	zuthread_exit (0);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (puthread_general_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	thread_wakes_1 = 1;
 	thread_wakes_2 = 2;
@@ -272,43 +272,43 @@ P_TEST_CASE_BEGIN (puthread_general_test)
 	thread1_obj    = NULL;
 	thread2_obj    = NULL;
 
-	tls_key = ztk_uthread_local_new (NULL);
+	tls_key = zuthread_local_new (NULL);
 	P_TEST_CHECK (tls_key != NULL);
 
 	/* Threre is no guarantee that we wouldn't get one of the IDs
 	 * of the finished test threads */
 
-	P_HANDLE main_id = ztk_uthread_current_id ();
+	P_HANDLE main_id = zuthread_current_id ();
 
 	is_threads_working = TRUE;
 
-	PUThread *thr1 = ztk_uthread_create_full ((PUThreadFunc) test_thread_func,
+	PUThread *thr1 = zuthread_create_full ((PUThreadFunc) test_thread_func,
 						(ppointer) &thread_wakes_1,
 						TRUE,
 						P_UTHREAD_PRIORITY_NORMAL,
 						64 * 1024,
 						"thread_name");
 
-	PUThread *thr2 = ztk_uthread_create_full ((PUThreadFunc) test_thread_func,
+	PUThread *thr2 = zuthread_create_full ((PUThreadFunc) test_thread_func,
 						(ppointer) &thread_wakes_2,
 						TRUE,
 						P_UTHREAD_PRIORITY_NORMAL,
 						64 * 1024,
 						"very_long_name_for_thread_testing");
 
-	ztk_uthread_ref (thr1);
+	zuthread_ref (thr1);
 
-	ztk_uthread_set_priority (thr1, P_UTHREAD_PRIORITY_NORMAL);
+	zuthread_set_priority (thr1, P_UTHREAD_PRIORITY_NORMAL);
 
 	P_TEST_REQUIRE (thr1 != NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	ztk_uthread_sleep (5000);
+	zuthread_sleep (5000);
 
 	is_threads_working = FALSE;
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == thread_wakes_1);
-	P_TEST_CHECK (ztk_uthread_join (thr2) == thread_wakes_2);
+	P_TEST_CHECK (zuthread_join (thr1) == thread_wakes_1);
+	P_TEST_CHECK (zuthread_join (thr2) == thread_wakes_2);
 
 	P_TEST_REQUIRE (thread1_id != thread2_id);
 	P_TEST_CHECK (thread1_id != main_id && thread2_id != main_id);
@@ -316,69 +316,69 @@ P_TEST_CASE_BEGIN (puthread_general_test)
 	P_TEST_CHECK (thread1_obj == thr1);
 	P_TEST_CHECK (thread2_obj == thr2);
 
-	ztk_uthread_local_free (tls_key);
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
+	zuthread_local_free (tls_key);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
 
-	ztk_uthread_unref (thr1);
+	zuthread_unref (thr1);
 
-	PUThread *cur_thr = ztk_uthread_current ();
+	PUThread *cur_thr = zuthread_current ();
 	P_TEST_CHECK (cur_thr != NULL);
 
-	P_TEST_CHECK (ztk_uthread_ideal_count () > 0);
+	P_TEST_CHECK (zuthread_ideal_count () > 0);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (puthread_nonjoinable_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	thread_wakes_1     = 0;
 	thread_to_wakes    = 100;
 	is_threads_working = TRUE;
 
-	PUThread *thr1 = ztk_uthread_create ((PUThreadFunc) test_thread_nonjoinable_func,
+	PUThread *thr1 = zuthread_create ((PUThreadFunc) test_thread_nonjoinable_func,
 					   (ppointer) &thread_wakes_1,
 					   FALSE,
 					   NULL);
 
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	ztk_uthread_sleep (3000);
+	zuthread_sleep (3000);
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == -1);
+	P_TEST_CHECK (zuthread_join (thr1) == -1);
 
 	while (is_threads_working == TRUE)
-		ztk_uthread_sleep (10);
+		zuthread_sleep (10);
 
 	P_TEST_CHECK (thread_wakes_1 == thread_to_wakes);
 
-	ztk_uthread_unref (thr1);
+	zuthread_unref (thr1);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (puthread_tls_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	/* With destroy notification */
-	tls_key = ztk_uthread_local_new (free_with_check);
+	tls_key = zuthread_local_new (free_with_check);
 
 	is_threads_working = TRUE;
 	free_counter       = 0;
 
 	pint self_thread_free = 0;
 
-	PUThread *thr1 = ztk_uthread_create ((PUThreadFunc) test_thread_tls_func,
+	PUThread *thr1 = zuthread_create ((PUThreadFunc) test_thread_tls_func,
 					   (ppointer) &self_thread_free,
 					   TRUE,
 					   NULL);
 
-	PUThread *thr2 = ztk_uthread_create ((PUThreadFunc) test_thread_tls_func,
+	PUThread *thr2 = zuthread_create ((PUThreadFunc) test_thread_tls_func,
 					   (ppointer) &self_thread_free,
 					   TRUE,
 					   NULL);
@@ -386,34 +386,34 @@ P_TEST_CASE_BEGIN (puthread_tls_test)
 	P_TEST_REQUIRE (thr1 != NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	ztk_uthread_sleep (5000);
+	zuthread_sleep (5000);
 
 	is_threads_working = FALSE;
 
 	pint total_counter = 0;
 
-	total_counter += (ztk_uthread_join (thr1) + 1);
-	total_counter += (ztk_uthread_join (thr2) + 1);
+	total_counter += (zuthread_join (thr1) + 1);
+	total_counter += (zuthread_join (thr2) + 1);
 
 	P_TEST_CHECK (total_counter == free_counter);
 
-	ztk_uthread_local_free (tls_key);
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
+	zuthread_local_free (tls_key);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
 
 	/* Without destroy notification */
-	tls_key = ztk_uthread_local_new (NULL);
+	tls_key = zuthread_local_new (NULL);
 
 	free_counter       = 0;
 	is_threads_working = TRUE;
 	self_thread_free   = 1;
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) test_thread_tls_func,
+	thr1 = zuthread_create ((PUThreadFunc) test_thread_tls_func,
 				 (ppointer) &self_thread_free,
 				 TRUE,
 				 NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) test_thread_tls_func,
+	thr2 = zuthread_create ((PUThreadFunc) test_thread_tls_func,
 				 (ppointer) &self_thread_free,
 				 TRUE,
 				 NULL);
@@ -421,34 +421,34 @@ P_TEST_CASE_BEGIN (puthread_tls_test)
 	P_TEST_REQUIRE (thr1 != NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	ztk_uthread_sleep (5000);
+	zuthread_sleep (5000);
 
 	is_threads_working = FALSE;
 
 	total_counter = 0;
 
-	total_counter += (ztk_uthread_join (thr1) + 1);
-	total_counter += (ztk_uthread_join (thr2) + 1);
+	total_counter += (zuthread_join (thr1) + 1);
+	total_counter += (zuthread_join (thr2) + 1);
 
 	P_TEST_CHECK (total_counter > 0);
 	P_TEST_CHECK (free_counter == 0);
 
-	ztk_uthread_local_free (tls_key);
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
+	zuthread_local_free (tls_key);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
 
 	/* With implicit thread exit */
-	tls_key = ztk_uthread_local_new (free_with_check);
-	tls_key_2 = ztk_uthread_local_new (free_with_check);
+	tls_key = zuthread_local_new (free_with_check);
+	tls_key_2 = zuthread_local_new (free_with_check);
 
 	free_counter = 0;
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) test_thread_tls_create_func,
+	thr1 = zuthread_create ((PUThreadFunc) test_thread_tls_create_func,
 				 NULL,
 				 TRUE,
 				 NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) test_thread_tls_create_func,
+	thr2 = zuthread_create ((PUThreadFunc) test_thread_tls_create_func,
 				 NULL,
 				 TRUE,
 				 NULL);
@@ -456,17 +456,17 @@ P_TEST_CASE_BEGIN (puthread_tls_test)
 	P_TEST_REQUIRE (thr1 != NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	ztk_uthread_join (thr1);
-	ztk_uthread_join (thr2);
+	zuthread_join (thr1);
+	zuthread_join (thr2);
 
 	P_TEST_CHECK (free_counter == 4);
 
-	ztk_uthread_local_free (tls_key);
-	ztk_uthread_local_free (tls_key_2);
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
+	zuthread_local_free (tls_key);
+	zuthread_local_free (tls_key_2);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

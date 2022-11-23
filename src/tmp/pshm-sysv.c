@@ -39,7 +39,7 @@
 #include <sys/ipc.h>
 #include <errno.h>
 
-#define P_SHM_SUFFIX		"_ztk_shm_object"
+#define P_SHM_SUFFIX		"_zshm_object"
 #define P_SHM_INVALID_HDL	-1
 
 typedef pint pshm_hdl;
@@ -55,11 +55,11 @@ struct PShm_ {
 	PShmAccessPerms	perms;
 };
 
-static pboolean pztk_shm_create_handle (PShm *shm, PError **error);
-static void pztk_shm_clean_handle (PShm *shm);
+static pboolean pzshm_create_handle (PShm *shm, PError **error);
+static void pzshm_clean_handle (PShm *shm);
 
 static pboolean
-pztk_shm_create_handle (PShm	*shm,
+pzshm_create_handle (PShm	*shm,
 		      PError	**error)
 {
 	pboolean	is_exists;
@@ -67,7 +67,7 @@ pztk_shm_create_handle (PShm	*shm,
 	struct shmid_ds	shm_stat;
 
 	if (P_UNLIKELY (shm == NULL || shm->platform_key == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -76,22 +76,22 @@ pztk_shm_create_handle (PShm	*shm,
 
 	is_exists = FALSE;
 
-	if (P_UNLIKELY ((built = ztk_ipc_unix_create_key_file (shm->platform_key)) == -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+	if (P_UNLIKELY ((built = zipc_unix_create_key_file (shm->platform_key)) == -1)) {
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to create key file");
-		pztk_shm_clean_handle (shm);
+		pzshm_clean_handle (shm);
 		return FALSE;
 	} else if (built == 0)
 		shm->file_created = TRUE;
 
-	if (P_UNLIKELY ((shm->unix_key = ztk_ipc_unix_get_ftok_key (shm->platform_key)) == -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+	if (P_UNLIKELY ((shm->unix_key = zipc_unix_get_ftok_key (shm->platform_key)) == -1)) {
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to get unique IPC key");
-		pztk_shm_clean_handle (shm);
+		pzshm_clean_handle (shm);
 		return FALSE;
 	}
 
@@ -100,7 +100,7 @@ pztk_shm_create_handle (PShm	*shm,
 	if ((shm->shm_hdl = shmget (shm->unix_key,
 				    shm->size,
 				    IPC_CREAT | IPC_EXCL | flags)) == P_SHM_INVALID_HDL) {
-		if (ztk_error_get_last_system () == EEXIST) {
+		if (zerror_get_last_system () == EEXIST) {
 			is_exists = TRUE;
 
 			shm->shm_hdl = shmget (shm->unix_key, 0, flags);
@@ -109,20 +109,20 @@ pztk_shm_create_handle (PShm	*shm,
 		shm->file_created = (built == 1);
 
 	if (P_UNLIKELY (shm->shm_hdl == P_SHM_INVALID_HDL)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to call shmget() to create memory segment");
-		pztk_shm_clean_handle (shm);
+		pzshm_clean_handle (shm);
 		return FALSE;
 	}
 
 	if (P_UNLIKELY (shmctl (shm->shm_hdl, IPC_STAT, &shm_stat) == -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to call shmctl() to get memory segment size");
-		pztk_shm_clean_handle (shm);
+		pzshm_clean_handle (shm);
 		return FALSE;
 	}
 
@@ -131,18 +131,18 @@ pztk_shm_create_handle (PShm	*shm,
 	flags = (shm->perms == P_SHM_ACCESS_READONLY) ? SHM_RDONLY : 0;
 
 	if (P_UNLIKELY ((shm->addr = shmat (shm->shm_hdl, 0, flags)) == (void *) -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to call shmat() to attach to the memory segment");
-		pztk_shm_clean_handle (shm);
+		pzshm_clean_handle (shm);
 		return FALSE;
 	}
 
-	if (P_UNLIKELY ((shm->sem = ztk_semaphore_new (shm->platform_key, 1,
+	if (P_UNLIKELY ((shm->sem = zsemaphore_new (shm->platform_key, 1,
 						     is_exists ? P_SEM_ACCESS_OPEN : P_SEM_ACCESS_CREATE,
 						     error)) == NULL)) {
-		pztk_shm_clean_handle (shm);
+		pzshm_clean_handle (shm);
 		return FALSE;
 	}
 
@@ -150,26 +150,26 @@ pztk_shm_create_handle (PShm	*shm,
 }
 
 static void
-pztk_shm_clean_handle (PShm *shm)
+pzshm_clean_handle (PShm *shm)
 {
 	struct shmid_ds shm_stat;
 
 	if (P_LIKELY (shm->addr != NULL)) {
 		if (P_UNLIKELY (shmdt (shm->addr) == -1))
-			P_ERROR ("PShm::pztk_shm_clean_handle: shmdt() failed");
+			P_ERROR ("PShm::pzshm_clean_handle: shmdt() failed");
 
 		if (P_UNLIKELY (shmctl (shm->shm_hdl, IPC_STAT, &shm_stat) == -1))
-			P_ERROR ("PShm::pztk_shm_clean_handle: shmctl() with IPC_STAT failed");
+			P_ERROR ("PShm::pzshm_clean_handle: shmctl() with IPC_STAT failed");
 
 		if (P_UNLIKELY (shm_stat.shm_nattch == 0 && shmctl (shm->shm_hdl, IPC_RMID, 0) == -1))
-			P_ERROR ("PShm::pztk_shm_clean_handle: shmctl() with IPC_RMID failed");
+			P_ERROR ("PShm::pzshm_clean_handle: shmctl() with IPC_RMID failed");
 	}
 
 	if (shm->file_created == TRUE && unlink (shm->platform_key) == -1)
-		P_ERROR ("PShm::pztk_shm_clean_handle: unlink() failed");
+		P_ERROR ("PShm::pzshm_clean_handle: unlink() failed");
 
 	if (P_LIKELY (shm->sem != NULL)) {
-		ztk_semaphore_free (shm->sem);
+		zsemaphore_free (shm->sem);
 		shm->sem = NULL;
 	}
 
@@ -181,7 +181,7 @@ pztk_shm_clean_handle (PShm *shm)
 }
 
 P_LIB_API PShm *
-ztk_shm_new (const pchar		*name,
+zshm_new (const pchar		*name,
 	   psize		size,
 	   PShmAccessPerms	perms,
 	   PError		**error)
@@ -190,41 +190,41 @@ ztk_shm_new (const pchar		*name,
 	pchar	*new_name;
 
 	if (P_UNLIKELY (name == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PShm))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PShm))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for shared segment");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((new_name = ztk_malloc0 (strlen (name) + strlen (P_SHM_SUFFIX) + 1)) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((new_name = zmalloc0 (strlen (name) + strlen (P_SHM_SUFFIX) + 1)) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for segment name");
-		ztk_shm_free (ret);
+		zshm_free (ret);
 		return NULL;
 	}
 
 	strcpy (new_name, name);
 	strcat (new_name, P_SHM_SUFFIX);
 
-	ret->platform_key = ztk_ipc_get_platform_key (new_name, FALSE);
+	ret->platform_key = zipc_get_platform_key (new_name, FALSE);
 	ret->perms        = perms;
 	ret->size         = size;
 
-	ztk_free (new_name);
+	zfree (new_name);
 
-	if (P_UNLIKELY (pztk_shm_create_handle (ret, error) == FALSE)) {
-		ztk_shm_free (ret);
+	if (P_UNLIKELY (pzshm_create_handle (ret, error) == FALSE)) {
+		zshm_free (ret);
 		return NULL;
 	}
 
@@ -235,61 +235,61 @@ ztk_shm_new (const pchar		*name,
 }
 
 P_LIB_API void
-ztk_shm_take_ownership (PShm *shm)
+zshm_take_ownership (PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return;
 
 	shm->file_created = TRUE;
-	ztk_semaphore_take_ownership (shm->sem);
+	zsemaphore_take_ownership (shm->sem);
 }
 
 P_LIB_API void
-ztk_shm_free (PShm *shm)
+zshm_free (PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return;
 
-	pztk_shm_clean_handle (shm);
+	pzshm_clean_handle (shm);
 
 	if (P_LIKELY (shm->platform_key != NULL))
-		ztk_free (shm->platform_key);
+		zfree (shm->platform_key);
 
-	ztk_free (shm);
+	zfree (shm);
 }
 
 P_LIB_API pboolean
-ztk_shm_lock (PShm	*shm,
+zshm_lock (PShm	*shm,
 	    PError	**error)
 {
 	if (P_UNLIKELY (shm == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	return ztk_semaphore_acquire (shm->sem, error);
+	return zsemaphore_acquire (shm->sem, error);
 }
 
 P_LIB_API pboolean
-ztk_shm_unlock (PShm	*shm,
+zshm_unlock (PShm	*shm,
 	      PError	**error)
 {
 	if (P_UNLIKELY (shm == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	return ztk_semaphore_release (shm->sem, error);
+	return zsemaphore_release (shm->sem, error);
 }
 
 P_LIB_API ppointer
-ztk_shm_get_address (const PShm *shm)
+zshm_get_address (const PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return NULL;
@@ -298,7 +298,7 @@ ztk_shm_get_address (const PShm *shm)
 }
 
 P_LIB_API psize
-ztk_shm_get_size (const PShm *shm)
+zshm_get_size (const PShm *shm)
 {
 	if (P_UNLIKELY (shm == NULL))
 		return 0;

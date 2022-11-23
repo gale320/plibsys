@@ -39,14 +39,14 @@ P_BEGIN_DECLS
 
 typedef struct PHashGOST3411_ PHashGOST3411;
 
-PHashGOST3411 *	ztk_crypto_hash_gost3411_new	(void);
-void		ztk_crypto_hash_gost3411_update	(PHashGOST3411		*ctx,
+PHashGOST3411 *	zcrypto_hash_gost3411_new	(void);
+void		zcrypto_hash_gost3411_update	(PHashGOST3411		*ctx,
 						 const puchar		*data,
 						 psize			len);
-void		ztk_crypto_hash_gost3411_finish	(PHashGOST3411		*ctx);
-const puchar *	ztk_crypto_hash_gost3411_digest	(PHashGOST3411		*ctx);
-void		ztk_crypto_hash_gost3411_reset	(PHashGOST3411		*ctx);
-void		ztk_crypto_hash_gost3411_free	(PHashGOST3411		*ctx);
+void		zcrypto_hash_gost3411_finish	(PHashGOST3411		*ctx);
+const puchar *	zcrypto_hash_gost3411_digest	(PHashGOST3411		*ctx);
+void		zcrypto_hash_gost3411_reset	(PHashGOST3411		*ctx);
+void		zcrypto_hash_gost3411_free	(PHashGOST3411		*ctx);
 
 P_END_DECLS
 

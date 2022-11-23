@@ -40,17 +40,17 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 
-#define P_SEM_SUFFIX		"_ztk_sem_object"
+#define P_SEM_SUFFIX		"_zsem_object"
 #define P_SEM_INVALID_HDL	-1
 
 struct sembuf sem_lock = {0, -1, SEM_UNDO};
 struct sembuf sem_unlock = {0, 1, SEM_UNDO};
 
-typedef union ztk_semun_ {
+typedef union zsemun_ {
 	pint		val;
 	struct semid_ds	*buf;
 	pushort		*array;
-} ztk_semun;
+} zsemun;
 
 typedef int psem_hdl;
 
@@ -64,46 +64,46 @@ struct PSemaphore_ {
 	pint			init_val;
 };
 
-static pboolean pztk_semaphore_create_handle (PSemaphore *sem, PError **error);
-static void pztk_semaphore_clean_handle (PSemaphore *sem);
+static pboolean pzsemaphore_create_handle (PSemaphore *sem, PError **error);
+static void pzsemaphore_clean_handle (PSemaphore *sem);
 
 static pboolean
-pztk_semaphore_create_handle (PSemaphore *sem, PError **error)
+pzsemaphore_create_handle (PSemaphore *sem, PError **error)
 {
 	pint	built;
-	ztk_semun	semun_op;
+	zsemun	semun_op;
 
 	if (P_UNLIKELY (sem == NULL || sem->platform_key == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY ((built = ztk_ipc_unix_create_key_file (sem->platform_key)) == -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+	if (P_UNLIKELY ((built = zipc_unix_create_key_file (sem->platform_key)) == -1)) {
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to create key file");
-		pztk_semaphore_clean_handle (sem);
+		pzsemaphore_clean_handle (sem);
 		return FALSE;
 	} else if (built == 0)
 		sem->file_created = TRUE;
 
-	if (P_UNLIKELY ((sem->unix_key = ztk_ipc_unix_get_ftok_key (sem->platform_key)) == -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+	if (P_UNLIKELY ((sem->unix_key = zipc_unix_get_ftok_key (sem->platform_key)) == -1)) {
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to get unique IPC key");
-		pztk_semaphore_clean_handle (sem);
+		pzsemaphore_clean_handle (sem);
 		return FALSE;
 	}
 
 	if ((sem->sem_hdl = semget (sem->unix_key,
 				    1,
 				    IPC_CREAT | IPC_EXCL | 0660)) == P_SEM_INVALID_HDL) {
-		if (ztk_error_get_last_system () == EEXIST)
+		if (zerror_get_last_system () == EEXIST)
 			sem->sem_hdl = semget (sem->unix_key, 1, 0660);
 	} else {
 		sem->sem_created = TRUE;
@@ -113,11 +113,11 @@ pztk_semaphore_create_handle (PSemaphore *sem, PError **error)
 	}
 
 	if (P_UNLIKELY (sem->sem_hdl == P_SEM_INVALID_HDL)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to call semget() to create semaphore");
-		pztk_semaphore_clean_handle (sem);
+		pzsemaphore_clean_handle (sem);
 		return FALSE;
 	}
 
@@ -125,11 +125,11 @@ pztk_semaphore_create_handle (PSemaphore *sem, PError **error)
 		semun_op.val = sem->init_val;
 
 		if (P_UNLIKELY (semctl (sem->sem_hdl, 0, SETVAL, semun_op) == -1)) {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_last_ipc (),
-					     ztk_error_get_last_system (),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_last_ipc (),
+					     zerror_get_last_system (),
 					     "Failed to set semaphore initial value with semctl()");
-			pztk_semaphore_clean_handle (sem);
+			pzsemaphore_clean_handle (sem);
 			return FALSE;
 		}
 	}
@@ -138,17 +138,17 @@ pztk_semaphore_create_handle (PSemaphore *sem, PError **error)
 }
 
 static void
-pztk_semaphore_clean_handle (PSemaphore *sem)
+pzsemaphore_clean_handle (PSemaphore *sem)
 {
 	if (sem->sem_hdl != P_SEM_INVALID_HDL &&
 	    sem->sem_created == TRUE &&
 	    semctl (sem->sem_hdl, 0, IPC_RMID) == -1)
-		P_ERROR ("PSemaphore::pztk_semaphore_clean_handle: semctl() with IPC_RMID failed");
+		P_ERROR ("PSemaphore::pzsemaphore_clean_handle: semctl() with IPC_RMID failed");
 
 	if (sem->file_created == TRUE &&
 	    sem->platform_key != NULL &&
 	    unlink (sem->platform_key) == -1)
-		P_ERROR ("PSemaphore::pztk_semaphore_clean_handle: unlink() failed");
+		P_ERROR ("PSemaphore::pzsemaphore_clean_handle: unlink() failed");
 
 	sem->file_created = FALSE;
 	sem->sem_created  = FALSE;
@@ -157,7 +157,7 @@ pztk_semaphore_clean_handle (PSemaphore *sem)
 }
 
 P_LIB_API PSemaphore *
-ztk_semaphore_new (const pchar		*name,
+zsemaphore_new (const pchar		*name,
 		 pint			init_val,
 		 PSemaphoreAccessMode	mode,
 		 PError			**error)
@@ -166,41 +166,41 @@ ztk_semaphore_new (const pchar		*name,
 	pchar		*new_name;
 
 	if (P_UNLIKELY (name == NULL || init_val < 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSemaphore))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSemaphore))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for semaphore");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((new_name = ztk_malloc0 (strlen (name) + strlen (P_SEM_SUFFIX) + 1)) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((new_name = zmalloc0 (strlen (name) + strlen (P_SEM_SUFFIX) + 1)) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for semaphore");
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
 	strcpy (new_name, name);
 	strcat (new_name, P_SEM_SUFFIX);
 
-	ret->platform_key = ztk_ipc_get_platform_key (new_name, FALSE);
+	ret->platform_key = zipc_get_platform_key (new_name, FALSE);
 	ret->init_val     = init_val;
 	ret->mode         = mode;
 
-	ztk_free (new_name);
+	zfree (new_name);
 
-	if (P_UNLIKELY (pztk_semaphore_create_handle (ret, error) == FALSE)) {
-		ztk_semaphore_free (ret);
+	if (P_UNLIKELY (pzsemaphore_create_handle (ret, error) == FALSE)) {
+		zsemaphore_free (ret);
 		return NULL;
 	}
 
@@ -208,7 +208,7 @@ ztk_semaphore_new (const pchar		*name,
 }
 
 P_LIB_API void
-ztk_semaphore_take_ownership (PSemaphore *sem)
+zsemaphore_take_ownership (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem == NULL))
 		return;
@@ -217,14 +217,14 @@ ztk_semaphore_take_ownership (PSemaphore *sem)
 }
 
 P_LIB_API pboolean
-ztk_semaphore_acquire (PSemaphore	*sem,
+zsemaphore_acquire (PSemaphore	*sem,
 		     PError	**error)
 {
 	pboolean	ret;
 	pint		res;
 
 	if (P_UNLIKELY (sem == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -232,45 +232,45 @@ ztk_semaphore_acquire (PSemaphore	*sem,
 	}
 
 	while ((res = semop (sem->sem_hdl, &sem_lock, 1)) == -1 &&
-		ztk_error_get_last_system () == EINTR)
+		zerror_get_last_system () == EINTR)
 		;
 
 	ret = (res == 0);
 
 	if (P_UNLIKELY (ret == FALSE &&
-			(ztk_error_get_last_system () == EIDRM ||
-			 ztk_error_get_last_system () == EINVAL))) {
-		P_WARNING ("PSemaphore::ztk_semaphore_acquire: trying to recreate");
-		pztk_semaphore_clean_handle (sem);
+			(zerror_get_last_system () == EIDRM ||
+			 zerror_get_last_system () == EINVAL))) {
+		P_WARNING ("PSemaphore::zsemaphore_acquire: trying to recreate");
+		pzsemaphore_clean_handle (sem);
 
-		if (P_UNLIKELY (pztk_semaphore_create_handle (sem, error) == FALSE))
+		if (P_UNLIKELY (pzsemaphore_create_handle (sem, error) == FALSE))
 			return FALSE;
 
 		while ((res = semop (sem->sem_hdl, &sem_lock, 1)) == -1 &&
-			ztk_error_get_last_system () == EINTR)
+			zerror_get_last_system () == EINTR)
 			;
 
 		ret = (res == 0);
 	}
 
 	if (P_UNLIKELY (ret == FALSE))
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to call semop() on semaphore");
 
 	return ret;
 }
 
 P_LIB_API pboolean
-ztk_semaphore_release (PSemaphore	*sem,
+zsemaphore_release (PSemaphore	*sem,
 		     PError	**error)
 {
 	pboolean	ret;
 	pint		res;
 
 	if (P_UNLIKELY (sem == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -278,42 +278,42 @@ ztk_semaphore_release (PSemaphore	*sem,
 	}
 
 	while ((res = semop (sem->sem_hdl, &sem_unlock, 1)) == -1 &&
-		ztk_error_get_last_system () == EINTR)
+		zerror_get_last_system () == EINTR)
 		;
 
 	ret = (res == 0);
 
 	if (P_UNLIKELY (ret == FALSE &&
-			(ztk_error_get_last_system () == EIDRM ||
-			 ztk_error_get_last_system () == EINVAL))) {
-		P_WARNING ("PSemaphore::ztk_semaphore_release: trying to recreate");
-		pztk_semaphore_clean_handle (sem);
+			(zerror_get_last_system () == EIDRM ||
+			 zerror_get_last_system () == EINVAL))) {
+		P_WARNING ("PSemaphore::zsemaphore_release: trying to recreate");
+		pzsemaphore_clean_handle (sem);
 
-		if (P_UNLIKELY (pztk_semaphore_create_handle (sem, error) == FALSE))
+		if (P_UNLIKELY (pzsemaphore_create_handle (sem, error) == FALSE))
 			return FALSE;
 
 		return TRUE;
 	}
 
 	if (P_UNLIKELY (ret == FALSE))
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_ipc (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_ipc (),
+				     zerror_get_last_system (),
 				     "Failed to call semop() on semaphore");
 
 	return ret;
 }
 
 P_LIB_API void
-ztk_semaphore_free (PSemaphore *sem)
+zsemaphore_free (PSemaphore *sem)
 {
 	if (P_UNLIKELY (sem == NULL))
 		return;
 
-	pztk_semaphore_clean_handle (sem);
+	pzsemaphore_clean_handle (sem);
 
 	if (P_LIKELY (sem->platform_key != NULL))
-		ztk_free (sem->platform_key);
+		zfree (sem->platform_key);
 
-	ztk_free (sem);
+	zfree (sem);
 }

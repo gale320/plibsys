@@ -90,7 +90,7 @@ struct PSocketAddress_ {
 };
 
 P_LIB_API PSocketAddress *
-ztk_socket_address_new_from_native (pconstpointer	native,
+zsocket_address_new_from_native (pconstpointer	native,
 				  psize		len)
 {
 	PSocketAddress	*ret;
@@ -99,28 +99,28 @@ ztk_socket_address_new_from_native (pconstpointer	native,
 	if (P_UNLIKELY (native == NULL || len == 0))
 		return NULL;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSocketAddress))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSocketAddress))) == NULL))
 		return NULL;
 
 	family = ((struct sockaddr *) native)->sa_family;
 
 	if (family == AF_INET) {
 		if (len < sizeof (struct sockaddr_in)) {
-			P_WARNING ("PSocketAddress::ztk_socket_address_new_from_native: invalid IPv4 native size");
-			ztk_free (ret);
+			P_WARNING ("PSocketAddress::zsocket_address_new_from_native: invalid IPv4 native size");
+			zfree (ret);
 			return NULL;
 		}
 
 		memcpy (&ret->addr.sin_addr, &((struct sockaddr_in *) native)->sin_addr, sizeof (struct in_addr));
 		ret->family = P_SOCKET_FAMILY_INET;
-		ret->port   = ztk_ntohs (((struct sockaddr_in *) native)->sin_port);
+		ret->port   = zntohs (((struct sockaddr_in *) native)->sin_port);
 		return ret;
 	}
 #ifdef AF_INET6
 	else if (family == AF_INET6) {
 		if (len < sizeof (struct sockaddr_in6)) {
-			P_WARNING ("PSocketAddress::ztk_socket_address_new_from_native: invalid IPv6 native size");
-			ztk_free (ret);
+			P_WARNING ("PSocketAddress::zsocket_address_new_from_native: invalid IPv6 native size");
+			zfree (ret);
 			return NULL;
 		}
 
@@ -129,7 +129,7 @@ ztk_socket_address_new_from_native (pconstpointer	native,
 			sizeof (struct in6_addr));
 
 		ret->family   = P_SOCKET_FAMILY_INET6;
-		ret->port     = ztk_ntohs (((struct sockaddr_in *) native)->sin_port);
+		ret->port     = zntohs (((struct sockaddr_in *) native)->sin_port);
 #ifdef PLIBSYS_SOCKADDR_IN6_HAS_FLOWINFO
 		ret->flowinfo = ((struct sockaddr_in6 *) native)->sin6_flowinfo;
 #endif
@@ -140,13 +140,13 @@ ztk_socket_address_new_from_native (pconstpointer	native,
 	}
 #endif
 	else {
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 }
 
 P_LIB_API PSocketAddress *
-ztk_socket_address_new (const pchar	*address,
+zsocket_address_new (const pchar	*address,
 		      puint16		port)
 {
 	PSocketAddress		*ret;
@@ -183,8 +183,8 @@ ztk_socket_address_new (const pchar	*address,
 
 		if (P_LIKELY (res->ai_family  == AF_INET6 &&
 			      res->ai_addrlen == sizeof (struct sockaddr_in6))) {
-			((struct sockaddr_in6 *) res->ai_addr)->sin6_port = ztk_htons (port);
-			ret = ztk_socket_address_new_from_native (res->ai_addr, res->ai_addrlen);
+			((struct sockaddr_in6 *) res->ai_addr)->sin6_port = zhtons (port);
+			ret = zsocket_address_new_from_native (res->ai_addr, res->ai_addrlen);
 		} else
 			ret = NULL;
 
@@ -194,8 +194,8 @@ ztk_socket_address_new (const pchar	*address,
 	}
 #endif
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSocketAddress))) == NULL)) {
-		P_ERROR ("PSocketAddress::ztk_socket_address_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSocketAddress))) == NULL)) {
+		P_ERROR ("PSocketAddress::zsocket_address_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -235,12 +235,12 @@ ztk_socket_address_new (const pchar	*address,
 #  endif /* AF_INET6 */
 #endif /* P_OS_WIN */
 
-	ztk_free (ret);
+	zfree (ret);
 	return NULL;
 }
 
 P_LIB_API PSocketAddress *
-ztk_socket_address_new_any (PSocketFamily	family,
+zsocket_address_new_any (PSocketFamily	family,
 			  puint16	port)
 {
 	PSocketAddress	*ret;
@@ -249,8 +249,8 @@ ztk_socket_address_new_any (PSocketFamily	family,
 	struct in6_addr	any6_addr = IN6ADDR_ANY_INIT;
 #endif
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSocketAddress))) == NULL)) {
-		P_ERROR ("PSocketAddress::ztk_socket_address_new_any: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSocketAddress))) == NULL)) {
+		P_ERROR ("PSocketAddress::zsocket_address_new_any: failed to allocate memory");
 		return NULL;
 	}
 
@@ -261,7 +261,7 @@ ztk_socket_address_new_any (PSocketFamily	family,
 		memcpy (&ret->addr.sin6_addr, &any6_addr.s6_addr, sizeof (any6_addr.s6_addr));
 #endif
 	else {
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
@@ -272,28 +272,28 @@ ztk_socket_address_new_any (PSocketFamily	family,
 }
 
 P_LIB_API PSocketAddress *
-ztk_socket_address_new_loopback (PSocketFamily	family,
+zsocket_address_new_loopback (PSocketFamily	family,
 			       puint16		port)
 {
 	PSocketAddress	*ret;
-	puchar		looztk_addr[] = {127, 0, 0, 0};
+	puchar		loozaddr[] = {127, 0, 0, 0};
 #ifdef AF_INET6
 	struct in6_addr	loop6_addr = IN6ADDR_LOOPBACK_INIT;
 #endif
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSocketAddress))) == NULL)) {
-		P_ERROR ("PSocketAddress::ztk_socket_address_new_loopback: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSocketAddress))) == NULL)) {
+		P_ERROR ("PSocketAddress::zsocket_address_new_loopback: failed to allocate memory");
 		return NULL;
 	}
 
 	if (family == P_SOCKET_FAMILY_INET)
-		memcpy (&ret->addr.sin_addr, looztk_addr, sizeof (looztk_addr));
+		memcpy (&ret->addr.sin_addr, loozaddr, sizeof (loozaddr));
 #ifdef AF_INET6
 	else if (family == P_SOCKET_FAMILY_INET6)
 		memcpy (&ret->addr.sin6_addr, &loop6_addr.s6_addr, sizeof (loop6_addr.s6_addr));
 #endif
 	else {
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
@@ -304,7 +304,7 @@ ztk_socket_address_new_loopback (PSocketFamily	family,
 }
 
 P_LIB_API pboolean
-ztk_socket_address_to_native (const PSocketAddress	*addr,
+zsocket_address_to_native (const PSocketAddress	*addr,
 			    ppointer			dest,
 			    psize			destlen)
 {
@@ -323,26 +323,26 @@ ztk_socket_address_to_native (const PSocketAddress	*addr,
 
 	if (addr->family == P_SOCKET_FAMILY_INET) {
 		if (P_UNLIKELY (destlen < sizeof (struct sockaddr_in))) {
-			P_WARNING ("PSocketAddress::ztk_socket_address_to_native: invalid buffer size for IPv4");
+			P_WARNING ("PSocketAddress::zsocket_address_to_native: invalid buffer size for IPv4");
 			return FALSE;
 		}
 
 		memcpy (&sin->sin_addr, &addr->addr.sin_addr, sizeof (struct in_addr));
 		sin->sin_family = AF_INET;
-		sin->sin_port   = ztk_htons (addr->port);
+		sin->sin_port   = zhtons (addr->port);
 		memset (sin->sin_zero, 0, sizeof (sin->sin_zero));
 		return TRUE;
 	}
 #ifdef AF_INET6
 	else if (addr->family == P_SOCKET_FAMILY_INET6) {
 		if (P_UNLIKELY (destlen < sizeof (struct sockaddr_in6))) {
-			P_ERROR ("PSocketAddress::ztk_socket_address_to_native: invalid buffer size for IPv6");
+			P_ERROR ("PSocketAddress::zsocket_address_to_native: invalid buffer size for IPv6");
 			return FALSE;
 		}
 
 		memcpy (&sin6->sin6_addr, &addr->addr.sin6_addr, sizeof (struct in6_addr));
 		sin6->sin6_family   = AF_INET6;
-		sin6->sin6_port     = ztk_htons (addr->port);
+		sin6->sin6_port     = zhtons (addr->port);
 #ifdef PLIBSYS_SOCKADDR_IN6_HAS_FLOWINFO
 		sin6->sin6_flowinfo = addr->flowinfo;
 #endif
@@ -353,13 +353,13 @@ ztk_socket_address_to_native (const PSocketAddress	*addr,
 	}
 #endif
 	else {
-		P_WARNING ("PSocketAddress::ztk_socket_address_to_native: unsupported socket address");
+		P_WARNING ("PSocketAddress::zsocket_address_to_native: unsupported socket address");
 		return FALSE;
 	}
 }
 
 P_LIB_API psize
-ztk_socket_address_get_native_size (const PSocketAddress *addr)
+zsocket_address_get_native_size (const PSocketAddress *addr)
 {
 	if (P_UNLIKELY (addr == NULL))
 		return 0;
@@ -371,13 +371,13 @@ ztk_socket_address_get_native_size (const PSocketAddress *addr)
 		return sizeof (struct sockaddr_in6);
 #endif
 	else {
-		P_WARNING ("PSocketAddress::ztk_socket_address_get_native_size: unsupported socket family");
+		P_WARNING ("PSocketAddress::zsocket_address_get_native_size: unsupported socket family");
 		return 0;
 	}
 }
 
 P_LIB_API PSocketFamily
-ztk_socket_address_get_family (const PSocketAddress *addr)
+zsocket_address_get_family (const PSocketAddress *addr)
 {
 	if (P_UNLIKELY (addr == NULL))
 		return P_SOCKET_FAMILY_UNKNOWN;
@@ -386,7 +386,7 @@ ztk_socket_address_get_family (const PSocketAddress *addr)
 }
 
 P_LIB_API pchar *
-ztk_socket_address_get_address (const PSocketAddress *addr)
+zsocket_address_get_address (const PSocketAddress *addr)
 {
 #ifdef AF_INET6
 	pchar			buffer[INET6_ADDRSTRLEN];
@@ -446,11 +446,11 @@ ztk_socket_address_get_address (const PSocketAddress *addr)
 #  endif /* AF_INET6 */
 #endif /* P_OS_WIN */
 
-	return ztk_strdup (buffer);
+	return zstrdup (buffer);
 }
 
 P_LIB_API puint16
-ztk_socket_address_get_port (const PSocketAddress *addr)
+zsocket_address_get_port (const PSocketAddress *addr)
 {
 	if (P_UNLIKELY (addr == NULL))
 		return 0;
@@ -459,7 +459,7 @@ ztk_socket_address_get_port (const PSocketAddress *addr)
 }
 
 P_LIB_API puint32
-ztk_socket_address_get_flow_info (const PSocketAddress *addr)
+zsocket_address_get_flow_info (const PSocketAddress *addr)
 {
 	if (P_UNLIKELY (addr == NULL))
 		return 0;
@@ -475,7 +475,7 @@ ztk_socket_address_get_flow_info (const PSocketAddress *addr)
 }
 
 P_LIB_API puint32
-ztk_socket_address_get_scope_id (const PSocketAddress *addr)
+zsocket_address_get_scope_id (const PSocketAddress *addr)
 {
 	if (P_UNLIKELY (addr == NULL))
 		return 0;
@@ -491,7 +491,7 @@ ztk_socket_address_get_scope_id (const PSocketAddress *addr)
 }
 
 P_LIB_API void
-ztk_socket_address_set_flow_info (PSocketAddress	*addr,
+zsocket_address_set_flow_info (PSocketAddress	*addr,
 				puint32		flowinfo)
 {
 	if (P_UNLIKELY (addr == NULL))
@@ -509,7 +509,7 @@ ztk_socket_address_set_flow_info (PSocketAddress	*addr,
 }
 
 P_LIB_API void
-ztk_socket_address_set_scope_id (PSocketAddress	*addr,
+zsocket_address_set_scope_id (PSocketAddress	*addr,
 			       puint32		scope_id)
 {
 	if (P_UNLIKELY (addr == NULL))
@@ -527,7 +527,7 @@ ztk_socket_address_set_scope_id (PSocketAddress	*addr,
 }
 
 P_LIB_API pboolean
-ztk_socket_address_is_flow_info_supported (void)
+zsocket_address_is_flow_info_supported (void)
 {
 #ifdef AF_INET6
 #  ifdef PLIBSYS_SOCKADDR_IN6_HAS_FLOWINFO
@@ -541,7 +541,7 @@ ztk_socket_address_is_flow_info_supported (void)
 }
 
 P_LIB_API pboolean
-ztk_socket_address_is_scope_id_supported (void)
+zsocket_address_is_scope_id_supported (void)
 {
 #ifdef AF_INET6
 #  ifdef PLIBSYS_SOCKADDR_IN6_HAS_SCOPEID
@@ -555,7 +555,7 @@ ztk_socket_address_is_scope_id_supported (void)
 }
 
 P_LIB_API pboolean
-ztk_socket_address_is_ipv6_supported (void)
+zsocket_address_is_ipv6_supported (void)
 {
 #ifdef AF_INET6
 	return TRUE;
@@ -565,7 +565,7 @@ ztk_socket_address_is_ipv6_supported (void)
 }
 
 P_LIB_API pboolean
-ztk_socket_address_is_any (const PSocketAddress *addr)
+zsocket_address_is_any (const PSocketAddress *addr)
 {
 	puint32 addr4;
 
@@ -573,7 +573,7 @@ ztk_socket_address_is_any (const PSocketAddress *addr)
 		return FALSE;
 
 	if (addr->family == P_SOCKET_FAMILY_INET) {
-		addr4 = ztk_ntohl (* ((puint32 *) &addr->addr.sin_addr));
+		addr4 = zntohl (* ((puint32 *) &addr->addr.sin_addr));
 
 		return (addr4 == INADDR_ANY);
 	}
@@ -587,7 +587,7 @@ ztk_socket_address_is_any (const PSocketAddress *addr)
 }
 
 P_LIB_API pboolean
-ztk_socket_address_is_loopback (const PSocketAddress *addr)
+zsocket_address_is_loopback (const PSocketAddress *addr)
 {
 	puint32 addr4;
 
@@ -595,7 +595,7 @@ ztk_socket_address_is_loopback (const PSocketAddress *addr)
 		return FALSE;
 
 	if (addr->family == P_SOCKET_FAMILY_INET) {
-		addr4 = ztk_ntohl (* ((puint32 *) &addr->addr.sin_addr));
+		addr4 = zntohl (* ((puint32 *) &addr->addr.sin_addr));
 
 		/* 127.0.0.0/8 */
 		return ((addr4 & 0xff000000) == 0x7f000000);
@@ -610,10 +610,10 @@ ztk_socket_address_is_loopback (const PSocketAddress *addr)
 }
 
 P_LIB_API void
-ztk_socket_address_free (PSocketAddress *addr)
+zsocket_address_free (PSocketAddress *addr)
 {
 	if (P_UNLIKELY (addr == NULL))
 		return;
 
-	ztk_free (addr);
+	zfree (addr);
 }

@@ -53,10 +53,10 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (plibraryloader_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	if (P_UNLIKELY (ztk_library_loader_is_ref_counted () == FALSE)) {
-		ztk_libsys_shutdown ();
+	if (P_UNLIKELY (zlibrary_loader_is_ref_counted () == FALSE)) {
+		zlibsys_shutdown ();
 		P_TEST_CASE_RETURN ();
 	}
 
@@ -64,9 +64,9 @@ P_TEST_CASE_BEGIN (plibraryloader_nomem_test)
 	P_TEST_REQUIRE (g_argc > 1);
 
 	/* Cleanup from previous run */
-	ztk_file_remove ("." P_DIR_SEPARATOR "ztk_empty_file.txt", NULL);
+	zfile_remove ("." P_DIR_SEPARATOR "zempty_file.txt", NULL);
 
-	FILE *file = fopen ("." P_DIR_SEPARATOR "ztk_empty_file.txt", "w");
+	FILE *file = fopen ("." P_DIR_SEPARATOR "zempty_file.txt", "w");
 	P_TEST_CHECK (file != NULL);
 	P_TEST_CHECK (fclose (file) == 0);
 
@@ -76,24 +76,24 @@ P_TEST_CASE_BEGIN (plibraryloader_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
 #ifdef P_OS_WIN
 	SetErrorMode (SEM_FAILCRITICALERRORS);
 #endif
 
-	P_TEST_CHECK (ztk_library_loader_new ("." P_DIR_SEPARATOR "ztk_empty_file.txt") == NULL);
-	P_TEST_CHECK (ztk_library_loader_new (g_argv[g_argc - 1]) == NULL);
+	P_TEST_CHECK (zlibrary_loader_new ("." P_DIR_SEPARATOR "zempty_file.txt") == NULL);
+	P_TEST_CHECK (zlibrary_loader_new (g_argv[g_argc - 1]) == NULL);
 
 #ifdef P_OS_WIN
 	SetErrorMode (0);
 #endif
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	P_TEST_CHECK (ztk_file_remove ("." P_DIR_SEPARATOR "ztk_empty_file.txt", NULL) == TRUE);
+	P_TEST_CHECK (zfile_remove ("." P_DIR_SEPARATOR "zempty_file.txt", NULL) == TRUE);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -103,64 +103,64 @@ P_TEST_CASE_BEGIN (plibraryloader_general_test)
 	pchar		*err_msg;
 	void		(*shutdown_func) (void);
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	/* We assume that 3rd argument is ourself library path */
 	P_TEST_REQUIRE (g_argc > 1);
 
 	/* Invalid usage */
-	P_TEST_CHECK (ztk_library_loader_new (NULL) == NULL);
-	P_TEST_CHECK (ztk_library_loader_new ("./unexistent_file.nofile") == NULL);
-	P_TEST_CHECK (ztk_library_loader_get_symbol (NULL, NULL) == NULL);
-	P_TEST_CHECK (ztk_library_loader_get_symbol (NULL, "unexistent_symbol") == NULL);
+	P_TEST_CHECK (zlibrary_loader_new (NULL) == NULL);
+	P_TEST_CHECK (zlibrary_loader_new ("./unexistent_file.nofile") == NULL);
+	P_TEST_CHECK (zlibrary_loader_get_symbol (NULL, NULL) == NULL);
+	P_TEST_CHECK (zlibrary_loader_get_symbol (NULL, "unexistent_symbol") == NULL);
 
-	ztk_library_loader_free (NULL);
+	zlibrary_loader_free (NULL);
 
 	/* General tests */
 
 	/* At least not on HP-UX it should be true */
 #if !defined (P_OS_HPUX)
-	P_TEST_CHECK (ztk_library_loader_is_ref_counted () == TRUE);
+	P_TEST_CHECK (zlibrary_loader_is_ref_counted () == TRUE);
 #else
-	ztk_library_loader_is_ref_counted ();
+	zlibrary_loader_is_ref_counted ();
 #endif
 
-	err_msg = ztk_library_loader_get_last_error (NULL);
-	ztk_free (err_msg);
+	err_msg = zlibrary_loader_get_last_error (NULL);
+	zfree (err_msg);
 
-	if (P_UNLIKELY (ztk_library_loader_is_ref_counted () == FALSE)) {
-		ztk_libsys_shutdown ();
+	if (P_UNLIKELY (zlibrary_loader_is_ref_counted () == FALSE)) {
+		zlibsys_shutdown ();
 		P_TEST_CASE_RETURN ();
 	}
 
-	loader = ztk_library_loader_new (g_argv[g_argc - 1]);
+	loader = zlibrary_loader_new (g_argv[g_argc - 1]);
 	P_TEST_REQUIRE (loader != NULL);
 
-	P_TEST_CHECK (ztk_library_loader_get_symbol (loader, "there_is_no_such_a_symbol") == (PFuncAddr) NULL);
+	P_TEST_CHECK (zlibrary_loader_get_symbol (loader, "there_is_no_such_a_symbol") == (PFuncAddr) NULL);
 
-	err_msg = ztk_library_loader_get_last_error (loader);
+	err_msg = zlibrary_loader_get_last_error (loader);
 	P_TEST_CHECK (err_msg != NULL);
-	ztk_free (err_msg);
+	zfree (err_msg);
 
-	shutdown_func = (void (*) (void)) ztk_library_loader_get_symbol (loader, "ztk_libsys_shutdown");
+	shutdown_func = (void (*) (void)) zlibrary_loader_get_symbol (loader, "zlibsys_shutdown");
 
 	if (shutdown_func == NULL)
-		shutdown_func = (void (*) (void)) ztk_library_loader_get_symbol (loader, "_ztk_libsys_shutdown");
+		shutdown_func = (void (*) (void)) zlibrary_loader_get_symbol (loader, "_zlibsys_shutdown");
 
 	/* For Watcom C */
 
 	if (shutdown_func == NULL)
-		shutdown_func = (void (*) (void)) ztk_library_loader_get_symbol (loader, "ztk_libsys_shutdown_");
+		shutdown_func = (void (*) (void)) zlibrary_loader_get_symbol (loader, "zlibsys_shutdown_");
 
 	P_TEST_REQUIRE (shutdown_func != NULL);
 
-	err_msg = ztk_library_loader_get_last_error (loader);
-	ztk_free (err_msg);
+	err_msg = zlibrary_loader_get_last_error (loader);
+	zfree (err_msg);
 
-	ztk_library_loader_free (loader);
+	zlibrary_loader_free (loader);
 
 #ifdef P_OS_BEOS
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 #else
 	/* We have already loaded reference to ourself library, it's OK */
 	shutdown_func ();

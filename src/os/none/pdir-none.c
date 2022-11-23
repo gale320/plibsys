@@ -32,12 +32,12 @@ struct PDir_ {
 };
 
 P_LIB_API PDir *
-ztk_dir_new (const pchar	*path,
+zdir_new (const pchar	*path,
 	   PError	**error)
 {
 	P_UNUSED (path);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IO_NOT_IMPLEMENTED,
 			     0,
 			     "No directory implementation");
@@ -46,14 +46,14 @@ ztk_dir_new (const pchar	*path,
 }
 
 P_LIB_API pboolean
-ztk_dir_create (const pchar	*path,
+zdir_create (const pchar	*path,
 	      pint		mode,
 	      PError		**error)
 {
 	P_UNUSED (path);
 	P_UNUSED (mode);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IO_NOT_IMPLEMENTED,
 			     0,
 			     "No directory implementation");
@@ -62,12 +62,12 @@ ztk_dir_create (const pchar	*path,
 }
 
 P_LIB_API pboolean
-ztk_dir_remove (const pchar	*path,
+zdir_remove (const pchar	*path,
 	      PError		**error)
 {
 	P_UNUSED (path);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IO_NOT_IMPLEMENTED,
 			     0,
 			     "No directory implementation");
@@ -76,26 +76,26 @@ ztk_dir_remove (const pchar	*path,
 }
 
 P_LIB_API pboolean
-ztk_dir_is_exists (const pchar *path)
+zdir_is_exists (const pchar *path)
 {
 	P_UNUSED (path);
 	return FALSE;
 }
 
 P_LIB_API pchar *
-ztk_dir_get_path (const PDir *dir)
+zdir_get_path (const PDir *dir)
 {
 	P_UNUSED (dir);
 	return NULL;
 }
 
 P_LIB_API PDirEntry *
-ztk_dir_get_next_entry (PDir	*dir,
+zdir_get_next_entry (PDir	*dir,
 		      PError	**error)
 {
 	P_UNUSED (dir);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IO_NOT_IMPLEMENTED,
 			     0,
 			     "No directory implementation");
@@ -104,12 +104,12 @@ ztk_dir_get_next_entry (PDir	*dir,
 }
 
 P_LIB_API pboolean
-ztk_dir_rewind (PDir	*dir,
+zdir_rewind (PDir	*dir,
 	      PError	**error)
 {
 	P_UNUSED (dir);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IO_NOT_IMPLEMENTED,
 			     0,
 			     "No directory implementation");
@@ -118,7 +118,7 @@ ztk_dir_rewind (PDir	*dir,
 }
 
 P_LIB_API void
-ztk_dir_free (PDir *dir)
+zdir_free (PDir *dir)
 {
 	P_UNUSED (dir);
 }

@@ -45,7 +45,7 @@ struct PDir_ {
 };
 
 P_LIB_API PDir *
-ztk_dir_new (const pchar	*path,
+zdir_new (const pchar	*path,
 	   PError	**error)
 {
 	PDir	*ret;
@@ -56,15 +56,15 @@ ztk_dir_new (const pchar	*path,
 	ULONG	find_count;
 
 	if (P_UNLIKELY (path == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PDir))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PDir))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for directory structure");
@@ -78,9 +78,9 @@ ztk_dir_new (const pchar	*path,
 		while ((path[path_len - 1] == '\\' || path[path_len - 1] == '/') && path_len > 1)
 			--path_len;
 
-		if (P_UNLIKELY ((adj_path = ztk_malloc0 (path_len + 1)) == NULL)) {
-			ztk_free (ret);
-			ztk_error_set_error_p (error,
+		if (P_UNLIKELY ((adj_path = zmalloc0 (path_len + 1)) == NULL)) {
+			zfree (ret);
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IO_NO_RESOURCES,
 					     0,
 					     "Failed to allocate memory for directory path");
@@ -90,7 +90,7 @@ ztk_dir_new (const pchar	*path,
 		memcpy (adj_path, path, path_len);
 		
 		adj_path[path_len] = '\0';
-		ret->orig_path = ztk_strdup (path);
+		ret->orig_path = zstrdup (path);
 		path = (const pchar *) adj_path;
 	}
 
@@ -99,17 +99,17 @@ ztk_dir_new (const pchar	*path,
 	ulrc = DosQueryPathInfo ((PSZ) path, FIL_QUERYFULLNAME, ret->path, sizeof (ret->path) - 2);
 
 	if (P_UNLIKELY (ulrc != NO_ERROR)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosQueryPathInfo() to get directory path");
 
 		if (P_UNLIKELY (adj_path != NULL)) {
-			ztk_free (adj_path);
-			ztk_free (ret->orig_path);
+			zfree (adj_path);
+			zfree (ret->orig_path);
 		}
 
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
@@ -134,32 +134,32 @@ ztk_dir_new (const pchar	*path,
 			     FIL_STANDARD);
 
 	if (P_UNLIKELY (ulrc != NO_ERROR && ulrc != ERROR_NO_MORE_FILES)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosFindFirst() to open directory stream");
 
 		if (P_UNLIKELY (adj_path != NULL)) {
-			ztk_free (adj_path);
-			ztk_free (ret->orig_path);
+			zfree (adj_path);
+			zfree (ret->orig_path);
 		}
 
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
 	ret->cached = TRUE;
 
 	if (P_UNLIKELY (adj_path != NULL))
-		ztk_free (adj_path);
+		zfree (adj_path);
 	else
-		ret->orig_path = ztk_strdup (path);
+		ret->orig_path = zstrdup (path);
 
 	return ret;
 }
 
 P_LIB_API pboolean
-ztk_dir_create (const pchar	*path,
+zdir_create (const pchar	*path,
 	      pint		mode,
 	      PError		**error)
 {
@@ -168,19 +168,19 @@ ztk_dir_create (const pchar	*path,
 	P_UNUSED (mode);
 
 	if (P_UNLIKELY (path == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (ztk_dir_is_exists (path))
+	if (zdir_is_exists (path))
 		return TRUE;
 
 	if (P_UNLIKELY ((ulrc = DosCreateDir ((PSZ) path, NULL)) != NO_ERROR)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosCreateDir() to create directory");
 		return FALSE;
@@ -189,21 +189,21 @@ ztk_dir_create (const pchar	*path,
 }
 
 P_LIB_API pboolean
-ztk_dir_remove (const pchar	*path,
+zdir_remove (const pchar	*path,
 	      PError		**error)
 {
 	APIRET ulrc;
 
 	if (P_UNLIKELY (path == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (!ztk_dir_is_exists (path)) {
-		ztk_error_set_error_p (error,
+	if (!zdir_is_exists (path)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NOT_EXISTS,
 				     0,
 				     "Specified directory doesn't exist");
@@ -211,8 +211,8 @@ ztk_dir_remove (const pchar	*path,
 	}
 
 	if (P_UNLIKELY ((ulrc = DosDeleteDir ((PSZ) path)) != NO_ERROR)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosDeleteDir() to remove directory");
 		return FALSE;
@@ -221,7 +221,7 @@ ztk_dir_remove (const pchar	*path,
 }
 
 P_LIB_API pboolean
-ztk_dir_is_exists (const pchar *path)
+zdir_is_exists (const pchar *path)
 {
 	FILESTATUS3	status;
 
@@ -235,16 +235,16 @@ ztk_dir_is_exists (const pchar *path)
 }
 
 P_LIB_API pchar *
-ztk_dir_get_path (const PDir *dir)
+zdir_get_path (const PDir *dir)
 {
 	if (P_UNLIKELY (dir == NULL))
 		return NULL;
 
-	return ztk_strdup (dir->orig_path);
+	return zstrdup (dir->orig_path);
 }
 
 P_LIB_API PDirEntry *
-ztk_dir_get_next_entry (PDir	*dir,
+zdir_get_next_entry (PDir	*dir,
 		      PError	**error)
 {
 	PDirEntry	*ret;
@@ -252,7 +252,7 @@ ztk_dir_get_next_entry (PDir	*dir,
 	ULONG		find_count;
 
 	if (P_UNLIKELY (dir == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -264,7 +264,7 @@ ztk_dir_get_next_entry (PDir	*dir,
 
 		/* Opened directory is empty */
 		if (P_UNLIKELY (dir->search_handle == HDIR_CREATE)) {
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IO_NO_MORE,
 					     (pint) ERROR_NO_MORE_FILES,
 					     "Directory is empty to get the next entry");
@@ -272,7 +272,7 @@ ztk_dir_get_next_entry (PDir	*dir,
 		}
 	} else {
 		if (P_UNLIKELY (dir->search_handle == HDIR_CREATE)) {
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 					     0,
 					     "Not a valid (or closed) directory stream");
@@ -287,8 +287,8 @@ ztk_dir_get_next_entry (PDir	*dir,
 				    &find_count);
 
 		if (P_UNLIKELY (ulrc != NO_ERROR)) {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_io_from_system ((pint) ulrc),
 					     (pint) ulrc,
 					     "Failed to call DosFindNext() to read directory stream");
 			DosFindClose (dir->search_handle);
@@ -297,15 +297,15 @@ ztk_dir_get_next_entry (PDir	*dir,
 		}
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PDirEntry))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PDirEntry))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for directory entry");
 		return NULL;
 	}
 
-	ret->name = ztk_strdup (dir->find_data.achName);
+	ret->name = zstrdup (dir->find_data.achName);
 
 	if ((dir->find_data.attrFile & FILE_DIRECTORY) != 0)
 		ret->type = P_DIR_ENTRY_TYPE_DIR;
@@ -316,14 +316,14 @@ ztk_dir_get_next_entry (PDir	*dir,
 }
 
 P_LIB_API pboolean
-ztk_dir_rewind (PDir	*dir,
+zdir_rewind (PDir	*dir,
 	      PError	**error)
 {
 	APIRET	ulrc;
 	ULONG	find_count;
 
 	if (P_UNLIKELY (dir == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -332,8 +332,8 @@ ztk_dir_rewind (PDir	*dir,
 
 	if (dir->search_handle != HDIR_CREATE) {
 		if (P_UNLIKELY ((ulrc = DosFindClose (dir->search_handle)) != NO_ERROR)) {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_io_from_system ((pint) ulrc),
 					     (pint) ulrc,
 					     "Failed to call DosFindClose() to close directory stream");
 			return FALSE;
@@ -353,8 +353,8 @@ ztk_dir_rewind (PDir	*dir,
 			     FIL_STANDARD);
 
 	if (P_UNLIKELY (ulrc != NO_ERROR && ulrc != ERROR_NO_MORE_FILES)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system ((pint) ulrc),
 				     (pint) ulrc,
 				     "Failed to call DosFindFirst() to open directory stream");
 		dir->cached = FALSE;
@@ -366,16 +366,16 @@ ztk_dir_rewind (PDir	*dir,
 }
 
 P_LIB_API void
-ztk_dir_free (PDir *dir)
+zdir_free (PDir *dir)
 {
 	if (dir == NULL)
 		return;
 
 	if (P_LIKELY (dir->search_handle != HDIR_CREATE)) {
 		if (P_UNLIKELY (DosFindClose (dir->search_handle) != NO_ERROR))
-			P_ERROR ("PDir::ztk_dir_free: DosFindClose() failed");
+			P_ERROR ("PDir::zdir_free: DosFindClose() failed");
 	}
 
-	ztk_free (dir->orig_path);
-	ztk_free (dir);
+	zfree (dir->orig_path);
+	zfree (dir);
 }

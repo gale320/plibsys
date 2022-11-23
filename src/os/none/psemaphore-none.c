@@ -32,7 +32,7 @@ struct PSemaphore_ {
 };
 
 P_LIB_API PSemaphore *
-ztk_semaphore_new (const pchar		*name,
+zsemaphore_new (const pchar		*name,
 		 pint			init_val,
 		 PSemaphoreAccessMode	mode,
 		 PError			**error)
@@ -41,7 +41,7 @@ ztk_semaphore_new (const pchar		*name,
 	P_UNUSED (init_val);
 	P_UNUSED (mode);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IPC_NOT_IMPLEMENTED,
 			     0,
 			     "No semaphore implementation");
@@ -50,18 +50,18 @@ ztk_semaphore_new (const pchar		*name,
 }
 
 P_LIB_API void
-ztk_semaphore_take_ownership (PSemaphore *sem)
+zsemaphore_take_ownership (PSemaphore *sem)
 {
 	P_UNUSED (sem);
 }
 
 P_LIB_API pboolean
-ztk_semaphore_acquire (PSemaphore	*sem,
+zsemaphore_acquire (PSemaphore	*sem,
 		     PError	**error)
 {
 	P_UNUSED (sem);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IPC_NOT_IMPLEMENTED,
 			     0,
 			     "No semaphore implementation");
@@ -70,12 +70,12 @@ ztk_semaphore_acquire (PSemaphore	*sem,
 }
 
 P_LIB_API pboolean
-ztk_semaphore_release (PSemaphore	*sem,
+zsemaphore_release (PSemaphore	*sem,
 		     PError	**error)
 {
 	P_UNUSED (sem);
 
-	ztk_error_set_error_p (error,
+	zerror_set_error_p (error,
 			     (pint) P_ERROR_IPC_NOT_IMPLEMENTED,
 			     0,
 			     "No semaphore implementation");
@@ -84,7 +84,7 @@ ztk_semaphore_release (PSemaphore	*sem,
 }
 
 P_LIB_API void
-ztk_semaphore_free (PSemaphore *sem)
+zsemaphore_free (PSemaphore *sem)
 {
 	P_UNUSED (sem);
 }

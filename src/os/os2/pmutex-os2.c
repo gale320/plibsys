@@ -39,18 +39,18 @@ struct PMutex_ {
 };
 
 P_LIB_API PMutex *
-ztk_mutex_new (void)
+zmutex_new (void)
 {
 	PMutex *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PMutex))) == NULL)) {
-		P_ERROR ("PMutex::ztk_mutex_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PMutex))) == NULL)) {
+		P_ERROR ("PMutex::zmutex_new: failed to allocate memory");
 		return NULL;
 	}
 
 	if (P_UNLIKELY (DosCreateMutexSem (NULL, (PHMTX) &ret->hdl, 0, FALSE) != NO_ERROR)) {
-		P_ERROR ("PMutex::ztk_mutex_new: DosCreateMutexSem() failed");
-		ztk_free (ret);
+		P_ERROR ("PMutex::zmutex_new: DosCreateMutexSem() failed");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -58,7 +58,7 @@ ztk_mutex_new (void)
 }
 
 P_LIB_API pboolean
-ztk_mutex_lock (PMutex *mutex)
+zmutex_lock (PMutex *mutex)
 {
 	APIRET ulrc;
 
@@ -71,13 +71,13 @@ ztk_mutex_lock (PMutex *mutex)
 	if (P_LIKELY (ulrc == NO_ERROR))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::ztk_mutex_lock: DosRequestMutexSem() failed");
+		P_ERROR ("PMutex::zmutex_lock: DosRequestMutexSem() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API pboolean
-ztk_mutex_trylock (PMutex *mutex)
+zmutex_trylock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -86,7 +86,7 @@ ztk_mutex_trylock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-ztk_mutex_unlock (PMutex *mutex)
+zmutex_unlock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -94,19 +94,19 @@ ztk_mutex_unlock (PMutex *mutex)
 	if (P_LIKELY (DosReleaseMutexSem (mutex->hdl) == NO_ERROR))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::ztk_mutex_unlock: DosReleaseMutexSem() failed");
+		P_ERROR ("PMutex::zmutex_unlock: DosReleaseMutexSem() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API void
-ztk_mutex_free (PMutex *mutex)
+zmutex_free (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return;
 
 	if (P_UNLIKELY (DosCloseMutexSem (mutex->hdl) != NO_ERROR))
-		P_ERROR ("PMutex::ztk_mutex_free: DosCloseMutexSem() failed");
+		P_ERROR ("PMutex::zmutex_free: DosCloseMutexSem() failed");
 
-	ztk_free (mutex);
+	zfree (mutex);
 }

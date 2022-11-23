@@ -53,29 +53,29 @@ struct PIniFile_ {
 	pboolean	is_parsed;
 };
 
-static PIniParameter * pztk_ini_file_parameter_new (const pchar *name, const pchar *val);
-static void pztk_ini_file_parameter_free (PIniParameter *param);
-static PIniSection * pztk_ini_file_section_new (const pchar *name);
-static void pztk_ini_file_section_free (PIniSection *section);
-static pchar * pztk_ini_file_find_parameter (const PIniFile *file, const pchar *section, const pchar *key);
+static PIniParameter * pzini_file_parameter_new (const pchar *name, const pchar *val);
+static void pzini_file_parameter_free (PIniParameter *param);
+static PIniSection * pzini_file_section_new (const pchar *name);
+static void pzini_file_section_free (PIniSection *section);
+static pchar * pzini_file_find_parameter (const PIniFile *file, const pchar *section, const pchar *key);
 
 static PIniParameter *
-pztk_ini_file_parameter_new (const pchar	*name,
+pzini_file_parameter_new (const pchar	*name,
 			   const pchar	*val)
 {
 	PIniParameter *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PIniParameter))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PIniParameter))) == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret->name = ztk_strdup (name)) == NULL)) {
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->name = zstrdup (name)) == NULL)) {
+		zfree (ret);
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret->value = ztk_strdup (val)) == NULL)) {
-		ztk_free (ret->name);
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->value = zstrdup (val)) == NULL)) {
+		zfree (ret->name);
+		zfree (ret);
 		return NULL;
 	}
 
@@ -83,23 +83,23 @@ pztk_ini_file_parameter_new (const pchar	*name,
 }
 
 static void
-pztk_ini_file_parameter_free (PIniParameter *param)
+pzini_file_parameter_free (PIniParameter *param)
 {
-	ztk_free (param->name);
-	ztk_free (param->value);
-	ztk_free (param);
+	zfree (param->name);
+	zfree (param->value);
+	zfree (param);
 }
 
 static PIniSection *
-pztk_ini_file_section_new (const pchar *name)
+pzini_file_section_new (const pchar *name)
 {
 	PIniSection *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PIniSection))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PIniSection))) == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret->name = ztk_strdup (name)) == NULL)) {
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->name = zstrdup (name)) == NULL)) {
+		zfree (ret);
 		return NULL;
 	}
 
@@ -107,16 +107,16 @@ pztk_ini_file_section_new (const pchar *name)
 }
 
 static void
-pztk_ini_file_section_free (PIniSection *section)
+pzini_file_section_free (PIniSection *section)
 {
-	ztk_list_foreach (section->keys, (PFunc) pztk_ini_file_parameter_free, NULL);
-	ztk_list_free (section->keys);
-	ztk_free (section->name);
-	ztk_free (section);
+	zlist_foreach (section->keys, (PFunc) pzini_file_parameter_free, NULL);
+	zlist_free (section->keys);
+	zfree (section->name);
+	zfree (section);
 }
 
 static pchar *
-pztk_ini_file_find_parameter (const PIniFile *file, const pchar *section, const pchar *key)
+pzini_file_find_parameter (const PIniFile *file, const pchar *section, const pchar *key)
 {
 	PList	*item;
 
@@ -132,24 +132,24 @@ pztk_ini_file_find_parameter (const PIniFile *file, const pchar *section, const 
 
 	for (item = ((PIniSection *) item->data)->keys; item != NULL; item = item->next)
 		if (strcmp (((PIniParameter *) item->data)->name, key) == 0)
-			return ztk_strdup (((PIniParameter *) item->data)->value);
+			return zstrdup (((PIniParameter *) item->data)->value);
 
 	return NULL;
 }
 
 P_LIB_API PIniFile *
-ztk_ini_file_new (const pchar *path)
+zini_file_new (const pchar *path)
 {
 	PIniFile	*ret;
 
 	if (P_UNLIKELY (path == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PIniFile))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PIniFile))) == NULL))
 		return NULL;
 
-	if (P_UNLIKELY ((ret->path = ztk_strdup (path)) == NULL)) {
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->path = zstrdup (path)) == NULL)) {
+		zfree (ret);
 		return NULL;
 	}
 
@@ -159,32 +159,32 @@ ztk_ini_file_new (const pchar *path)
 }
 
 P_LIB_API void
-ztk_ini_file_free (PIniFile *file)
+zini_file_free (PIniFile *file)
 {
 	if (P_UNLIKELY (file == NULL))
 		return;
 
-	ztk_list_foreach (file->sections, (PFunc) pztk_ini_file_section_free, NULL);
-	ztk_list_free (file->sections);
-	ztk_free (file->path);
-	ztk_free (file);
+	zlist_foreach (file->sections, (PFunc) pzini_file_section_free, NULL);
+	zlist_free (file->sections);
+	zfree (file->path);
+	zfree (file);
 }
 
 P_LIB_API pboolean
-ztk_ini_file_parse (PIniFile	*file,
+zini_file_parse (PIniFile	*file,
 		  PError	**error)
 {
 	PIniSection	*section;
 	PIniParameter	*param;
 	FILE		*in_file;
-	pchar		*dst_line, *tmztk_str;
+	pchar		*dst_line, *tmzstr;
 	pchar		src_line[P_INI_FILE_MAX_LINE + 1],
 			key[P_INI_FILE_MAX_LINE + 1],
 			value[P_INI_FILE_MAX_LINE + 1];
 	pint		bom_shift;
 
 	if (P_UNLIKELY (file == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -195,9 +195,9 @@ ztk_ini_file_parse (PIniFile	*file,
 		return TRUE;
 
 	if (P_UNLIKELY ((in_file = fopen (file->path, "r")) == NULL)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to open file for reading");
 		return FALSE;
 	}
@@ -224,7 +224,7 @@ ztk_ini_file_parse (PIniFile	*file,
 		else
 			bom_shift = 0;
 
-		dst_line = ztk_strchomp (src_line + bom_shift);
+		dst_line = zstrchomp (src_line + bom_shift);
 
 		if (dst_line == NULL)
 			continue;
@@ -236,65 +236,65 @@ ztk_ini_file_parse (PIniFile	*file,
 		if (dst_line[0] == '[' && dst_line[strlen (dst_line) - 1] == ']' &&
 		    sscanf (dst_line, "[%[^]]", key) == 1) {
 			/* New section found */
-			if ((tmztk_str = ztk_strchomp (key)) != NULL) {
+			if ((tmzstr = zstrchomp (key)) != NULL) {
 				/* This should not happen */
-				if (P_UNLIKELY (strlen (tmztk_str) > P_INI_FILE_MAX_LINE))
-					tmztk_str[P_INI_FILE_MAX_LINE] = '\0';
+				if (P_UNLIKELY (strlen (tmzstr) > P_INI_FILE_MAX_LINE))
+					tmzstr[P_INI_FILE_MAX_LINE] = '\0';
 
-				strcpy (key, tmztk_str);
-				ztk_free (tmztk_str);
+				strcpy (key, tmzstr);
+				zfree (tmzstr);
 
 				if (section != NULL) {
 					if (section->keys == NULL)
-						pztk_ini_file_section_free (section);
+						pzini_file_section_free (section);
 					else
-						file->sections = ztk_list_prepend (file->sections, section);
+						file->sections = zlist_prepend (file->sections, section);
 				}
 
-				section = pztk_ini_file_section_new (key);
+				section = pzini_file_section_new (key);
 			}
 		} else if (sscanf (dst_line, "%[^=] = \"%[^\"]\"", key, value) == 2 ||
 			   sscanf (dst_line, "%[^=] = '%[^\']'", key, value) == 2 ||
 			   sscanf (dst_line, "%[^=] = %[^;#]", key, value) == 2) {
 			/* New parameter found */
-			if ((tmztk_str = ztk_strchomp (key)) != NULL) {
+			if ((tmzstr = zstrchomp (key)) != NULL) {
 				/* This should not happen */
-				if (P_UNLIKELY (strlen (tmztk_str) > P_INI_FILE_MAX_LINE))
-					tmztk_str[P_INI_FILE_MAX_LINE] = '\0';
+				if (P_UNLIKELY (strlen (tmzstr) > P_INI_FILE_MAX_LINE))
+					tmzstr[P_INI_FILE_MAX_LINE] = '\0';
 
-				strcpy (key, tmztk_str);
-				ztk_free (tmztk_str);
+				strcpy (key, tmzstr);
+				zfree (tmzstr);
 
-				if ((tmztk_str = ztk_strchomp (value)) != NULL) {
+				if ((tmzstr = zstrchomp (value)) != NULL) {
 					/* This should not happen */
-					if (P_UNLIKELY (strlen (tmztk_str) > P_INI_FILE_MAX_LINE))
-						tmztk_str[P_INI_FILE_MAX_LINE] = '\0';
+					if (P_UNLIKELY (strlen (tmzstr) > P_INI_FILE_MAX_LINE))
+						tmzstr[P_INI_FILE_MAX_LINE] = '\0';
 
-					strcpy (value, tmztk_str);
-					ztk_free (tmztk_str);
+					strcpy (value, tmzstr);
+					zfree (tmzstr);
 
 					if (strcmp (value, "\"\"") == 0 || (strcmp (value, "''") == 0))
 						value[0] = '\0';
 
-					if (section != NULL && (param = pztk_ini_file_parameter_new (key, value)) != NULL)
-						section->keys = ztk_list_prepend (section->keys, param);
+					if (section != NULL && (param = pzini_file_parameter_new (key, value)) != NULL)
+						section->keys = zlist_prepend (section->keys, param);
 				}
 			}
 		}
 
-		ztk_free (dst_line);
+		zfree (dst_line);
 		memset (src_line, 0, sizeof (src_line));
 	}
 
 	if (section != NULL) {
 		if (section->keys == NULL)
-			pztk_ini_file_section_free (section);
+			pzini_file_section_free (section);
 		else
-			file->sections = ztk_list_append (file->sections, section);
+			file->sections = zlist_append (file->sections, section);
 	}
 
 	if (P_UNLIKELY (fclose (in_file) != 0))
-		P_WARNING ("PIniFile::ztk_ini_file_parse: fclose() failed");
+		P_WARNING ("PIniFile::zini_file_parse: fclose() failed");
 
 	file->is_parsed = TRUE;
 
@@ -302,7 +302,7 @@ ztk_ini_file_parse (PIniFile	*file,
 }
 
 P_LIB_API pboolean
-ztk_ini_file_is_parsed (const PIniFile *file)
+zini_file_is_parsed (const PIniFile *file)
 {
 	if (P_UNLIKELY (file == NULL))
 		return FALSE;
@@ -311,7 +311,7 @@ ztk_ini_file_is_parsed (const PIniFile *file)
 }
 
 P_LIB_API PList *
-ztk_ini_file_sections (const PIniFile *file)
+zini_file_sections (const PIniFile *file)
 {
 	PList	*ret;
 	PList	*sec;
@@ -322,13 +322,13 @@ ztk_ini_file_sections (const PIniFile *file)
 	ret = NULL;
 
 	for (sec = file->sections; sec != NULL; sec = sec->next)
-		ret = ztk_list_prepend (ret, ztk_strdup (((PIniSection *) sec->data)->name));
+		ret = zlist_prepend (ret, zstrdup (((PIniSection *) sec->data)->name));
 
 	return ret;
 }
 
 P_LIB_API PList *
-ztk_ini_file_keys (const PIniFile	*file,
+zini_file_keys (const PIniFile	*file,
 		 const pchar	*section)
 {
 	PList	*ret;
@@ -347,13 +347,13 @@ ztk_ini_file_keys (const PIniFile	*file,
 		return NULL;
 
 	for (item = ((PIniSection *) item->data)->keys; item != NULL; item = item->next)
-		ret = ztk_list_prepend (ret, ztk_strdup (((PIniParameter *) item->data)->name));
+		ret = zlist_prepend (ret, zstrdup (((PIniParameter *) item->data)->name));
 
 	return ret;
 }
 
 P_LIB_API pboolean
-ztk_ini_file_is_key_exists (const PIniFile	*file,
+zini_file_is_key_exists (const PIniFile	*file,
 			  const pchar		*section,
 			  const pchar		*key)
 {
@@ -377,21 +377,21 @@ ztk_ini_file_is_key_exists (const PIniFile	*file,
 }
 
 P_LIB_API pchar *
-ztk_ini_file_parameter_string (const PIniFile	*file,
+zini_file_parameter_string (const PIniFile	*file,
 			     const pchar	*section,
 			     const pchar	*key,
 			     const pchar	*default_val)
 {
 	pchar *val;
 
-	if ((val = pztk_ini_file_find_parameter (file, section, key)) == NULL)
-		return ztk_strdup (default_val);
+	if ((val = pzini_file_find_parameter (file, section, key)) == NULL)
+		return zstrdup (default_val);
 
 	return val;
 }
 
 P_LIB_API pint
-ztk_ini_file_parameter_int (const PIniFile	*file,
+zini_file_parameter_int (const PIniFile	*file,
 			  const pchar		*section,
 			  const pchar		*key,
 			  pint			default_val)
@@ -399,17 +399,17 @@ ztk_ini_file_parameter_int (const PIniFile	*file,
 	pchar	*val;
 	pint	ret;
 
-	if ((val = pztk_ini_file_find_parameter (file, section, key)) == NULL)
+	if ((val = pzini_file_find_parameter (file, section, key)) == NULL)
 		return default_val;
 
 	ret = atoi (val);
-	ztk_free (val);
+	zfree (val);
 
 	return ret;
 }
 
 P_LIB_API double
-ztk_ini_file_parameter_double (const PIniFile	*file,
+zini_file_parameter_double (const PIniFile	*file,
 			     const pchar	*section,
 			     const pchar	*key,
 			     double		default_val)
@@ -417,17 +417,17 @@ ztk_ini_file_parameter_double (const PIniFile	*file,
 	pchar	*val;
 	pdouble	ret;
 
-	if ((val = pztk_ini_file_find_parameter (file, section, key)) == NULL)
+	if ((val = pzini_file_find_parameter (file, section, key)) == NULL)
 		return default_val;
 
-	ret = ztk_strtod (val);
-	ztk_free (val);
+	ret = zstrtod (val);
+	zfree (val);
 
 	return ret;
 }
 
 P_LIB_API pboolean
-ztk_ini_file_parameter_boolean (const PIniFile	*file,
+zini_file_parameter_boolean (const PIniFile	*file,
 			      const pchar	*section,
 			      const pchar	*key,
 			      pboolean		default_val)
@@ -435,7 +435,7 @@ ztk_ini_file_parameter_boolean (const PIniFile	*file,
 	pchar		*val;
 	pboolean	ret;
 
-	if ((val = pztk_ini_file_find_parameter (file, section, key)) == NULL)
+	if ((val = pzini_file_find_parameter (file, section, key)) == NULL)
 		return default_val;
 
 	if (strcmp (val, "true") == 0 || strcmp (val, "TRUE") == 0)
@@ -447,13 +447,13 @@ ztk_ini_file_parameter_boolean (const PIniFile	*file,
 	else
 		ret = FALSE;
 
-	ztk_free (val);
+	zfree (val);
 
 	return ret;
 }
 
 P_LIB_API PList *
-ztk_ini_file_parameter_list (const PIniFile	*file,
+zini_file_parameter_list (const PIniFile	*file,
 			   const pchar		*section,
 			   const pchar		*key)
 {
@@ -462,13 +462,13 @@ ztk_ini_file_parameter_list (const PIniFile	*file,
 	pchar	buf[P_INI_FILE_MAX_LINE + 1];
 	psize	len, buf_cnt;
 
-	if ((val = pztk_ini_file_find_parameter (file, section, key)) == NULL)
+	if ((val = pzini_file_find_parameter (file, section, key)) == NULL)
 		return NULL;
 
 	len = strlen (val);
 
 	if (len < 3 || val[0] != '{' || val[len - 1] != '}') {
-		ztk_free (val);
+		zfree (val);
 		return NULL;
 	}
 
@@ -484,7 +484,7 @@ ztk_ini_file_parameter_list (const PIniFile	*file,
 			buf[buf_cnt] = '\0';
 
 			if (buf_cnt > 0)
-				ret = ztk_list_append (ret, ztk_strdup (buf));
+				ret = zlist_append (ret, zstrdup (buf));
 
 			buf_cnt = 0;
 		}
@@ -494,10 +494,10 @@ ztk_ini_file_parameter_list (const PIniFile	*file,
 
 	if (buf_cnt > 0) {
 		buf[buf_cnt] = '\0';
-		ret = ztk_list_append (ret, ztk_strdup (buf));
+		ret = zlist_append (ret, zstrdup (buf));
 	}
 
-	ztk_free (val);
+	zfree (val);
 
 	return ret;
 }

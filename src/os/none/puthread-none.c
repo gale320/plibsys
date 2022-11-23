@@ -34,22 +34,22 @@ struct PUThread_ {
 };
 
 void
-ztk_uthread_init_internal (void)
+zuthread_init_internal (void)
 {
 }
 
 void
-ztk_uthread_shutdown_internal (void)
+zuthread_shutdown_internal (void)
 {
 }
 
 void
-ztk_uthread_win32_thread_detach (void)
+zuthread_win32_thread_detach (void)
 {
 }
 
 PUThread *
-ztk_uthread_create_internal (PUThreadFunc		func,
+zuthread_create_internal (PUThreadFunc		func,
 			   pboolean		joinable,
 			   PUThreadPriority	prio,
 			   psize		stack_size)
@@ -63,35 +63,35 @@ ztk_uthread_create_internal (PUThreadFunc		func,
 }
 
 void
-ztk_uthread_exit_internal (void)
+zuthread_exit_internal (void)
 {
 }
 
 void
-ztk_uthread_wait_internal (PUThread *thread)
-{
-	P_UNUSED (thread);
-}
-
-void
-ztk_uthread_set_name_internal (PUThread *thread)
+zuthread_wait_internal (PUThread *thread)
 {
 	P_UNUSED (thread);
 }
 
 void
-ztk_uthread_free_internal (PUThread *thread)
+zuthread_set_name_internal (PUThread *thread)
+{
+	P_UNUSED (thread);
+}
+
+void
+zuthread_free_internal (PUThread *thread)
 {
 	P_UNUSED (thread);
 }
 
 P_LIB_API void
-ztk_uthread_yield (void)
+zuthread_yield (void)
 {
 }
 
 P_LIB_API pboolean
-ztk_uthread_set_priority (PUThread		*thread,
+zuthread_set_priority (PUThread		*thread,
 			PUThreadPriority	prio)
 {
 	P_UNUSED (thread);
@@ -101,32 +101,32 @@ ztk_uthread_set_priority (PUThread		*thread,
 }
 
 P_LIB_API P_HANDLE
-ztk_uthread_current_id (void)
+zuthread_current_id (void)
 {
 	return (P_HANDLE) 0;
 }
 
 P_LIB_API PUThreadKey *
-ztk_uthread_local_new (PDestroyFunc free_func)
+zuthread_local_new (PDestroyFunc free_func)
 {
 	P_UNUSED (free_func);
 	return NULL;
 }
 
 P_LIB_API void
-ztk_uthread_local_free (PUThreadKey *key)
+zuthread_local_free (PUThreadKey *key)
 {
 	P_UNUSED (key);
 }
 
 P_LIB_API ppointer
-ztk_uthread_get_local (PUThreadKey *key)
+zuthread_get_local (PUThreadKey *key)
 {
 	P_UNUSED (key);
 }
 
 P_LIB_API void
-ztk_uthread_set_local (PUThreadKey	*key,
+zuthread_set_local (PUThreadKey	*key,
 		     ppointer		value)
 {
 	P_UNUSED (key);
@@ -134,7 +134,7 @@ ztk_uthread_set_local (PUThreadKey	*key,
 }
 
 P_LIB_API void
-ztk_uthread_replace_local	(PUThreadKey	*key,
+zuthread_replace_local	(PUThreadKey	*key,
 			 ppointer	value)
 {
 	P_UNUSED (key);

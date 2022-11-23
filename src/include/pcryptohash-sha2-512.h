@@ -39,20 +39,20 @@ P_BEGIN_DECLS
 
 typedef struct PHashSHA2_512_ PHashSHA2_512;
 
-PHashSHA2_512 *	ztk_crypto_hash_sha2_512_new	(void);
-void		ztk_crypto_hash_sha2_512_update	(PHashSHA2_512 *ctx, const puchar *data, psize len);
-void		ztk_crypto_hash_sha2_512_finish	(PHashSHA2_512 *ctx);
-const puchar *	ztk_crypto_hash_sha2_512_digest	(PHashSHA2_512 *ctx);
-void		ztk_crypto_hash_sha2_512_reset	(PHashSHA2_512 *ctx);
-void		ztk_crypto_hash_sha2_512_free	(PHashSHA2_512 *ctx);
+PHashSHA2_512 *	zcrypto_hash_sha2_512_new	(void);
+void		zcrypto_hash_sha2_512_update	(PHashSHA2_512 *ctx, const puchar *data, psize len);
+void		zcrypto_hash_sha2_512_finish	(PHashSHA2_512 *ctx);
+const puchar *	zcrypto_hash_sha2_512_digest	(PHashSHA2_512 *ctx);
+void		zcrypto_hash_sha2_512_reset	(PHashSHA2_512 *ctx);
+void		zcrypto_hash_sha2_512_free	(PHashSHA2_512 *ctx);
 
-PHashSHA2_512 *	ztk_crypto_hash_sha2_384_new	(void);
+PHashSHA2_512 *	zcrypto_hash_sha2_384_new	(void);
 
-#define ztk_crypto_hash_sha2_384_update ztk_crypto_hash_sha2_512_update
-#define ztk_crypto_hash_sha2_384_finish ztk_crypto_hash_sha2_512_finish
-#define ztk_crypto_hash_sha2_384_digest ztk_crypto_hash_sha2_512_digest
-#define ztk_crypto_hash_sha2_384_reset  ztk_crypto_hash_sha2_512_reset
-#define ztk_crypto_hash_sha2_384_free   ztk_crypto_hash_sha2_512_free
+#define zcrypto_hash_sha2_384_update zcrypto_hash_sha2_512_update
+#define zcrypto_hash_sha2_384_finish zcrypto_hash_sha2_512_finish
+#define zcrypto_hash_sha2_384_digest zcrypto_hash_sha2_512_digest
+#define zcrypto_hash_sha2_384_reset  zcrypto_hash_sha2_512_reset
+#define zcrypto_hash_sha2_384_free   zcrypto_hash_sha2_512_free
 
 P_END_DECLS
 

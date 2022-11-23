@@ -59,14 +59,14 @@ typedef pboolean (* PWin32LockStartWrite)    (PRWLock *lock);
 typedef pboolean (* PWin32LockStartWriteTry) (PRWLock *lock);
 typedef pboolean (* PWin32LockEndWrite)      (PRWLock *lock);
 
-static PWin32LockInit          pztk_rwlock_init_func            = NULL;
-static PWin32LockClose         pztk_rwlock_close_func           = NULL;
-static PWin32LockStartRead     pztk_rwlock_start_read_func      = NULL;
-static PWin32LockStartReadTry  pztk_rwlock_start_read_try_func  = NULL;
-static PWin32LockEndRead       pztk_rwlock_end_read_func        = NULL;
-static PWin32LockStartWrite    pztk_rwlock_start_write_func     = NULL;
-static PWin32LockStartWriteTry pztk_rwlock_start_write_try_func = NULL;
-static PWin32LockEndWrite      pztk_rwlock_end_write_func       = NULL;
+static PWin32LockInit          pzrwlock_init_func            = NULL;
+static PWin32LockClose         pzrwlock_close_func           = NULL;
+static PWin32LockStartRead     pzrwlock_start_read_func      = NULL;
+static PWin32LockStartReadTry  pzrwlock_start_read_try_func  = NULL;
+static PWin32LockEndRead       pzrwlock_end_read_func        = NULL;
+static PWin32LockStartWrite    pzrwlock_start_write_func     = NULL;
+static PWin32LockStartWriteTry pzrwlock_start_write_try_func = NULL;
+static PWin32LockEndWrite      pzrwlock_end_write_func       = NULL;
 
 typedef struct PRWLockVistaTable_ {
 	InitializeSRWLockFunc		rwl_init;
@@ -87,85 +87,85 @@ struct PRWLock_ {
 	ppointer lock;
 };
 
-static PRWLockVistaTable pztk_rwlock_vista_table = {NULL, NULL, NULL, NULL,
+static PRWLockVistaTable pzrwlock_vista_table = {NULL, NULL, NULL, NULL,
 						  NULL, NULL, NULL};
 
 /* SRWLock routines */
-static pboolean pztk_rwlock_init_vista (PRWLock *lock);
-static void pztk_rwlock_close_vista (PRWLock *lock);
-static pboolean pztk_rwlock_start_read_vista (PRWLock *lock);
-static pboolean pztk_rwlock_start_read_try_vista (PRWLock *lock);
-static pboolean pztk_rwlock_end_read_vista (PRWLock *lock);
-static pboolean pztk_rwlock_start_write_vista (PRWLock *lock);
-static pboolean pztk_rwlock_start_write_try_vista (PRWLock *lock);
-static pboolean pztk_rwlock_end_write_vista (PRWLock *lock);
+static pboolean pzrwlock_init_vista (PRWLock *lock);
+static void pzrwlock_close_vista (PRWLock *lock);
+static pboolean pzrwlock_start_read_vista (PRWLock *lock);
+static pboolean pzrwlock_start_read_try_vista (PRWLock *lock);
+static pboolean pzrwlock_end_read_vista (PRWLock *lock);
+static pboolean pzrwlock_start_write_vista (PRWLock *lock);
+static pboolean pzrwlock_start_write_try_vista (PRWLock *lock);
+static pboolean pzrwlock_end_write_vista (PRWLock *lock);
 
 /* Windows XP emulation routines */
-static pboolean pztk_rwlock_init_xp (PRWLock *lock);
-static void pztk_rwlock_close_xp (PRWLock *lock);
-static pboolean pztk_rwlock_start_read_xp (PRWLock *lock);
-static pboolean pztk_rwlock_start_read_try_xp (PRWLock *lock);
-static pboolean pztk_rwlock_end_read_xp (PRWLock *lock);
-static pboolean pztk_rwlock_start_write_xp (PRWLock *lock);
-static pboolean pztk_rwlock_start_write_try_xp (PRWLock *lock);
-static pboolean pztk_rwlock_end_write_xp (PRWLock *lock);
+static pboolean pzrwlock_init_xp (PRWLock *lock);
+static void pzrwlock_close_xp (PRWLock *lock);
+static pboolean pzrwlock_start_read_xp (PRWLock *lock);
+static pboolean pzrwlock_start_read_try_xp (PRWLock *lock);
+static pboolean pzrwlock_end_read_xp (PRWLock *lock);
+static pboolean pzrwlock_start_write_xp (PRWLock *lock);
+static pboolean pzrwlock_start_write_try_xp (PRWLock *lock);
+static pboolean pzrwlock_end_write_xp (PRWLock *lock);
 
 /* SRWLock routines */
 
 static pboolean
-pztk_rwlock_init_vista (PRWLock *lock)
+pzrwlock_init_vista (PRWLock *lock)
 {
-	pztk_rwlock_vista_table.rwl_init (lock);
+	pzrwlock_vista_table.rwl_init (lock);
 
 	return TRUE;
 }
 
 static void
-pztk_rwlock_close_vista (PRWLock *lock)
+pzrwlock_close_vista (PRWLock *lock)
 {
 	P_UNUSED (lock);
 }
 
 static pboolean
-pztk_rwlock_start_read_vista (PRWLock *lock)
+pzrwlock_start_read_vista (PRWLock *lock)
 {
-	pztk_rwlock_vista_table.rwl_shr_lock (lock);
+	pzrwlock_vista_table.rwl_shr_lock (lock);
 
 	return TRUE;
 }
 
 static pboolean
-pztk_rwlock_start_read_try_vista (PRWLock *lock)
+pzrwlock_start_read_try_vista (PRWLock *lock)
 {
-	return pztk_rwlock_vista_table.rwl_shr_lock_try (lock) != 0 ? TRUE : FALSE;
+	return pzrwlock_vista_table.rwl_shr_lock_try (lock) != 0 ? TRUE : FALSE;
 }
 
 static pboolean
-pztk_rwlock_end_read_vista (PRWLock *lock)
+pzrwlock_end_read_vista (PRWLock *lock)
 {
-	pztk_rwlock_vista_table.rwl_shr_rel (lock);
+	pzrwlock_vista_table.rwl_shr_rel (lock);
 
 	return TRUE;
 }
 
 static pboolean
-pztk_rwlock_start_write_vista (PRWLock *lock)
+pzrwlock_start_write_vista (PRWLock *lock)
 {
-	pztk_rwlock_vista_table.rwl_excl_lock (lock);
+	pzrwlock_vista_table.rwl_excl_lock (lock);
 
 	return TRUE;
 }
 
 static pboolean
-pztk_rwlock_start_write_try_vista (PRWLock *lock)
+pzrwlock_start_write_try_vista (PRWLock *lock)
 {
-	return pztk_rwlock_vista_table.rwl_excl_lock_try (lock) != 0 ? TRUE : FALSE;
+	return pzrwlock_vista_table.rwl_excl_lock_try (lock) != 0 ? TRUE : FALSE;
 }
 
 static pboolean
-pztk_rwlock_end_write_vista (PRWLock *lock)
+pzrwlock_end_write_vista (PRWLock *lock)
 {
-	pztk_rwlock_vista_table.rwl_excl_rel (lock);
+	pzrwlock_vista_table.rwl_excl_rel (lock);
 
 	return TRUE;
 }
@@ -173,12 +173,12 @@ pztk_rwlock_end_write_vista (PRWLock *lock)
 /* Windows XP emulation routines */
 
 static pboolean
-pztk_rwlock_init_xp (PRWLock *lock)
+pzrwlock_init_xp (PRWLock *lock)
 {
 	PRWLockXP *rwl_xp;
 
-	if ((lock->lock = ztk_malloc0 (sizeof (PRWLockXP))) == NULL) {
-		P_ERROR ("PRWLock::pztk_rwlock_init_xp: failed to allocate memory");
+	if ((lock->lock = zmalloc0 (sizeof (PRWLockXP))) == NULL) {
+		P_ERROR ("PRWLock::pzrwlock_init_xp: failed to allocate memory");
 		return FALSE;
 	}
 
@@ -188,8 +188,8 @@ pztk_rwlock_init_xp (PRWLock *lock)
 	rwl_xp->event = CreateEventA (NULL, FALSE, FALSE, NULL);
 
 	if (P_UNLIKELY (rwl_xp->event == NULL)) {
-		P_ERROR ("PRWLock::pztk_rwlock_init_xp: CreateEventA() failed");
-		ztk_free (lock->lock);
+		P_ERROR ("PRWLock::pzrwlock_init_xp: CreateEventA() failed");
+		zfree (lock->lock);
 		lock->lock = NULL;
 		return FALSE;
 	}
@@ -198,55 +198,55 @@ pztk_rwlock_init_xp (PRWLock *lock)
 }
 
 static void
-pztk_rwlock_close_xp (PRWLock *lock)
+pzrwlock_close_xp (PRWLock *lock)
 {
 	CloseHandle (((PRWLockXP *) lock->lock)->event);
-	ztk_free (lock->lock);
+	zfree (lock->lock);
 }
 
 static pboolean
-pztk_rwlock_start_read_xp (PRWLock *lock)
+pzrwlock_start_read_xp (PRWLock *lock)
 {
 	PRWLockXP	*rwl_xp = ((PRWLockXP *) lock->lock);
 	int		i;
-	puint32		tmztk_lock;
+	puint32		tmzlock;
 	puint32		counter;
 
 	for (i = 0; ; ++i) {
-		tmztk_lock = (puint32) ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
+		tmzlock = (puint32) zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
 
-		if (!P_RWLOCK_XP_IS_WRITER (tmztk_lock)) {
-			counter = P_RWLOCK_XP_SET_READERS (tmztk_lock, P_RWLOCK_XP_READER_COUNT (tmztk_lock) + 1);
+		if (!P_RWLOCK_XP_IS_WRITER (tmzlock)) {
+			counter = P_RWLOCK_XP_SET_READERS (tmzlock, P_RWLOCK_XP_READER_COUNT (tmzlock) + 1);
 
-			if (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-							       (pint) tmztk_lock,
+			if (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+							       (pint) tmzlock,
 							       (pint) counter) == TRUE)
 				return TRUE;
 			else
 				continue;
 		} else {
 			if (P_LIKELY (i < P_RWLOCK_XP_MAX_SPIN)) {
-				ztk_uthread_yield ();
+				zuthread_yield ();
 				continue;
 			}
 
-			counter = P_RWLOCK_XP_SET_WAITING (tmztk_lock, P_RWLOCK_XP_WAITING_COUNT (tmztk_lock) + 1);
+			counter = P_RWLOCK_XP_SET_WAITING (tmzlock, P_RWLOCK_XP_WAITING_COUNT (tmzlock) + 1);
 
-			if (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-							       (pint) tmztk_lock,
+			if (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+							       (pint) tmzlock,
 							       (pint) counter) != TRUE)
 				continue;
 
 			i = 0;
 
 			if (P_UNLIKELY (WaitForSingleObject (rwl_xp->event, INFINITE) != WAIT_OBJECT_0))
-				P_WARNING ("PRWLock::pztk_rwlock_start_read_xp: WaitForSingleObject() failed, go ahead");
+				P_WARNING ("PRWLock::pzrwlock_start_read_xp: WaitForSingleObject() failed, go ahead");
 
 			do {
-				tmztk_lock = ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
-				counter  = P_RWLOCK_XP_SET_WAITING (tmztk_lock, P_RWLOCK_XP_WAITING_COUNT (tmztk_lock) - 1);
-			} while (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-								    (pint) tmztk_lock,
+				tmzlock = zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
+				counter  = P_RWLOCK_XP_SET_WAITING (tmzlock, P_RWLOCK_XP_WAITING_COUNT (tmzlock) - 1);
+			} while (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+								    (pint) tmzlock,
 								    (pint) counter) != TRUE);
 		}
 	}
@@ -255,48 +255,48 @@ pztk_rwlock_start_read_xp (PRWLock *lock)
 }
 
 static pboolean
-pztk_rwlock_start_read_try_xp (PRWLock *lock)
+pzrwlock_start_read_try_xp (PRWLock *lock)
 {
 	PRWLockXP	*rwl_xp = ((PRWLockXP *) lock->lock);
-	puint32		tmztk_lock;
+	puint32		tmzlock;
 	puint32		counter;
 
-	tmztk_lock = (puint32) ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
+	tmzlock = (puint32) zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
 
-	if (P_RWLOCK_XP_IS_WRITER (tmztk_lock))
+	if (P_RWLOCK_XP_IS_WRITER (tmzlock))
 		return FALSE;
 
-	counter = P_RWLOCK_XP_SET_READERS (tmztk_lock, P_RWLOCK_XP_READER_COUNT (tmztk_lock) + 1);
+	counter = P_RWLOCK_XP_SET_READERS (tmzlock, P_RWLOCK_XP_READER_COUNT (tmzlock) + 1);
 
-	return ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-						  (pint) tmztk_lock,
+	return zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+						  (pint) tmzlock,
 						  (pint) counter);
 }
 
 static pboolean
-pztk_rwlock_end_read_xp (PRWLock *lock)
+pzrwlock_end_read_xp (PRWLock *lock)
 {
 	PRWLockXP	*rwl_xp = ((PRWLockXP *) lock->lock);
-	puint32		tmztk_lock;
+	puint32		tmzlock;
 	puint32		counter;
 
 	while (TRUE) {
-		tmztk_lock = (puint32) ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
-		counter  = P_RWLOCK_XP_READER_COUNT (tmztk_lock);
+		tmzlock = (puint32) zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
+		counter  = P_RWLOCK_XP_READER_COUNT (tmzlock);
 
 		if (P_UNLIKELY (counter == 0))
 			return TRUE;
 
-		if (counter == 1 && P_RWLOCK_XP_WAITING_COUNT (tmztk_lock) != 0) {
+		if (counter == 1 && P_RWLOCK_XP_WAITING_COUNT (tmzlock) != 0) {
 			/* A duplicate wake up notification is possible */
 			if (P_UNLIKELY (SetEvent (rwl_xp->event) == 0))
-				P_WARNING ("PRWLock::pztk_rwlock_end_read_xp: SetEvent() failed");
+				P_WARNING ("PRWLock::pzrwlock_end_read_xp: SetEvent() failed");
 		}
 
-		counter = P_RWLOCK_XP_SET_READERS (tmztk_lock, counter - 1);
+		counter = P_RWLOCK_XP_SET_READERS (tmzlock, counter - 1);
 
-		if (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-						       (pint) tmztk_lock,
+		if (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+						       (pint) tmzlock,
 						       (pint) counter) == TRUE)
 			break;
 	}
@@ -305,48 +305,48 @@ pztk_rwlock_end_read_xp (PRWLock *lock)
 }
 
 static pboolean
-pztk_rwlock_start_write_xp (PRWLock *lock)
+pzrwlock_start_write_xp (PRWLock *lock)
 {
 	PRWLockXP	*rwl_xp = ((PRWLockXP *) lock->lock);
 	int		i;
-	puint32		tmztk_lock;
+	puint32		tmzlock;
 	puint32		counter;
 
 	for (i = 0; ; ++i) {
-		tmztk_lock = (puint32) ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
+		tmzlock = (puint32) zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
 
-		if (P_RWLOCK_XP_IS_CLEAR (tmztk_lock)) {
-			counter = P_RWLOCK_XP_SET_WRITER (tmztk_lock);
+		if (P_RWLOCK_XP_IS_CLEAR (tmzlock)) {
+			counter = P_RWLOCK_XP_SET_WRITER (tmzlock);
 
-			if (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-							       (pint) tmztk_lock,
+			if (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+							       (pint) tmzlock,
 							       (pint) counter) == TRUE)
 				return TRUE;
 			else
 				continue;
 		} else {
 			if (P_LIKELY (i < P_RWLOCK_XP_MAX_SPIN)) {
-				ztk_uthread_yield ();
+				zuthread_yield ();
 				continue;
 			}
 
-			counter = P_RWLOCK_XP_SET_WAITING (tmztk_lock, P_RWLOCK_XP_WAITING_COUNT (tmztk_lock) + 1);
+			counter = P_RWLOCK_XP_SET_WAITING (tmzlock, P_RWLOCK_XP_WAITING_COUNT (tmzlock) + 1);
 
-			if (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-							       (pint) tmztk_lock,
+			if (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+							       (pint) tmzlock,
 							       (pint) counter) != TRUE)
 				continue;
 
 			i = 0;
 
 			if (P_UNLIKELY (WaitForSingleObject (rwl_xp->event, INFINITE) != WAIT_OBJECT_0))
-				P_WARNING ("PRWLock::pztk_rwlock_start_write_xp: WaitForSingleObject() failed, go ahead");
+				P_WARNING ("PRWLock::pzrwlock_start_write_xp: WaitForSingleObject() failed, go ahead");
 
 			do {
-				tmztk_lock = ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
-				counter  = P_RWLOCK_XP_SET_WAITING (tmztk_lock, P_RWLOCK_XP_WAITING_COUNT (tmztk_lock) - 1);
-			} while (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-								    (pint) tmztk_lock,
+				tmzlock = zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
+				counter  = P_RWLOCK_XP_SET_WAITING (tmzlock, P_RWLOCK_XP_WAITING_COUNT (tmzlock) - 1);
+			} while (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+								    (pint) tmzlock,
 								    (pint) counter) != TRUE);
 		}
 	}
@@ -355,46 +355,46 @@ pztk_rwlock_start_write_xp (PRWLock *lock)
 }
 
 static pboolean
-pztk_rwlock_start_write_try_xp (PRWLock *lock)
+pzrwlock_start_write_try_xp (PRWLock *lock)
 {
 	PRWLockXP	*rwl_xp = ((PRWLockXP *) lock->lock);
-	puint32		tmztk_lock;
+	puint32		tmzlock;
 
-	tmztk_lock = (puint32) ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
+	tmzlock = (puint32) zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
 
-	if (P_RWLOCK_XP_IS_CLEAR (tmztk_lock)) {
-		return ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-							  (pint) tmztk_lock,
-							  (pint) P_RWLOCK_XP_SET_WRITER (tmztk_lock));
+	if (P_RWLOCK_XP_IS_CLEAR (tmzlock)) {
+		return zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+							  (pint) tmzlock,
+							  (pint) P_RWLOCK_XP_SET_WRITER (tmzlock));
 	}
 
 	return FALSE;
 }
 
 static pboolean
-pztk_rwlock_end_write_xp (PRWLock *lock)
+pzrwlock_end_write_xp (PRWLock *lock)
 {
 	PRWLockXP	*rwl_xp = ((PRWLockXP *) lock->lock);
-	puint32		tmztk_lock;
+	puint32		tmzlock;
 
 	while (TRUE) {
 		while (TRUE) {
-			tmztk_lock = (puint32) ztk_atomic_int_get ((const volatile pint *) &rwl_xp->lock);
+			tmzlock = (puint32) zatomic_int_get ((const volatile pint *) &rwl_xp->lock);
 
-			if (P_UNLIKELY (!P_RWLOCK_XP_IS_WRITER (tmztk_lock)))
+			if (P_UNLIKELY (!P_RWLOCK_XP_IS_WRITER (tmzlock)))
 				return TRUE;
 
-			if (P_RWLOCK_XP_WAITING_COUNT (tmztk_lock) == 0)
+			if (P_RWLOCK_XP_WAITING_COUNT (tmzlock) == 0)
 				break;
 
 			/* Only the one end-of-write call can be */
 			if (P_UNLIKELY (SetEvent (rwl_xp->event) == 0))
-				P_WARNING ("PRWLock::pztk_rwlock_end_write_xp: SetEvent() failed");
+				P_WARNING ("PRWLock::pzrwlock_end_write_xp: SetEvent() failed");
 		}
 
-		if (ztk_atomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
-						       (pint) tmztk_lock,
-						       (pint) P_RWLOCK_XP_UNSET_WRITER (tmztk_lock)) == TRUE)
+		if (zatomic_int_compare_and_exchange ((volatile pint *) &rwl_xp->lock,
+						       (pint) tmzlock,
+						       (pint) P_RWLOCK_XP_UNSET_WRITER (tmzlock)) == TRUE)
 			break;
 	}
 
@@ -402,18 +402,18 @@ pztk_rwlock_end_write_xp (PRWLock *lock)
 }
 
 P_LIB_API PRWLock *
-ztk_rwlock_new (void)
+zrwlock_new (void)
 {
 	PRWLock *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PRWLock))) == NULL)) {
-		P_ERROR ("PRWLock::ztk_rwlock_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PRWLock))) == NULL)) {
+		P_ERROR ("PRWLock::zrwlock_new: failed to allocate memory");
 		return NULL;
 	}
 
-	if (P_UNLIKELY (pztk_rwlock_init_func (ret) != TRUE)) {
-		P_ERROR ("PRWLock::ztk_rwlock_new: failed to initialize");
-		ztk_free (ret);
+	if (P_UNLIKELY (pzrwlock_init_func (ret) != TRUE)) {
+		P_ERROR ("PRWLock::zrwlock_new: failed to initialize");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -421,128 +421,128 @@ ztk_rwlock_new (void)
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_lock (PRWLock *lock)
+zrwlock_reader_lock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	return pztk_rwlock_start_read_func (lock);
+	return pzrwlock_start_read_func (lock);
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_trylock (PRWLock *lock)
+zrwlock_reader_trylock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	return pztk_rwlock_start_read_try_func (lock);
+	return pzrwlock_start_read_try_func (lock);
 }
 
 P_LIB_API pboolean
-ztk_rwlock_reader_unlock (PRWLock *lock)
+zrwlock_reader_unlock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	return pztk_rwlock_end_read_func (lock);
+	return pzrwlock_end_read_func (lock);
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_lock (PRWLock *lock)
+zrwlock_writer_lock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	return pztk_rwlock_start_write_func (lock);
+	return pzrwlock_start_write_func (lock);
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_trylock (PRWLock *lock)
+zrwlock_writer_trylock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	return pztk_rwlock_start_write_try_func (lock);
+	return pzrwlock_start_write_try_func (lock);
 }
 
 P_LIB_API pboolean
-ztk_rwlock_writer_unlock (PRWLock *lock)
+zrwlock_writer_unlock (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return FALSE;
 
-	return pztk_rwlock_end_write_func (lock);
+	return pzrwlock_end_write_func (lock);
 }
 
 P_LIB_API void
-ztk_rwlock_free (PRWLock *lock)
+zrwlock_free (PRWLock *lock)
 {
 	if (P_UNLIKELY (lock == NULL))
 		return;
 
-	pztk_rwlock_close_func (lock);
-	ztk_free (lock);
+	pzrwlock_close_func (lock);
+	zfree (lock);
 }
 
 void
-ztk_rwlock_init (void)
+zrwlock_init (void)
 {
 	HMODULE hmodule;
 
 	hmodule = GetModuleHandleA ("kernel32.dll");
 
 	if (P_UNLIKELY (hmodule == NULL)) {
-		P_ERROR ("PRWLock::ztk_rwlock_init: failed to load kernel32.dll module");
+		P_ERROR ("PRWLock::zrwlock_init: failed to load kernel32.dll module");
 		return;
 	}
 
-	pztk_rwlock_vista_table.rwl_init = (InitializeSRWLockFunc) GetProcAddress (hmodule,
+	pzrwlock_vista_table.rwl_init = (InitializeSRWLockFunc) GetProcAddress (hmodule,
 										 "InitializeSRWLock");
 
-	if (P_LIKELY (pztk_rwlock_vista_table.rwl_init != NULL)) {
-		pztk_rwlock_vista_table.rwl_excl_lock     = (AcquireSRWLockExclusiveFunc) GetProcAddress (hmodule,
+	if (P_LIKELY (pzrwlock_vista_table.rwl_init != NULL)) {
+		pzrwlock_vista_table.rwl_excl_lock     = (AcquireSRWLockExclusiveFunc) GetProcAddress (hmodule,
 													"AcquireSRWLockExclusive");
-		pztk_rwlock_vista_table.rwl_excl_lock_try = (TryAcquireSRWLockExclusiveFunc) GetProcAddress (hmodule,
+		pzrwlock_vista_table.rwl_excl_lock_try = (TryAcquireSRWLockExclusiveFunc) GetProcAddress (hmodule,
 													   "TryAcquireSRWLockExclusive");
-		pztk_rwlock_vista_table.rwl_excl_rel      = (ReleaseSRWLockExclusiveFunc) GetProcAddress (hmodule,
+		pzrwlock_vista_table.rwl_excl_rel      = (ReleaseSRWLockExclusiveFunc) GetProcAddress (hmodule,
 													"ReleaseSRWLockExclusive");
-		pztk_rwlock_vista_table.rwl_shr_lock      = (AcquireSRWLockSharedFunc) GetProcAddress (hmodule,
+		pzrwlock_vista_table.rwl_shr_lock      = (AcquireSRWLockSharedFunc) GetProcAddress (hmodule,
 												     "AcquireSRWLockShared");
-		pztk_rwlock_vista_table.rwl_shr_lock_try  = (TryAcquireSRWLockSharedFunc) GetProcAddress (hmodule,
+		pzrwlock_vista_table.rwl_shr_lock_try  = (TryAcquireSRWLockSharedFunc) GetProcAddress (hmodule,
 													"TryAcquireSRWLockShared");
-		pztk_rwlock_vista_table.rwl_shr_rel       = (ReleaseSRWLockSharedFunc) GetProcAddress (hmodule,
+		pzrwlock_vista_table.rwl_shr_rel       = (ReleaseSRWLockSharedFunc) GetProcAddress (hmodule,
 												     "ReleaseSRWLockShared");
-		pztk_rwlock_init_func            = pztk_rwlock_init_vista;
-		pztk_rwlock_close_func           = pztk_rwlock_close_vista;
-		pztk_rwlock_start_read_func      = pztk_rwlock_start_read_vista;
-		pztk_rwlock_start_read_try_func  = pztk_rwlock_start_read_try_vista;
-		pztk_rwlock_end_read_func        = pztk_rwlock_end_read_vista;
-		pztk_rwlock_start_write_func     = pztk_rwlock_start_write_vista;
-		pztk_rwlock_start_write_try_func = pztk_rwlock_start_write_try_vista;
-		pztk_rwlock_end_write_func       = pztk_rwlock_end_write_vista;
+		pzrwlock_init_func            = pzrwlock_init_vista;
+		pzrwlock_close_func           = pzrwlock_close_vista;
+		pzrwlock_start_read_func      = pzrwlock_start_read_vista;
+		pzrwlock_start_read_try_func  = pzrwlock_start_read_try_vista;
+		pzrwlock_end_read_func        = pzrwlock_end_read_vista;
+		pzrwlock_start_write_func     = pzrwlock_start_write_vista;
+		pzrwlock_start_write_try_func = pzrwlock_start_write_try_vista;
+		pzrwlock_end_write_func       = pzrwlock_end_write_vista;
 	} else {
-		pztk_rwlock_init_func            = pztk_rwlock_init_xp;
-		pztk_rwlock_close_func           = pztk_rwlock_close_xp;
-		pztk_rwlock_start_read_func      = pztk_rwlock_start_read_xp;
-		pztk_rwlock_start_read_try_func  = pztk_rwlock_start_read_try_xp;
-		pztk_rwlock_end_read_func        = pztk_rwlock_end_read_xp;
-		pztk_rwlock_start_write_func     = pztk_rwlock_start_write_xp;
-		pztk_rwlock_start_write_try_func = pztk_rwlock_start_write_try_xp;
-		pztk_rwlock_end_write_func       = pztk_rwlock_end_write_xp;
+		pzrwlock_init_func            = pzrwlock_init_xp;
+		pzrwlock_close_func           = pzrwlock_close_xp;
+		pzrwlock_start_read_func      = pzrwlock_start_read_xp;
+		pzrwlock_start_read_try_func  = pzrwlock_start_read_try_xp;
+		pzrwlock_end_read_func        = pzrwlock_end_read_xp;
+		pzrwlock_start_write_func     = pzrwlock_start_write_xp;
+		pzrwlock_start_write_try_func = pzrwlock_start_write_try_xp;
+		pzrwlock_end_write_func       = pzrwlock_end_write_xp;
 	}
 }
 
 void
-ztk_rwlock_shutdown (void)
+zrwlock_shutdown (void)
 {
-	memset (&pztk_rwlock_vista_table, 0, sizeof (pztk_rwlock_vista_table));
+	memset (&pzrwlock_vista_table, 0, sizeof (pzrwlock_vista_table));
 
-	pztk_rwlock_init_func            = NULL;
-	pztk_rwlock_close_func           = NULL;
-	pztk_rwlock_start_read_func      = NULL;
-	pztk_rwlock_start_read_try_func  = NULL;
-	pztk_rwlock_end_read_func        = NULL;
-	pztk_rwlock_start_write_func     = NULL;
-	pztk_rwlock_start_write_try_func = NULL;
-	pztk_rwlock_end_write_func       = NULL;
+	pzrwlock_init_func            = NULL;
+	pzrwlock_close_func           = NULL;
+	pzrwlock_start_read_func      = NULL;
+	pzrwlock_start_read_try_func  = NULL;
+	pzrwlock_end_read_func        = NULL;
+	pzrwlock_start_write_func     = NULL;
+	pzrwlock_start_write_try_func = NULL;
+	pzrwlock_end_write_func       = NULL;
 }

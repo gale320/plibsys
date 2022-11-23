@@ -36,12 +36,12 @@ struct PHashGOST3411_ {
 	puint32	sum[8];  /* 256-bit sum of hashed data.     */
 };
 
-static void pztk_crypto_hash_gost3411_swaztk_bytes (puint32 *data, puint words);
-static void pztk_crypto_hash_gost3411_sum_256 (puint32 a[8], const puint32 b[8]);
-static void pztk_crypto_hash_gost3411_process (PHashGOST3411 *ctx, const puint32 data[8]);
+static void pzcrypto_hash_gost3411_swazbytes (puint32 *data, puint words);
+static void pzcrypto_hash_gost3411_sum_256 (puint32 a[8], const puint32 b[8]);
+static void pzcrypto_hash_gost3411_process (PHashGOST3411 *ctx, const puint32 data[8]);
 
 /* K block data from RFC4357 for GOST 28147-89 */
-/* static const puchar pztk_crypto_hash_gost3411_K_block[8][16] = {
+/* static const puchar pzcrypto_hash_gost3411_K_block[8][16] = {
 		{0x9, 0x6, 0x3, 0x2, 0x8, 0xB, 0x1, 0x7, 0xA, 0x4, 0xE, 0xF, 0xC, 0x0, 0xD, 0x5},
 		{0x3, 0x7, 0xE, 0x9, 0x8, 0xA, 0xF, 0x0, 0x5, 0x2, 0x6, 0xC, 0xB, 0x4, 0xD, 0x1},
 		{0xE, 0x4, 0x6, 0x2, 0xB, 0x3, 0xD, 0x8, 0xC, 0xF, 0x5, 0xA, 0x0, 0x7, 0x1, 0x9},
@@ -53,7 +53,7 @@ static void pztk_crypto_hash_gost3411_process (PHashGOST3411 *ctx, const puint32
 }; */
 
 /* K block data used by Russian Central Bank (see RFC 4357, sec. 11.2) */
-/* static const puchar pztk_crypto_hash_gost3411_K_block[8][16] = {
+/* static const puchar pzcrypto_hash_gost3411_K_block[8][16] = {
 		{0x4, 0xA, 0x9, 0x2, 0xD, 0x8, 0x0, 0xE, 0x6, 0xB, 0x1, 0xC, 0x7, 0xF, 0x5, 0x3},
 		{0xE, 0xB, 0x4, 0xC, 0x6, 0xD, 0xF, 0xA, 0x2, 0x3, 0x8, 0x1, 0x0, 0x7, 0x5, 0x9},
 		{0x5, 0x8, 0x1, 0xD, 0xA, 0x3, 0x4, 0x2, 0xE, 0xF, 0xC, 0x7, 0x6, 0x0, 0x9, 0xB},
@@ -65,7 +65,7 @@ static void pztk_crypto_hash_gost3411_process (PHashGOST3411 *ctx, const puint32
 }; */
 
  /* K block data id-GostR3411-94-CryptoProParamSet (see RFC 4357, sec. 11.2) */
-  static const puchar pztk_crypto_hash_gost3411_K_block[8][16] = {
+  static const puchar pzcrypto_hash_gost3411_K_block[8][16] = {
 		{0xA, 0x4, 0x5, 0x6, 0x8, 0x1, 0x3, 0x7, 0xD, 0xC, 0xE, 0x0, 0x9, 0x2, 0xB, 0xF},
 		{0x5, 0xF, 0x4, 0x0, 0x2, 0xD, 0xB, 0x9, 0x1, 0x7, 0x6, 0x3, 0xC, 0xE, 0xA, 0x8},
 		{0x7, 0xF, 0xC, 0xE, 0x9, 0x4, 0x1, 0x0, 0x3, 0xB, 0x5, 0x2, 0x6, 0xA, 0x8, 0xD},
@@ -83,14 +83,14 @@ static void pztk_crypto_hash_gost3411_process (PHashGOST3411 *ctx, const puint32
 											\
 	CM1 = (N)[0] + (key);								\
 											\
-	CM1 = ((puint32) pztk_crypto_hash_gost3411_K_block [0][CM1 & 0xF]			\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [1][(CM1 >> 4)  & 0xF] << 4	\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [2][(CM1 >> 8)  & 0xF] << 8	\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [3][(CM1 >> 12) & 0xF] << 12	\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [4][(CM1 >> 16) & 0xF] << 16	\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [5][(CM1 >> 20) & 0xF] << 20	\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [6][(CM1 >> 24) & 0xF] << 24	\
-	    |  (puint32) pztk_crypto_hash_gost3411_K_block [7][(CM1 >> 28) & 0xF] << 28);	\
+	CM1 = ((puint32) pzcrypto_hash_gost3411_K_block [0][CM1 & 0xF]			\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [1][(CM1 >> 4)  & 0xF] << 4	\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [2][(CM1 >> 8)  & 0xF] << 8	\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [3][(CM1 >> 12) & 0xF] << 12	\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [4][(CM1 >> 16) & 0xF] << 16	\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [5][(CM1 >> 20) & 0xF] << 20	\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [6][(CM1 >> 24) & 0xF] << 24	\
+	    |  (puint32) pzcrypto_hash_gost3411_K_block [7][(CM1 >> 28) & 0xF] << 28);	\
 											\
 	CM1 = ((CM1 << 11) | (CM1 >> 21)) ^ (N)[1];					\
 	(N)[1] = (N)[0];								\
@@ -182,7 +182,7 @@ static void pztk_crypto_hash_gost3411_process (PHashGOST3411 *ctx, const puint32
 }
 
 static void
-pztk_crypto_hash_gost3411_swaztk_bytes (puint32	*data,
+pzcrypto_hash_gost3411_swazbytes (puint32	*data,
 				    puint	words)
 {
 #ifndef PLIBSYS_IS_BIGENDIAN
@@ -198,7 +198,7 @@ pztk_crypto_hash_gost3411_swaztk_bytes (puint32	*data,
 
 /* 256-bit sum */
 static void
-pztk_crypto_hash_gost3411_sum_256 (puint32	a[8],
+pzcrypto_hash_gost3411_sum_256 (puint32	a[8],
 				 const puint32	b[8])
 {
 	puint		i;
@@ -214,7 +214,7 @@ pztk_crypto_hash_gost3411_sum_256 (puint32	a[8],
 }
 
 /* Core GOST R 34.11-94 transformation */
-static void pztk_crypto_hash_gost3411_process (PHashGOST3411	*ctx,
+static void pzcrypto_hash_gost3411_process (PHashGOST3411	*ctx,
 					     const puint32	data[8])
 {
 	puint32 U[8], V[8], W[8], S[8], K[4][8];
@@ -388,20 +388,20 @@ static void pztk_crypto_hash_gost3411_process (PHashGOST3411	*ctx,
 }
 
 PHashGOST3411 *
-ztk_crypto_hash_gost3411_new (void)
+zcrypto_hash_gost3411_new (void)
 {
 	PHashGOST3411 *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PHashGOST3411))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PHashGOST3411))) == NULL))
 		return NULL;
 
-	ztk_crypto_hash_gost3411_reset (ret);
+	zcrypto_hash_gost3411_reset (ret);
 
 	return ret;
 }
 
 void
-ztk_crypto_hash_gost3411_update (PHashGOST3411	*ctx,
+zcrypto_hash_gost3411_update (PHashGOST3411	*ctx,
 			       const puchar	*data,
 			       psize		len)
 {
@@ -414,13 +414,13 @@ ztk_crypto_hash_gost3411_update (PHashGOST3411	*ctx,
 	len256[0] = (puint32) (len << 3);
 	len256[1] = (puint32) (len >> 29);
 
-	pztk_crypto_hash_gost3411_sum_256 (ctx->len, len256);
+	pzcrypto_hash_gost3411_sum_256 (ctx->len, len256);
 
 	if (left && (puint32) len >= to_fill) {
 		memcpy ((pchar *) ctx->buf + left, data, to_fill);
-		pztk_crypto_hash_gost3411_swaztk_bytes (ctx->buf, 8);
-		pztk_crypto_hash_gost3411_process (ctx, ctx->buf);
-		pztk_crypto_hash_gost3411_sum_256 (ctx->sum, ctx->buf);
+		pzcrypto_hash_gost3411_swazbytes (ctx->buf, 8);
+		pzcrypto_hash_gost3411_process (ctx, ctx->buf);
+		pzcrypto_hash_gost3411_sum_256 (ctx->sum, ctx->buf);
 
 		data += to_fill;
 		len -= to_fill;
@@ -429,9 +429,9 @@ ztk_crypto_hash_gost3411_update (PHashGOST3411	*ctx,
 
 	while (len >= 32) {
 		memcpy (ctx->buf, data, 32);
-		pztk_crypto_hash_gost3411_swaztk_bytes (ctx->buf, 8);
-		pztk_crypto_hash_gost3411_process (ctx, ctx->buf);
-		pztk_crypto_hash_gost3411_sum_256 (ctx->sum, ctx->buf);
+		pzcrypto_hash_gost3411_swazbytes (ctx->buf, 8);
+		pzcrypto_hash_gost3411_process (ctx, ctx->buf);
+		pzcrypto_hash_gost3411_sum_256 (ctx->sum, ctx->buf);
 
 		data += 32;
 		len -= 32;
@@ -442,7 +442,7 @@ ztk_crypto_hash_gost3411_update (PHashGOST3411	*ctx,
 }
 
 void
-ztk_crypto_hash_gost3411_finish (PHashGOST3411 *ctx)
+zcrypto_hash_gost3411_finish (PHashGOST3411 *ctx)
 {
 	puint32 left, last;
 
@@ -451,25 +451,25 @@ ztk_crypto_hash_gost3411_finish (PHashGOST3411 *ctx)
 
 	if (last % 32 != 0) {
 		memset ((pchar *) ctx->buf + (left >> 3), 0, last);
-		pztk_crypto_hash_gost3411_swaztk_bytes (ctx->buf, 8);
-		pztk_crypto_hash_gost3411_process (ctx, ctx->buf);
-		pztk_crypto_hash_gost3411_sum_256 (ctx->sum, ctx->buf);
+		pzcrypto_hash_gost3411_swazbytes (ctx->buf, 8);
+		pzcrypto_hash_gost3411_process (ctx, ctx->buf);
+		pzcrypto_hash_gost3411_sum_256 (ctx->sum, ctx->buf);
 	}
 
-	pztk_crypto_hash_gost3411_process (ctx, ctx->len);
-	pztk_crypto_hash_gost3411_process (ctx, ctx->sum);
+	pzcrypto_hash_gost3411_process (ctx, ctx->len);
+	pzcrypto_hash_gost3411_process (ctx, ctx->sum);
 
-	pztk_crypto_hash_gost3411_swaztk_bytes (ctx->hash, 8);
+	pzcrypto_hash_gost3411_swazbytes (ctx->hash, 8);
 }
 
 const puchar *
-ztk_crypto_hash_gost3411_digest (PHashGOST3411 *ctx)
+zcrypto_hash_gost3411_digest (PHashGOST3411 *ctx)
 {
 	return (const puchar *) ctx->hash;
 }
 
 void
-ztk_crypto_hash_gost3411_reset (PHashGOST3411 *ctx)
+zcrypto_hash_gost3411_reset (PHashGOST3411 *ctx)
 {
 	memset (ctx->buf, 0, 32);
 	memset (ctx->hash, 0, 32);
@@ -478,7 +478,7 @@ ztk_crypto_hash_gost3411_reset (PHashGOST3411 *ctx)
 }
 
 void
-ztk_crypto_hash_gost3411_free (PHashGOST3411 *ctx)
+zcrypto_hash_gost3411_free (PHashGOST3411 *ctx)
 {
-	ztk_free (ctx);
+	zfree (ctx);
 }

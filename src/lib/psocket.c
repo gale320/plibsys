@@ -99,12 +99,12 @@ struct PSocket_ {
 #  define P_SOCKET_DEFAULT_SEND_FLAGS	0
 #endif
 
-static pboolean pztk_socket_set_fd_blocking (pint fd, pboolean blocking, PError **error);
-static pboolean pztk_socket_check (const PSocket *socket, PError **error);
-static pboolean pztk_socket_set_details_from_fd (PSocket *socket, PError **error);
+static pboolean pzsocket_set_fd_blocking (pint fd, pboolean blocking, PError **error);
+static pboolean pzsocket_check (const PSocket *socket, PError **error);
+static pboolean pzsocket_set_details_from_fd (PSocket *socket, PError **error);
 
 static pboolean
-pztk_socket_set_fd_blocking (pint		fd,
+pzsocket_set_fd_blocking (pint		fd,
 			   pboolean	blocking,
 			   PError	**error)
 {
@@ -127,7 +127,7 @@ pztk_socket_set_fd_blocking (pint		fd,
 #    endif
 #  else
 	if (P_UNLIKELY ((arg = fcntl (fd, F_GETFL, NULL)) < 0)) {
-		P_WARNING ("PSocket::pztk_socket_set_fd_blocking: fcntl() failed");
+		P_WARNING ("PSocket::pzsocket_set_fd_blocking: fcntl() failed");
 		arg = 0;
 	}
 
@@ -140,9 +140,9 @@ pztk_socket_set_fd_blocking (pint		fd,
 
 	if (P_UNLIKELY (ioctlsocket (fd, FIONBIO, &arg) == SOCKET_ERROR)) {
 #endif
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to set socket blocking flags");
 		return FALSE;
 	}
@@ -151,11 +151,11 @@ pztk_socket_set_fd_blocking (pint		fd,
 }
 
 static pboolean
-pztk_socket_check (const PSocket *socket,
+pzsocket_check (const PSocket *socket,
 		  PError	**error)
 {
 	if (P_UNLIKELY (socket->closed))  {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NOT_AVAILABLE,
 				     0,
 				     "Socket is already closed");
@@ -166,7 +166,7 @@ pztk_socket_check (const PSocket *socket,
 }
 
 static pboolean
-pztk_socket_set_details_from_fd (PSocket	*socket,
+pzsocket_set_details_from_fd (PSocket	*socket,
 				PError	**error)
 {
 #ifdef SO_DOMAIN
@@ -186,15 +186,15 @@ pztk_socket_set_details_from_fd (PSocket	*socket,
 	optlen = sizeof (value);
 
 	if (P_UNLIKELY (getsockopt (fd, SOL_SOCKET, SO_TYPE, (ppointer) &value, &optlen) != 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call getsockopt() to get socket info for fd");
 		return FALSE;
 	}
 
 	if (P_UNLIKELY (optlen != sizeof (value))) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Failed to get socket info for fd, bad option length");
@@ -224,9 +224,9 @@ pztk_socket_set_details_from_fd (PSocket	*socket,
 	addrlen = sizeof (address);
 
 	if (P_UNLIKELY (getsockname (fd, (struct sockaddr *) &address, &addrlen) != 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call getsockname() to get socket address info");
 		return FALSE;
 	}
@@ -240,9 +240,9 @@ pztk_socket_set_details_from_fd (PSocket	*socket,
 					    SO_DOMAIN,
 					    (ppointer) &family,
 					    &optlen) != 0)) {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-					     (pint) ztk_error_get_last_net (),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+					     (pint) zerror_get_last_net (),
 					     "Failed to call getsockopt() to get socket SO_DOMAIN option");
 			return FALSE;
 		}
@@ -298,7 +298,7 @@ pztk_socket_set_details_from_fd (PSocket	*socket,
 		 * actually a char on Windows, even if documentation claims it
 		 * to be a BOOL which is a typedef for int. */
 		if (optlen != sizeof (bool_val))
-			P_WARNING ("PSocket::pztk_socket_set_details_from_fd: getsockopt() with SO_KEEPALIVE failed");
+			P_WARNING ("PSocket::pzsocket_set_details_from_fd: getsockopt() with SO_KEEPALIVE failed");
 #endif
 		socket->keepalive = !!bool_val;
 	}  else
@@ -309,7 +309,7 @@ pztk_socket_set_details_from_fd (PSocket	*socket,
 }
 
 pboolean
-ztk_socket_init_once (void)
+zsocket_init_once (void)
 {
 #ifdef P_OS_WIN
 	WORD	ver_req;
@@ -333,7 +333,7 @@ ztk_socket_init_once (void)
 }
 
 void
-ztk_socket_close_once (void)
+zsocket_close_once (void)
 {
 #ifdef P_OS_WIN
 	WSACleanup ();
@@ -341,7 +341,7 @@ ztk_socket_close_once (void)
 }
 
 P_LIB_API PSocket *
-ztk_socket_new_from_fd (pint	fd,
+zsocket_new_from_fd (pint	fd,
 		      PError	**error)
 {
 	PSocket	*ret;
@@ -350,15 +350,15 @@ ztk_socket_new_from_fd (pint	fd,
 #endif
 
 	if (P_UNLIKELY (fd < 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Unable to create socket from bad fd");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSocket))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSocket))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for socket");
@@ -367,13 +367,13 @@ ztk_socket_new_from_fd (pint	fd,
 
 	ret->fd = fd;
 
-	if (P_UNLIKELY (pztk_socket_set_details_from_fd (ret, error) == FALSE)) {
-		ztk_free (ret);
+	if (P_UNLIKELY (pzsocket_set_details_from_fd (ret, error) == FALSE)) {
+		zfree (ret);
 		return NULL;
 	}
 
-	if (P_UNLIKELY (pztk_socket_set_fd_blocking (ret->fd, FALSE, error) == FALSE)) {
-		ztk_free (ret);
+	if (P_UNLIKELY (pzsocket_set_fd_blocking (ret->fd, FALSE, error) == FALSE)) {
+		zfree (ret);
 		return NULL;
 	}
 
@@ -381,32 +381,32 @@ ztk_socket_new_from_fd (pint	fd,
 	flags = 1;
 
 	if (setsockopt (ret->fd, SOL_SOCKET, SO_NOSIGPIPE, &flags, sizeof (flags)) < 0)
-		P_WARNING ("PSocket::ztk_socket_new_from_fd: setsockopt() with SO_NOSIGPIPE failed");
+		P_WARNING ("PSocket::zsocket_new_from_fd: setsockopt() with SO_NOSIGPIPE failed");
 #endif
 
-	ztk_socket_set_listen_backlog (ret, P_SOCKET_DEFAULT_BACKLOG);
+	zsocket_set_listen_backlog (ret, P_SOCKET_DEFAULT_BACKLOG);
 
 	ret->timeout  = 0;
 	ret->blocking = TRUE;
 
 #ifdef P_OS_SCO
-	if (P_UNLIKELY ((ret->timer = ztk_time_profiler_new ()) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret->timer = ztime_profiler_new ()) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for internal timer");
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 #endif
 
 #ifdef P_OS_WIN
 	if (P_UNLIKELY ((ret->events = WSACreateEvent ()) == WSA_INVALID_EVENT)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
-				     (pint) ztk_error_get_last_net (),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call WSACreateEvent() on socket");
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 #endif
@@ -415,7 +415,7 @@ ztk_socket_new_from_fd (pint	fd,
 }
 
 P_LIB_API PSocket *
-ztk_socket_new (PSocketFamily	family,
+zsocket_new (PSocketFamily	family,
 	      PSocketType	type,
 	      PSocketProtocol	protocol,
 	      PError		**error)
@@ -429,7 +429,7 @@ ztk_socket_new (PSocketFamily	family,
 	if (P_UNLIKELY (family   == P_SOCKET_FAMILY_UNKNOWN ||
 			type     == P_SOCKET_TYPE_UNKNOWN   ||
 			protocol == P_SOCKET_PROTOCOL_UNKNOWN)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input socket family, type or protocol");
@@ -452,15 +452,15 @@ ztk_socket_new (PSocketFamily	family,
 #endif
 
 	default:
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Unable to create socket with unknown family");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSocket))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSocket))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for socket");
@@ -468,12 +468,12 @@ ztk_socket_new (PSocketFamily	family,
 	}
 
 #ifdef P_OS_SCO
-	if (P_UNLIKELY ((ret->timer = ztk_time_profiler_new ()) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret->timer = ztime_profiler_new ()) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for internal timer");
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 #endif
@@ -482,14 +482,14 @@ ztk_socket_new (PSocketFamily	family,
 	native_type |= SOCK_CLOEXEC;
 #endif
 	if (P_UNLIKELY ((fd = (pint) socket (family, native_type, protocol)) < 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call socket() to create socket");
 #ifdef P_OS_SCO
-		ztk_time_profiler_free (ret->timer);
+		ztime_profiler_free (ret->timer);
 #endif
-		ztk_free (ret);
+		zfree (ret);
 		return NULL;
 	}
 
@@ -500,7 +500,7 @@ ztk_socket_new (PSocketFamily	family,
 		flags |= FD_CLOEXEC;
 
 		if (P_UNLIKELY (fcntl (fd, F_SETFD, flags) < 0))
-			P_WARNING ("PSocket::ztk_socket_new: fcntl() with FD_CLOEXEC failed");
+			P_WARNING ("PSocket::zsocket_new: fcntl() with FD_CLOEXEC failed");
 	}
 #endif
 
@@ -510,8 +510,8 @@ ztk_socket_new (PSocketFamily	family,
 	ret->events = WSA_INVALID_EVENT;
 #endif
 
-	if (P_UNLIKELY (pztk_socket_set_fd_blocking (ret->fd, FALSE, error) == FALSE)) {
-		ztk_socket_free (ret);
+	if (P_UNLIKELY (pzsocket_set_fd_blocking (ret->fd, FALSE, error) == FALSE)) {
+		zsocket_free (ret);
 		return NULL;
 	}
 
@@ -519,7 +519,7 @@ ztk_socket_new (PSocketFamily	family,
 	flags = 1;
 
 	if (setsockopt (ret->fd, SOL_SOCKET, SO_NOSIGPIPE, &flags, sizeof (flags)) < 0)
-		P_WARNING ("PSocket::ztk_socket_new: setsockopt() with SO_NOSIGPIPE failed");
+		P_WARNING ("PSocket::zsocket_new: setsockopt() with SO_NOSIGPIPE failed");
 #endif
 
 	ret->timeout  = 0;
@@ -528,15 +528,15 @@ ztk_socket_new (PSocketFamily	family,
 	ret->protocol = protocol;
 	ret->type     = type;
 
-	ztk_socket_set_listen_backlog (ret, P_SOCKET_DEFAULT_BACKLOG);
+	zsocket_set_listen_backlog (ret, P_SOCKET_DEFAULT_BACKLOG);
 
 #ifdef P_OS_WIN
 	if (P_UNLIKELY ((ret->events = WSACreateEvent ()) == WSA_INVALID_EVENT)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
-				     (pint) ztk_error_get_last_net (),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call WSACreateEvent() on socket");
-		ztk_socket_free (ret);
+		zsocket_free (ret);
 		return NULL;
 	}
 #endif
@@ -545,7 +545,7 @@ ztk_socket_new (PSocketFamily	family,
 }
 
 P_LIB_API pint
-ztk_socket_get_fd (const PSocket *socket)
+zsocket_get_fd (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return -1;
@@ -554,7 +554,7 @@ ztk_socket_get_fd (const PSocket *socket)
 }
 
 P_LIB_API PSocketFamily
-ztk_socket_get_family (const PSocket *socket)
+zsocket_get_family (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return P_SOCKET_FAMILY_UNKNOWN;
@@ -563,7 +563,7 @@ ztk_socket_get_family (const PSocket *socket)
 }
 
 P_LIB_API PSocketType
-ztk_socket_get_type (const PSocket *socket)
+zsocket_get_type (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return P_SOCKET_TYPE_UNKNOWN;
@@ -572,7 +572,7 @@ ztk_socket_get_type (const PSocket *socket)
 }
 
 P_LIB_API PSocketProtocol
-ztk_socket_get_protocol (const PSocket *socket)
+zsocket_get_protocol (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return P_SOCKET_PROTOCOL_UNKNOWN;
@@ -581,7 +581,7 @@ ztk_socket_get_protocol (const PSocket *socket)
 }
 
 P_LIB_API pboolean
-ztk_socket_get_keepalive (const PSocket *socket)
+zsocket_get_keepalive (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return FALSE;
@@ -590,7 +590,7 @@ ztk_socket_get_keepalive (const PSocket *socket)
 }
 
 P_LIB_API pboolean
-ztk_socket_get_blocking (PSocket *socket)
+zsocket_get_blocking (PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return FALSE;
@@ -599,7 +599,7 @@ ztk_socket_get_blocking (PSocket *socket)
 }
 
 P_LIB_API int
-ztk_socket_get_listen_backlog (const PSocket *socket)
+zsocket_get_listen_backlog (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return -1;
@@ -608,7 +608,7 @@ ztk_socket_get_listen_backlog (const PSocket *socket)
 }
 
 P_LIB_API pint
-ztk_socket_get_timeout (const PSocket *socket)
+zsocket_get_timeout (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return -1;
@@ -617,7 +617,7 @@ ztk_socket_get_timeout (const PSocket *socket)
 }
 
 P_LIB_API PSocketAddress *
-ztk_socket_get_local_address (const PSocket	*socket,
+zsocket_get_local_address (const PSocket	*socket,
 			    PError		**error)
 {
 	struct sockaddr_storage	buffer;
@@ -625,7 +625,7 @@ ztk_socket_get_local_address (const PSocket	*socket,
 	PSocketAddress		*ret;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -635,17 +635,17 @@ ztk_socket_get_local_address (const PSocket	*socket,
 	len = sizeof (buffer);
 
 	if (P_UNLIKELY (getsockname (socket->fd, (struct sockaddr *) &buffer, &len) < 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call getsockname() to get local socket address");
 		return NULL;
 	}
 
-	ret = ztk_socket_address_new_from_native (&buffer, (psize) len);
+	ret = zsocket_address_new_from_native (&buffer, (psize) len);
 
 	if (P_UNLIKELY (ret == NULL))
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
 				     0,
 				     "Failed to create socket address from native structure");
@@ -654,7 +654,7 @@ ztk_socket_get_local_address (const PSocket	*socket,
 }
 
 P_LIB_API PSocketAddress *
-ztk_socket_get_remote_address (const PSocket	*socket,
+zsocket_get_remote_address (const PSocket	*socket,
 			     PError		**error)
 {
 	struct sockaddr_storage	buffer;
@@ -662,7 +662,7 @@ ztk_socket_get_remote_address (const PSocket	*socket,
 	PSocketAddress		*ret;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -672,9 +672,9 @@ ztk_socket_get_remote_address (const PSocket	*socket,
 	len = sizeof (buffer);
 
 	if (P_UNLIKELY (getpeername (socket->fd, (struct sockaddr *) &buffer, &len) < 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call getpeername() to get remote socket address");
 		return NULL;
 	}
@@ -683,13 +683,13 @@ ztk_socket_get_remote_address (const PSocket	*socket,
 	/* Syllable has a bug with a wrong byte order for a TCP port,
 	 * as it only supports IPv4 we can easily fix it here. */
 	((struct sockaddr_in *) &buffer)->sin_port =
-			ztk_htons (((struct sockaddr_in *) &buffer)->sin_port);
+			zhtons (((struct sockaddr_in *) &buffer)->sin_port);
 #endif
 
-	ret = ztk_socket_address_new_from_native (&buffer, (psize) len);
+	ret = zsocket_address_new_from_native (&buffer, (psize) len);
 
 	if (P_UNLIKELY (ret == NULL))
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
 				     0,
 				     "Failed to create socket address from native structure");
@@ -698,7 +698,7 @@ ztk_socket_get_remote_address (const PSocket	*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_is_connected (const PSocket *socket)
+zsocket_is_connected (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return FALSE;
@@ -707,7 +707,7 @@ ztk_socket_is_connected (const PSocket *socket)
 }
 
 P_LIB_API pboolean
-ztk_socket_is_closed (const PSocket *socket)
+zsocket_is_closed (const PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return TRUE;
@@ -716,14 +716,14 @@ ztk_socket_is_closed (const PSocket *socket)
 }
 
 P_LIB_API pboolean
-ztk_socket_check_connect_result (PSocket  *socket,
+zsocket_check_connect_result (PSocket  *socket,
 			       PError	**error)
 {
 	socklen_t	optlen;
 	pint		val;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -733,16 +733,16 @@ ztk_socket_check_connect_result (PSocket  *socket,
 	optlen = sizeof (val);
 
 	if (P_UNLIKELY (getsockopt (socket->fd, SOL_SOCKET, SO_ERROR, (ppointer) &val, &optlen) < 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call getsockopt() to get connection status");
 		return FALSE;
 	}
 
 	if (P_UNLIKELY (val != 0))
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (val),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (val),
 				     val,
 				     "Error in socket layer");
 
@@ -752,7 +752,7 @@ ztk_socket_check_connect_result (PSocket  *socket,
 }
 
 P_LIB_API void
-ztk_socket_set_keepalive (PSocket		*socket,
+zsocket_set_keepalive (PSocket		*socket,
 			pboolean	keepalive)
 {
 #ifdef P_OS_WIN
@@ -773,7 +773,7 @@ ztk_socket_set_keepalive (PSocket		*socket,
 	value = !! (pint) keepalive;
 #endif
 	if (setsockopt (socket->fd, SOL_SOCKET, SO_KEEPALIVE, &value, sizeof (value)) < 0) {
-		P_WARNING ("PSocket::ztk_socket_set_keepalive: setsockopt() with SO_KEEPALIVE failed");
+		P_WARNING ("PSocket::zsocket_set_keepalive: setsockopt() with SO_KEEPALIVE failed");
 		return;
 	}
 
@@ -781,7 +781,7 @@ ztk_socket_set_keepalive (PSocket		*socket,
 }
 
 P_LIB_API void
-ztk_socket_set_blocking (PSocket	*socket,
+zsocket_set_blocking (PSocket	*socket,
 		       pboolean	blocking)
 {
 	if (P_UNLIKELY (socket == NULL))
@@ -791,7 +791,7 @@ ztk_socket_set_blocking (PSocket	*socket,
 }
 
 P_LIB_API void
-ztk_socket_set_listen_backlog (PSocket	*socket,
+zsocket_set_listen_backlog (PSocket	*socket,
 			     pint	backlog)
 {
 	if (P_UNLIKELY (socket == NULL || socket->listening))
@@ -801,7 +801,7 @@ ztk_socket_set_listen_backlog (PSocket	*socket,
 }
 
 P_LIB_API void
-ztk_socket_set_timeout (PSocket	*socket,
+zsocket_set_timeout (PSocket	*socket,
 		      pint	timeout)
 {
 	if (P_UNLIKELY (socket == NULL))
@@ -814,7 +814,7 @@ ztk_socket_set_timeout (PSocket	*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_bind (const PSocket	*socket,
+zsocket_bind (const PSocket	*socket,
 	       PSocketAddress	*address,
 	       pboolean		allow_reuse,
 	       PError		**error)
@@ -832,14 +832,14 @@ ztk_socket_bind (const PSocket	*socket,
 #endif
 
 	if (P_UNLIKELY (socket == NULL || address == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	/* Windows allows to reuse the same address even for an active TCP
@@ -856,7 +856,7 @@ ztk_socket_bind (const PSocket	*socket,
 #endif
 
 	if (setsockopt (socket->fd, SOL_SOCKET, SO_REUSEADDR, &value, sizeof (value)) < 0)
-		P_WARNING ("PSocket::ztk_socket_bind: setsockopt() with SO_REUSEADDR failed");
+		P_WARNING ("PSocket::zsocket_bind: setsockopt() with SO_REUSEADDR failed");
 
 #ifdef SO_REUSEPORT
 	reuse_port = allow_reuse && (socket->type == P_SOCKET_TYPE_DATAGRAM);
@@ -868,11 +868,11 @@ ztk_socket_bind (const PSocket	*socket,
 #  endif
 
 	if (setsockopt (socket->fd, SOL_SOCKET, SO_REUSEPORT, &value, sizeof (value)) < 0)
-		P_WARNING ("PSocket::ztk_socket_bind: setsockopt() with SO_REUSEPORT failed");
+		P_WARNING ("PSocket::zsocket_bind: setsockopt() with SO_REUSEPORT failed");
 #endif
 
-	if (P_UNLIKELY (ztk_socket_address_to_native (address, &addr, sizeof (addr)) == FALSE)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY (zsocket_address_to_native (address, &addr, sizeof (addr)) == FALSE)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
 				     0,
 				     "Failed to convert socket address to native structure");
@@ -881,10 +881,10 @@ ztk_socket_bind (const PSocket	*socket,
 
 	if (P_UNLIKELY (bind (socket->fd,
 			      (struct sockaddr *) &addr,
-			      (socklen_t) ztk_socket_address_get_native_size (address)) < 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+			      (socklen_t) zsocket_address_get_native_size (address)) < 0)) {
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call bind() on socket");
 		return FALSE;
 	}
@@ -893,7 +893,7 @@ ztk_socket_bind (const PSocket	*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_connect (PSocket		*socket,
+zsocket_connect (PSocket		*socket,
 		  PSocketAddress	*address,
 		  PError		**error)
 {
@@ -903,18 +903,18 @@ ztk_socket_connect (PSocket		*socket,
 	PErrorIO		sock_err;
 
 	if (P_UNLIKELY (socket == NULL || address == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
-	if (P_UNLIKELY (ztk_socket_address_to_native (address, &buffer, sizeof (buffer)) == FALSE)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY (zsocket_address_to_native (address, &buffer, sizeof (buffer)) == FALSE)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
 				     0,
 				     "Failed to convert socket address to native structure");
@@ -924,12 +924,12 @@ ztk_socket_connect (PSocket		*socket,
 #if !defined (P_OS_WIN) && defined (EINTR)
 	for (;;) {
 		conn_result = connect (socket->fd, (struct sockaddr *) &buffer,
-				       (socklen_t) ztk_socket_address_get_native_size (address));
+				       (socklen_t) zsocket_address_get_native_size (address));
 
 		if (P_LIKELY (conn_result == 0))
 			break;
 
-		err_code = ztk_error_get_last_net ();
+		err_code = zerror_get_last_net ();
 
 		if (err_code == EINTR)
 			continue;
@@ -938,10 +938,10 @@ ztk_socket_connect (PSocket		*socket,
 	}
 #else
 	conn_result = connect (socket->fd, (struct sockaddr *) &buffer,
-			       (pint) ztk_socket_address_get_native_size (address));
+			       (pint) zsocket_address_get_native_size (address));
 
 	if (conn_result != 0)
-		err_code = ztk_error_get_last_net ();
+		err_code = zerror_get_last_net ();
 #endif
 
 	if (conn_result == 0) {
@@ -949,24 +949,24 @@ ztk_socket_connect (PSocket		*socket,
 		return TRUE;
 	}
 
-	sock_err = ztk_error_get_io_from_system (err_code);
+	sock_err = zerror_get_io_from_system (err_code);
 
 	if (P_LIKELY (sock_err == P_ERROR_IO_WOULD_BLOCK || sock_err == P_ERROR_IO_IN_PROGRESS)) {
 		if (socket->blocking) {
-			if (ztk_socket_io_condition_wait (socket,
+			if (zsocket_io_condition_wait (socket,
 							P_SOCKET_IO_CONDITION_POLLOUT,
 							error) == TRUE &&
-			    ztk_socket_check_connect_result (socket, error) == TRUE) {
+			    zsocket_check_connect_result (socket, error) == TRUE) {
 				socket->connected = TRUE;
 				return TRUE;
 			}
 		} else
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) sock_err,
 					     err_code,
 					     "Couldn't block non-blocking socket");
 	} else
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) sock_err,
 				     err_code,
 				     "Failed to call connect() on socket");
@@ -975,24 +975,24 @@ ztk_socket_connect (PSocket		*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_listen (PSocket	*socket,
+zsocket_listen (PSocket	*socket,
 		 PError		**error)
 {
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	if (P_UNLIKELY (listen (socket->fd, socket->listen_backlog) < 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call listen() on socket");
 		return FALSE;
 	}
@@ -1002,7 +1002,7 @@ ztk_socket_listen (PSocket	*socket,
 }
 
 P_LIB_API PSocket *
-ztk_socket_accept (const PSocket	*socket,
+zsocket_accept (const PSocket	*socket,
 		 PError		**error)
 {
 	PSocket		*ret;
@@ -1014,35 +1014,35 @@ ztk_socket_accept (const PSocket	*socket,
 #endif
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return NULL;
 
 	for (;;) {
 		if (socket->blocking &&
-		    ztk_socket_io_condition_wait (socket,
+		    zsocket_io_condition_wait (socket,
 						P_SOCKET_IO_CONDITION_POLLIN,
 						error) == FALSE)
 			return NULL;
 
 		if ((res = (pint) accept (socket->fd, NULL, 0)) < 0) {
-			err_code = ztk_error_get_last_net ();
+			err_code = zerror_get_last_net ();
 #if !defined (P_OS_WIN) && defined (EINTR)
-			if (ztk_error_get_last_net () == EINTR)
+			if (zerror_get_last_net () == EINTR)
 				continue;
 #endif
-			sock_err = ztk_error_get_io_from_system (err_code);
+			sock_err = zerror_get_io_from_system (err_code);
 
 			if (socket->blocking && sock_err == P_ERROR_IO_WOULD_BLOCK)
 				continue;
 
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) sock_err,
 					     err_code,
 					     "Failed to call accept() on socket");
@@ -1064,13 +1064,13 @@ ztk_socket_accept (const PSocket	*socket,
 		flags |= FD_CLOEXEC;
 
 		if (P_UNLIKELY (fcntl (res, F_SETFD, flags) < 0))
-			P_WARNING ("PSocket::ztk_socket_accept: fcntl() with FD_CLOEXEC failed");
+			P_WARNING ("PSocket::zsocket_accept: fcntl() with FD_CLOEXEC failed");
 	}
 #endif
 
-	if (P_UNLIKELY ((ret = ztk_socket_new_from_fd (res, error)) == NULL)) {
-		if (P_UNLIKELY (ztk_sys_close (res) != 0))
-			P_WARNING ("PSocket::ztk_socket_accept: ztk_sys_close() failed");
+	if (P_UNLIKELY ((ret = zsocket_new_from_fd (res, error)) == NULL)) {
+		if (P_UNLIKELY (zsys_close (res) != 0))
+			P_WARNING ("PSocket::zsocket_accept: zsys_close() failed");
 	} else
 		ret->protocol = socket->protocol;
 
@@ -1078,7 +1078,7 @@ ztk_socket_accept (const PSocket	*socket,
 }
 
 P_LIB_API pssize
-ztk_socket_receive (const PSocket	*socket,
+zsocket_receive (const PSocket	*socket,
 		  pchar		*buffer,
 		  psize		buflen,
 		  PError	**error)
@@ -1088,36 +1088,36 @@ ztk_socket_receive (const PSocket	*socket,
 	pint		err_code;
 
 	if (P_UNLIKELY (socket == NULL || buffer == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return -1;
 
 	for (;;) {
 		if (socket->blocking &&
-		    ztk_socket_io_condition_wait (socket,
+		    zsocket_io_condition_wait (socket,
 						P_SOCKET_IO_CONDITION_POLLIN,
 						error) == FALSE)
 			return -1;
 
 		if ((ret = recv (socket->fd, buffer, (socklen_t) buflen, 0)) < 0) {
-			err_code = ztk_error_get_last_net ();
+			err_code = zerror_get_last_net ();
 
 #if !defined (P_OS_WIN) && defined (EINTR)
 			if (err_code == EINTR)
 				continue;
 #endif
-			sock_err = ztk_error_get_io_from_system (err_code);
+			sock_err = zerror_get_io_from_system (err_code);
 
 			if (socket->blocking && sock_err == P_ERROR_IO_WOULD_BLOCK)
 				continue;
 
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) sock_err,
 					     err_code,
 					     "Failed to call recv() on socket");
@@ -1132,7 +1132,7 @@ ztk_socket_receive (const PSocket	*socket,
 }
 
 P_LIB_API pssize
-ztk_socket_receive_from (const PSocket	*socket,
+zsocket_receive_from (const PSocket	*socket,
 		       PSocketAddress	**address,
 		       pchar		*buffer,
 		       psize		buflen,
@@ -1145,21 +1145,21 @@ ztk_socket_receive_from (const PSocket	*socket,
 	pint			err_code;
 
 	if (P_UNLIKELY (socket == NULL || buffer == NULL || buflen == 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return -1;
 
 	optlen = sizeof (sa);
 
 	for (;;) {
 		if (socket->blocking &&
-		    ztk_socket_io_condition_wait (socket,
+		    zsocket_io_condition_wait (socket,
 						P_SOCKET_IO_CONDITION_POLLIN,
 						error) == FALSE)
 			return -1;
@@ -1170,18 +1170,18 @@ ztk_socket_receive_from (const PSocket	*socket,
 				     0,
 				     (struct sockaddr *) &sa,
 				     &optlen)) < 0) {
-			err_code = ztk_error_get_last_net ();
+			err_code = zerror_get_last_net ();
 
 #if !defined (P_OS_WIN) && defined (EINTR)
 			if (err_code == EINTR)
 				continue;
 #endif
-			sock_err = ztk_error_get_io_from_system (err_code);
+			sock_err = zerror_get_io_from_system (err_code);
 
 			if (socket->blocking && sock_err == P_ERROR_IO_WOULD_BLOCK)
 				continue;
 
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) sock_err,
 					     err_code,
 					     "Failed to call recvfrom() on socket");
@@ -1193,13 +1193,13 @@ ztk_socket_receive_from (const PSocket	*socket,
 	}
 
 	if (address != NULL)
-		*address = ztk_socket_address_new_from_native (&sa, optlen);
+		*address = zsocket_address_new_from_native (&sa, optlen);
 
 	return ret;
 }
 
 P_LIB_API pssize
-ztk_socket_send (const PSocket	*socket,
+zsocket_send (const PSocket	*socket,
 	       const pchar	*buffer,
 	       psize		buflen,
 	       PError		**error)
@@ -1209,19 +1209,19 @@ ztk_socket_send (const PSocket	*socket,
 	pint		err_code;
 
 	if (P_UNLIKELY (socket == NULL || buffer == NULL || buflen == 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return -1;
 
 	for (;;) {
 		if (socket->blocking &&
-		    ztk_socket_io_condition_wait (socket,
+		    zsocket_io_condition_wait (socket,
 						P_SOCKET_IO_CONDITION_POLLOUT,
 						error) == FALSE)
 			return -1;
@@ -1230,18 +1230,18 @@ ztk_socket_send (const PSocket	*socket,
 				 buffer,
 				 (socklen_t) buflen,
 				 P_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
-			err_code = ztk_error_get_last_net ();
+			err_code = zerror_get_last_net ();
 
 #if !defined (P_OS_WIN) && defined (EINTR)
 			if (err_code == EINTR)
 				continue;
 #endif
-			sock_err = ztk_error_get_io_from_system (err_code);
+			sock_err = zerror_get_io_from_system (err_code);
 
 			if (socket->blocking && sock_err == P_ERROR_IO_WOULD_BLOCK)
 				continue;
 
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) sock_err,
 					     err_code,
 					     "Failed to call send() on socket");
@@ -1256,7 +1256,7 @@ ztk_socket_send (const PSocket	*socket,
 }
 
 P_LIB_API pssize
-ztk_socket_send_to (const PSocket		*socket,
+zsocket_send_to (const PSocket		*socket,
 		  PSocketAddress	*address,
 		  const pchar		*buffer,
 		  psize			buflen,
@@ -1269,29 +1269,29 @@ ztk_socket_send_to (const PSocket		*socket,
 	pint			err_code;
 
 	if (!socket || !address || !buffer) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (!pztk_socket_check (socket, error))
+	if (!pzsocket_check (socket, error))
 		return -1;
 
-	if (!ztk_socket_address_to_native (address, &sa, sizeof (sa))) {
-		ztk_error_set_error_p (error,
+	if (!zsocket_address_to_native (address, &sa, sizeof (sa))) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_FAILED,
 				     0,
 				     "Failed to convert socket address to native structure");
 		return -1;
 	}
 
-	optlen = (socklen_t) ztk_socket_address_get_native_size (address);
+	optlen = (socklen_t) zsocket_address_get_native_size (address);
 
 	for (;;) {
 		if (socket->blocking &&
-		    ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, error) == FALSE)
+		    zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, error) == FALSE)
 			return -1;
 
 		if ((ret = sendto (socket->fd,
@@ -1300,18 +1300,18 @@ ztk_socket_send_to (const PSocket		*socket,
 				   0,
 				   (struct sockaddr *) &sa,
 				   optlen)) < 0) {
-			err_code = ztk_error_get_last_net ();
+			err_code = zerror_get_last_net ();
 
 #if !defined (P_OS_WIN) && defined (EINTR)
 			if (err_code == EINTR)
 				continue;
 #endif
-			sock_err = ztk_error_get_io_from_system (err_code);
+			sock_err = zerror_get_io_from_system (err_code);
 
 			if (socket->blocking && sock_err == P_ERROR_IO_WOULD_BLOCK)
 				continue;
 
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) sock_err,
 					     err_code,
 					     "Failed to call sendto() on socket");
@@ -1326,13 +1326,13 @@ ztk_socket_send_to (const PSocket		*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_close (PSocket	*socket,
+zsocket_close (PSocket	*socket,
 		PError	**error)
 {
 	pint err_code;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -1342,7 +1342,7 @@ ztk_socket_close (PSocket	*socket,
 	if (socket->closed)
 		return TRUE;
 
-	if (P_LIKELY (ztk_sys_close (socket->fd) == 0)) {
+	if (P_LIKELY (zsys_close (socket->fd) == 0)) {
 		socket->connected = FALSE;
 		socket->closed    = TRUE;
 		socket->listening = FALSE;
@@ -1350,10 +1350,10 @@ ztk_socket_close (PSocket	*socket,
 
 		return TRUE;
 	} else {
-		err_code = ztk_error_get_last_net ();
+		err_code = zerror_get_last_net ();
 
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (err_code),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (err_code),
 				     err_code,
 				     "Failed to close socket");
 
@@ -1362,7 +1362,7 @@ ztk_socket_close (PSocket	*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_shutdown (PSocket	*socket,
+zsocket_shutdown (PSocket	*socket,
 		   pboolean	shutdown_read,
 		   pboolean	shutdown_write,
 		   PError	**error)
@@ -1370,14 +1370,14 @@ ztk_socket_shutdown (PSocket	*socket,
 	pint how;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	if (P_UNLIKELY (shutdown_read == FALSE && shutdown_write == FALSE))
@@ -1400,9 +1400,9 @@ ztk_socket_shutdown (PSocket	*socket,
 #endif
 
 	if (P_UNLIKELY (shutdown (socket->fd, how) != 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call shutdown() on socket");
 		return FALSE;
 	}
@@ -1414,7 +1414,7 @@ ztk_socket_shutdown (PSocket	*socket,
 }
 
 P_LIB_API void
-ztk_socket_free (PSocket *socket)
+zsocket_free (PSocket *socket)
 {
 	if (P_UNLIKELY (socket == NULL))
 		return;
@@ -1424,18 +1424,18 @@ ztk_socket_free (PSocket *socket)
 		WSACloseEvent (socket->events);
 #endif
 
-	ztk_socket_close (socket, NULL);
+	zsocket_close (socket, NULL);
 
 #ifdef P_OS_SCO
 	if (P_LIKELY (socket->timer != NULL))
-		ztk_time_profiler_free (socket->timer);
+		ztime_profiler_free (socket->timer);
 #endif
 
-	ztk_free (socket);
+	zfree (socket);
 }
 
 P_LIB_API pboolean
-ztk_socket_set_buffer_size (const PSocket		*socket,
+zsocket_set_buffer_size (const PSocket		*socket,
 			  PSocketDirection	dir,
 			  psize			size,
 			  PError		**error)
@@ -1444,14 +1444,14 @@ ztk_socket_set_buffer_size (const PSocket		*socket,
 	pint	optval;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	optname = (dir == P_SOCKET_DIRECTION_RCV) ? SO_RCVBUF : SO_SNDBUF;
@@ -1462,9 +1462,9 @@ ztk_socket_set_buffer_size (const PSocket		*socket,
 				    optname,
 				    (pconstpointer) &optval,
 				    sizeof (optval)) != 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call setsockopt() on socket to set buffer size");
 		return FALSE;
 	}
@@ -1473,7 +1473,7 @@ ztk_socket_set_buffer_size (const PSocket		*socket,
 }
 
 P_LIB_API pboolean
-ztk_socket_io_condition_wait (const PSocket	*socket,
+zsocket_io_condition_wait (const PSocket	*socket,
 			    PSocketIOCondition	condition,
 			    PError		**error)
 {
@@ -1483,14 +1483,14 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 	pint	timeout;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	timeout = socket->timeout > 0 ? socket->timeout : WSA_INFINITE;
@@ -1508,15 +1508,15 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 	if (evret == WSA_WAIT_EVENT_0)
 		return TRUE;
 	else if (evret == WSA_WAIT_TIMEOUT) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_TIMED_OUT,
-				     (pint) ztk_error_get_last_net (),
+				     (pint) zerror_get_last_net (),
 				     "Timed out while waiting socket condition");
 		return FALSE;
 	} else {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-				     (pint) ztk_error_get_last_net (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+				     (pint) zerror_get_last_net (),
 				     "Failed to call WSAWaitForMultipleEvents() on socket");
 		return FALSE;
 	}
@@ -1526,14 +1526,14 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 	pint		timeout;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	timeout = socket->timeout > 0 ? socket->timeout : -1;
@@ -1547,17 +1547,17 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 		pfd.events = POLLOUT;
 
 #  ifdef P_OS_SCO
-	ztk_time_profiler_reset (socket->timer);
+	ztime_profiler_reset (socket->timer);
 #  endif
 
 	while (TRUE) {
 		evret = poll (&pfd, 1, timeout);
 
 #  ifdef EINTR
-		if (evret == -1 && ztk_error_get_last_net () == EINTR) {
+		if (evret == -1 && zerror_get_last_net () == EINTR) {
 #    ifdef P_OS_SCO
 			if (timeout < 0 ||
-			    (ztk_time_profiler_elapsed_usecs (socket->timer) / 1000) < (puint64) timeout)
+			    (ztime_profiler_elapsed_usecs (socket->timer) / 1000) < (puint64) timeout)
 				continue;
 			else
 				evret = 0;
@@ -1570,15 +1570,15 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 		if (evret == 1)
 			return TRUE;
 		else if (evret == 0) {
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IO_TIMED_OUT,
-					     (pint) ztk_error_get_last_net (),
+					     (pint) zerror_get_last_net (),
 					     "Timed out while waiting socket condition");
 			return FALSE;
 		} else {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-					     (pint) ztk_error_get_last_net (),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+					     (pint) zerror_get_last_net (),
 					     "Failed to call poll() on socket");
 			return FALSE;
 		}
@@ -1590,14 +1590,14 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 	pint			evret;
 
 	if (P_UNLIKELY (socket == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return FALSE;
 	}
 
-	if (P_UNLIKELY (pztk_socket_check (socket, error) == FALSE))
+	if (P_UNLIKELY (pzsocket_check (socket, error) == FALSE))
 		return FALSE;
 
 	if (socket->timeout > 0)
@@ -1620,22 +1620,22 @@ ztk_socket_io_condition_wait (const PSocket	*socket,
 			evret = select (socket->fd + 1, NULL, &fds, NULL, ptv);
 
 #ifdef EINTR
-		if (evret == -1 && ztk_error_get_last_net () == EINTR)
+		if (evret == -1 && zerror_get_last_net () == EINTR)
 			continue;
 #endif
 
 		if (evret == 1)
 			return TRUE;
 		else if (evret == 0) {
-			ztk_error_set_error_p (error,
+			zerror_set_error_p (error,
 					     (pint) P_ERROR_IO_TIMED_OUT,
-					     (pint) ztk_error_get_last_net (),
+					     (pint) zerror_get_last_net (),
 					     "Timed out while waiting socket condition");
 			return FALSE;
 		} else {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_io_from_system (ztk_error_get_last_net ()),
-					     (pint) ztk_error_get_last_net (),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_io_from_system (zerror_get_last_net ()),
+					     (pint) zerror_get_last_net (),
 					     "Failed to call select() on socket");
 			return FALSE;
 		}

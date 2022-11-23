@@ -36,18 +36,18 @@ struct PMutex_ {
 };
 
 P_LIB_API PMutex *
-ztk_mutex_new (void)
+zmutex_new (void)
 {
 	PMutex *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PMutex))) == NULL)) {
-		P_ERROR ("PMutex::ztk_mutex_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PMutex))) == NULL)) {
+		P_ERROR ("PMutex::zmutex_new: failed to allocate memory");
 		return NULL;
 	}
 
 	if (P_UNLIKELY (pthread_mutex_init (&ret->hdl, NULL) != 0)) {
-		P_ERROR ("PMutex::ztk_mutex_new: pthread_mutex_init() failed");
-		ztk_free (ret);
+		P_ERROR ("PMutex::zmutex_new: pthread_mutex_init() failed");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -55,7 +55,7 @@ ztk_mutex_new (void)
 }
 
 P_LIB_API pboolean
-ztk_mutex_lock (PMutex *mutex)
+zmutex_lock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -63,13 +63,13 @@ ztk_mutex_lock (PMutex *mutex)
 	if (P_LIKELY (pthread_mutex_lock (&mutex->hdl) == 0))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::ztk_mutex_lock: pthread_mutex_lock() failed");
+		P_ERROR ("PMutex::zmutex_lock: pthread_mutex_lock() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API pboolean
-ztk_mutex_trylock (PMutex *mutex)
+zmutex_trylock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -78,7 +78,7 @@ ztk_mutex_trylock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-ztk_mutex_unlock (PMutex *mutex)
+zmutex_unlock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -86,19 +86,19 @@ ztk_mutex_unlock (PMutex *mutex)
 	if (P_LIKELY (pthread_mutex_unlock (&mutex->hdl) == 0))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::ztk_mutex_unlock: pthread_mutex_unlock() failed");
+		P_ERROR ("PMutex::zmutex_unlock: pthread_mutex_unlock() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API void
-ztk_mutex_free (PMutex *mutex)
+zmutex_free (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return;
 
 	if (P_UNLIKELY (pthread_mutex_destroy (&mutex->hdl) != 0))
-		P_ERROR ("PMutex::ztk_mutex_free: pthread_mutex_destroy() failed");
+		P_ERROR ("PMutex::zmutex_free: pthread_mutex_destroy() failed");
 
-	ztk_free (mutex);
+	zfree (mutex);
 }

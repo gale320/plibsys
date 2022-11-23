@@ -53,7 +53,7 @@ P_BEGIN_DECLS
  * takes ownership of the returned string.
  * @since 0.0.1
  */
-P_LIB_API pchar *	ztk_strdup	(const pchar	*str);
+P_LIB_API pchar *	zstrdup	(const pchar	*str);
 
 /**
  * @brief Removes trailing and leading whitespaces.
@@ -62,7 +62,7 @@ P_LIB_API pchar *	ztk_strdup	(const pchar	*str);
  * caller takes ownership of the returned string.
  * @since 0.0.1
  */
-P_LIB_API pchar *	ztk_strchomp	(const pchar	*str);
+P_LIB_API pchar *	zstrchomp	(const pchar	*str);
 
 /**
  * @brief Tokenizes a string by given delimiters.
@@ -74,7 +74,7 @@ P_LIB_API pchar *	ztk_strchomp	(const pchar	*str);
  * @since 0.0.1
  * @note The @a str is modified by this call, so take care for that. The
  * returned pointer points on a @a str substring, so you do not need to call
- * ztk_free() on it.
+ * zfree() on it.
  *
  * The common usage of this call is following:
  * @code
@@ -82,11 +82,11 @@ P_LIB_API pchar *	ztk_strchomp	(const pchar	*str);
  * pchar str[] = "This is a test string"
  * pchar delim[] = " \t"
  * ...
- * token = ztk_strtok (str, delim, &buf);
+ * token = zstrtok (str, delim, &buf);
  *
  * while (token != NULL) {
  *     printf ("Splitted string: %s\n", token);
- *     token = ztk_strtok (NULL, delim, &buf);
+ *     token = zstrtok (NULL, delim, &buf);
  * }
  * @endcode
  * Take attention that you need to pass the original string only once, after
@@ -96,7 +96,7 @@ P_LIB_API pchar *	ztk_strchomp	(const pchar	*str);
  * Some platforms do not support the third parameter and it can be remained
  * unused. In that case this call wouldn't be thread-safe.
  */
-P_LIB_API pchar *	ztk_strtok	(pchar		*str,
+P_LIB_API pchar *	zstrtok	(pchar		*str,
 					 const pchar	*delim,
 					 pchar		**buf);
 
@@ -110,7 +110,7 @@ P_LIB_API pchar *	ztk_strtok	(pchar		*str,
  * convert string variables to @a double values. The decimal point is '.' as in
  * the 'C' locale.
  */
-P_LIB_API double	ztk_strtod	(const pchar	*str);
+P_LIB_API double	zstrtod	(const pchar	*str);
 
 P_END_DECLS
 

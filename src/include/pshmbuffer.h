@@ -36,7 +36,7 @@
  *
  * The shared memory buffer is process-wide and identified by its name across
  * the system, thus it can be opened by any process if it knows its name. Use
- * ztk_shm_buffer_new() to open the shared memory buffer and ztk_shm_buffer_free()
+ * zshm_buffer_new() to open the shared memory buffer and zshm_buffer_free()
  * to close it.
  *
  * All read/write operations are completely thread- and process-safe, which
@@ -51,18 +51,18 @@
  * case of successful check. After reading the data used space in the buffer is
  * marked as free and any subsequent write operation may overwrite it. Thus you
  * couldn't read the same data twice. The read operation is performed with the
- * ztk_shm_buffer_read() call.
+ * zshm_buffer_read() call.
  *
  * The write operation checks whether there is enough free space available and
  * writes a given memory block only if the buffer has enough free space.
  * Otherwise no data is written. The write operation is performed with the
- * ztk_shm_buffer_write() call.
+ * zshm_buffer_write() call.
  *
  * Data can be read and written into the buffer only sequentially. There is no
  * way to access an arbitrary address inside the buffer.
  *
  * You can take ownership of the shared memory buffer with
- * ztk_shm_buffer_take_ownership() to explicitly remove it from the system after
+ * zshm_buffer_take_ownership() to explicitly remove it from the system after
  * closing. Please refer to the #PShm description to understand the intention of
  * this action.
  */
@@ -95,7 +95,7 @@ typedef struct PShmBuffer_ PShmBuffer;
  * If a buffer with the same name already exists then the @a size will be
  * ignored and the existing buffer will be returned.
  */
-P_LIB_API PShmBuffer *	ztk_shm_buffer_new		(const pchar	*name,
+P_LIB_API PShmBuffer *	zshm_buffer_new		(const pchar	*name,
 							 psize		size,
 							 PError		**error);
 
@@ -107,25 +107,25 @@ P_LIB_API PShmBuffer *	ztk_shm_buffer_new		(const pchar	*name,
  * Note that a buffer will be completely removed from the system only after the
  * last instance of the buffer with the same name is closed.
  */
-P_LIB_API void		ztk_shm_buffer_free		(PShmBuffer	*buf);
+P_LIB_API void		zshm_buffer_free		(PShmBuffer	*buf);
 
 /**
  * @brief Takes ownership of a shared memory buffer.
  * @param buf Shared memory buffer.
  * @since 0.0.1
  *
- * If you take ownership of the shared memory buffer, ztk_shm_buffer_free() will
+ * If you take ownership of the shared memory buffer, zshm_buffer_free() will
  * try to completely unlink it and remove from the system. This is useful on
  * UNIX systems, where shared memory can survive an application crash. On the
  * Windows and OS/2 platforms this call has no effect.
  *
  * The common usage of this call is upon application startup to ensure that the
  * memory segment from the previous crash can be removed from the system. To do
- * that, call ztk_shm_buffer_new() and check if its condition is normal (used
+ * that, call zshm_buffer_new() and check if its condition is normal (used
  * space, free space). If not, take ownership of the shared memory buffer object
- * and remove it with the ztk_shm_buffer_free() call. After that, create it again.
+ * and remove it with the zshm_buffer_free() call. After that, create it again.
  */
-P_LIB_API void		ztk_shm_buffer_take_ownership	(PShmBuffer	*buf);
+P_LIB_API void		zshm_buffer_take_ownership	(PShmBuffer	*buf);
 
 /**
  * @brief Tries to read data from a shared memory buffer.
@@ -137,7 +137,7 @@ P_LIB_API void		ztk_shm_buffer_take_ownership	(PShmBuffer	*buf);
  * occured.
  * @since 0.0.1
  */
-P_LIB_API pint		ztk_shm_buffer_read		(PShmBuffer	*buf,
+P_LIB_API pint		zshm_buffer_read		(PShmBuffer	*buf,
 							 ppointer	storage,
 							 psize		len,
 							 PError		**error);
@@ -154,7 +154,7 @@ P_LIB_API pint		ztk_shm_buffer_read		(PShmBuffer	*buf,
  * @note Write operation is performed only if the buffer has enough space for
  * the given data size.
  */
-P_LIB_API pssize	ztk_shm_buffer_write		(PShmBuffer	*buf,
+P_LIB_API pssize	zshm_buffer_write		(PShmBuffer	*buf,
 							 ppointer	data,
 							 psize		len,
 							 PError		**error);
@@ -166,7 +166,7 @@ P_LIB_API pssize	ztk_shm_buffer_write		(PShmBuffer	*buf,
  * @return Free space in bytes in case of success, -1 otherwise.
  * @since 0.0.1
  */
-P_LIB_API pssize	ztk_shm_buffer_get_free_space	(PShmBuffer	*buf,
+P_LIB_API pssize	zshm_buffer_get_free_space	(PShmBuffer	*buf,
 							 PError		**error);
 
 /**
@@ -176,7 +176,7 @@ P_LIB_API pssize	ztk_shm_buffer_get_free_space	(PShmBuffer	*buf,
  * @return Used space in bytes in case of success, -1 otherwise.
  * @since 0.0.1
  */
-P_LIB_API pssize	ztk_shm_buffer_get_used_space	(PShmBuffer	*buf,
+P_LIB_API pssize	zshm_buffer_get_used_space	(PShmBuffer	*buf,
 							 PError		**error);
 
 /**
@@ -184,7 +184,7 @@ P_LIB_API pssize	ztk_shm_buffer_get_used_space	(PShmBuffer	*buf,
  * @param buf #PShmBuffer to clear.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_shm_buffer_clear		(PShmBuffer	*buf);
+P_LIB_API void		zshm_buffer_clear		(PShmBuffer	*buf);
 
 P_END_DECLS
 

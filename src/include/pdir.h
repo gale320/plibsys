@@ -36,8 +36,8 @@
  * Think of this module as an interface to the well-known `dirent` API.
  *
  * First you need to open a directory for iterating through its content entries
- * using ztk_dir_new(). After that every next entry inside the directory can be
- * read with the ztk_dir_get_next_entry() call until it returns NULL (though it's
+ * using zdir_new(). After that every next entry inside the directory can be
+ * read with the zdir_get_next_entry() call until it returns NULL (though it's
  * better to check an error code to be sure no error occurred).
  *
  * Also some directory manipulation routines are provided to create, remove and
@@ -81,9 +81,9 @@ typedef struct PDirEntry_ {
  * @param[out] error Error report object, NULL to ignore.
  * @since 0.0.1
  * @note If you want to create a new directory on a filesystem, use
- * ztk_dir_create() instead.
+ * zdir_create() instead.
  */
-P_LIB_API PDir *	ztk_dir_new		(const pchar	*path,
+P_LIB_API PDir *	zdir_new		(const pchar	*path,
 						 PError		**error);
 
 /**
@@ -97,7 +97,7 @@ P_LIB_API PDir *	ztk_dir_new		(const pchar	*path,
  * @note On OpenVMS operating system it creates intermediate directories as
  * well.
  */
-P_LIB_API pboolean	ztk_dir_create		(const pchar	*path,
+P_LIB_API pboolean	zdir_create		(const pchar	*path,
 						 pint		mode,
 						 PError		**error);
 
@@ -110,7 +110,7 @@ P_LIB_API pboolean	ztk_dir_create		(const pchar	*path,
  *
  * The directory @a path should be empty to be removed successfully.
  */
-P_LIB_API pboolean	ztk_dir_remove		(const pchar	*path,
+P_LIB_API pboolean	zdir_remove		(const pchar	*path,
 						 PError		**error);
 
 /**
@@ -119,7 +119,7 @@ P_LIB_API pboolean	ztk_dir_remove		(const pchar	*path,
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	ztk_dir_is_exists		(const pchar	*path);
+P_LIB_API pboolean	zdir_is_exists		(const pchar	*path);
 
 /**
  * @brief Gets the original directory path used to create a #PDir object.
@@ -127,10 +127,10 @@ P_LIB_API pboolean	ztk_dir_is_exists		(const pchar	*path);
  * @return The directory path in case of success, NULL otherwise.
  * @since 0.0.1
  *
- * Caller takes ownership of the returned string. Use ztk_free() to free memory
+ * Caller takes ownership of the returned string. Use zfree() to free memory
  * after usage.
  */
-P_LIB_API pchar *	ztk_dir_get_path		(const PDir	*dir);
+P_LIB_API pchar *	zdir_get_path		(const PDir	*dir);
 
 /**
  * @brief Gets the next directory entry info.
@@ -139,13 +139,13 @@ P_LIB_API pchar *	ztk_dir_get_path		(const PDir	*dir);
  * @return Info for the next entry in case of success, NULL otherwise.
  * @since 0.0.1
  *
- * Caller takes ownership of the returned object. Use ztk_dir_entry_free() to free
+ * Caller takes ownership of the returned object. Use zdir_entry_free() to free
  * memory of the directory entry after usage.
  *
  * An error is set only if it is occurred. You should check the @a error object
  * for #P_ERROR_IO_NO_MORE code.
  */
-P_LIB_API PDirEntry *	ztk_dir_get_next_entry	(PDir		*dir,
+P_LIB_API PDirEntry *	zdir_get_next_entry	(PDir		*dir,
 						 PError		**error);
 
 /**
@@ -155,7 +155,7 @@ P_LIB_API PDirEntry *	ztk_dir_get_next_entry	(PDir		*dir,
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean	ztk_dir_rewind		(PDir		*dir,
+P_LIB_API pboolean	zdir_rewind		(PDir		*dir,
 						 PError		**error);
 
 /**
@@ -163,14 +163,14 @@ P_LIB_API pboolean	ztk_dir_rewind		(PDir		*dir,
  * @param entry #PDirEntry to free.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_dir_entry_free	(PDirEntry	*entry);
+P_LIB_API void		zdir_entry_free	(PDirEntry	*entry);
 
 /**
  * @brief Frees #PDir object.
  * @param dir #PDir to free.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_dir_free		(PDir		*dir);
+P_LIB_API void		zdir_free		(PDir		*dir);
 
 P_END_DECLS
 

@@ -47,47 +47,47 @@
 #  endif
 #endif
 
-static pboolean		ztk_mem_table_inited = FALSE;
-static PMemVTable	ztk_mem_table;
+static pboolean		zmem_table_inited = FALSE;
+static PMemVTable	zmem_table;
 
 void
-ztk_mem_init (void)
+zmem_init (void)
 {
-	if (P_UNLIKELY (ztk_mem_table_inited == TRUE))
+	if (P_UNLIKELY (zmem_table_inited == TRUE))
 		return;
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 }
 
 void
-ztk_mem_shutdown (void)
+zmem_shutdown (void)
 {
-	if (P_UNLIKELY (!ztk_mem_table_inited))
+	if (P_UNLIKELY (!zmem_table_inited))
 		return;
 
-	ztk_mem_table.malloc  = NULL;
-	ztk_mem_table.realloc = NULL;
-	ztk_mem_table.free    = NULL;
+	zmem_table.malloc  = NULL;
+	zmem_table.realloc = NULL;
+	zmem_table.free    = NULL;
 
-	ztk_mem_table_inited = FALSE;
+	zmem_table_inited = FALSE;
 }
 
 P_LIB_API ppointer
-ztk_malloc (psize n_bytes)
+zmalloc (psize n_bytes)
 {
 	if (P_LIKELY (n_bytes > 0))
-		return ztk_mem_table.malloc (n_bytes);
+		return zmem_table.malloc (n_bytes);
 	else
 		return NULL;
 }
 
 P_LIB_API ppointer
-ztk_malloc0 (psize n_bytes)
+zmalloc0 (psize n_bytes)
 {
 	ppointer ret;
 
 	if (P_LIKELY (n_bytes > 0)) {
-		if (P_UNLIKELY ((ret = ztk_mem_table.malloc (n_bytes)) == NULL))
+		if (P_UNLIKELY ((ret = zmem_table.malloc (n_bytes)) == NULL))
 			return NULL;
 
 		memset (ret, 0, n_bytes);
@@ -97,26 +97,26 @@ ztk_malloc0 (psize n_bytes)
 }
 
 P_LIB_API ppointer
-ztk_realloc (ppointer mem, psize n_bytes)
+zrealloc (ppointer mem, psize n_bytes)
 {
 	if (P_UNLIKELY (n_bytes == 0))
 		return NULL;
 
 	if (P_UNLIKELY (mem == NULL))
-		return ztk_mem_table.malloc (n_bytes);
+		return zmem_table.malloc (n_bytes);
 	else
-		return ztk_mem_table.realloc (mem, n_bytes);
+		return zmem_table.realloc (mem, n_bytes);
 }
 
 P_LIB_API void
-ztk_free (ppointer mem)
+zfree (ppointer mem)
 {
 	if (P_LIKELY (mem != NULL))
-		ztk_mem_table.free (mem);
+		zmem_table.free (mem);
 }
 
 P_LIB_API pboolean
-ztk_mem_set_vtable (const PMemVTable *table)
+zmem_set_vtable (const PMemVTable *table)
 {
 	if (P_UNLIKELY (table == NULL))
 		return FALSE;
@@ -124,27 +124,27 @@ ztk_mem_set_vtable (const PMemVTable *table)
 	if (P_UNLIKELY (table->free == NULL || table->malloc == NULL || table->realloc == NULL))
 		return FALSE;
 
-	ztk_mem_table.malloc  = table->malloc;
-	ztk_mem_table.realloc = table->realloc;
-	ztk_mem_table.free    = table->free;
+	zmem_table.malloc  = table->malloc;
+	zmem_table.realloc = table->realloc;
+	zmem_table.free    = table->free;
 
-	ztk_mem_table_inited = TRUE;
+	zmem_table_inited = TRUE;
 
 	return TRUE;
 }
 
 P_LIB_API void
-ztk_mem_restore_vtable (void)
+zmem_restore_vtable (void)
 {
-	ztk_mem_table.malloc  = (ppointer (*)(psize)) malloc;
-	ztk_mem_table.realloc = (ppointer (*)(ppointer, psize)) realloc;
-	ztk_mem_table.free    = (void (*)(ppointer)) free;
+	zmem_table.malloc  = (ppointer (*)(psize)) malloc;
+	zmem_table.realloc = (ppointer (*)(ppointer, psize)) realloc;
+	zmem_table.free    = (void (*)(ppointer)) free;
 
-	ztk_mem_table_inited = TRUE;
+	zmem_table_inited = TRUE;
 }
 
 P_LIB_API ppointer
-ztk_mem_mmap (psize	n_bytes,
+zmem_mmap (psize	n_bytes,
 	    PError	**error)
 {
 	ppointer	addr;
@@ -156,11 +156,11 @@ ztk_mem_mmap (psize	n_bytes,
 	APIRET		ulrc;
 #elif !defined (P_OS_AMIGA)
 	int		fd;
-	int		maztk_flags = MAP_PRIVATE;
+	int		mazflags = MAP_PRIVATE;
 #endif
 
 	if (P_UNLIKELY (n_bytes == 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -174,9 +174,9 @@ ztk_mem_mmap (psize	n_bytes,
 						   0,
 						   (DWORD) n_bytes,
 						   NULL)) == NULL)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call CreateFileMapping() to create file mapping");
 		return NULL;
 	}
@@ -186,18 +186,18 @@ ztk_mem_mmap (psize	n_bytes,
 					       0,
 					       0,
 					       n_bytes)) == NULL)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call MapViewOfFile() to map file view");
 		CloseHandle (hdl);
 		return NULL;
 	}
 
 	if (P_UNLIKELY (!CloseHandle (hdl))) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call CloseHandle() to close file mapping");
 		UnmapViewOfFile (addr);
 		return NULL;
@@ -209,9 +209,9 @@ ztk_mem_mmap (psize	n_bytes,
 	area = create_area ("", &addr, B_ANY_ADDRESS, n_bytes, B_NO_LOCK, B_READ_AREA | B_WRITE_AREA);
 
 	if (P_UNLIKELY (area < B_NO_ERROR)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call create_area() to create memory area");
 		return NULL;
 	}
@@ -224,8 +224,8 @@ ztk_mem_mmap (psize	n_bytes,
 		if (P_UNLIKELY ((ulrc = DosAllocMem ((PPVOID) &addr,
 						     (ULONG) n_bytes,
 						     PAG_READ | PAG_WRITE)) != NO_ERROR)) {
-			ztk_error_set_error_p (error,
-					     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+			zerror_set_error_p (error,
+					     (pint) zerror_get_io_from_system ((pint) ulrc),
 					     ulrc,
 					     "Failed to call DosAllocMemory() to alocate memory");
 			return NULL;
@@ -235,18 +235,18 @@ ztk_mem_mmap (psize	n_bytes,
 	addr = malloc (n_bytes);
 
 	if (P_UNLIKELY (addr == NULL)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to allocate system memory");
 		return NULL;
 	}
 #else
 #  if !defined (PLIBSYS_MMAP_HAS_MAP_ANONYMOUS) && !defined (PLIBSYS_MMAP_HAS_MAP_ANON)
 	if (P_UNLIKELY ((fd = open ("/dev/zero", O_RDWR | O_EXCL, 0754)) == -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to open /dev/zero for file mapping");
 		return NULL;
 	}
@@ -255,33 +255,33 @@ ztk_mem_mmap (psize	n_bytes,
 #  endif
 
 #  ifdef PLIBSYS_MMAP_HAS_MAP_ANONYMOUS
-	maztk_flags |= MAP_ANONYMOUS;
+	mazflags |= MAP_ANONYMOUS;
 #  elif defined (PLIBSYS_MMAP_HAS_MAP_ANON)
-	maztk_flags |= MAP_ANON;
+	mazflags |= MAP_ANON;
 #  endif
 
 	if (P_UNLIKELY ((addr = mmap (NULL,
 				      n_bytes,
 				      PROT_READ | PROT_WRITE,
-				      maztk_flags,
+				      mazflags,
 				      fd,
 				      0)) == (void *) -1)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call mmap() to create file mapping");
 #  if !defined (PLIBSYS_MMAP_HAS_MAP_ANONYMOUS) && !defined (PLIBSYS_MMAP_HAS_MAP_ANON)
-		if (P_UNLIKELY (ztk_sys_close (fd) != 0))
-			P_WARNING ("PMem::ztk_mem_mmap: failed to close file descriptor to /dev/zero");
+		if (P_UNLIKELY (zsys_close (fd) != 0))
+			P_WARNING ("PMem::zmem_mmap: failed to close file descriptor to /dev/zero");
 #  endif
 		return NULL;
 	}
 
 #  if !defined (PLIBSYS_MMAP_HAS_MAP_ANONYMOUS) && !defined (PLIBSYS_MMAP_HAS_MAP_ANON)
-	if (P_UNLIKELY (ztk_sys_close (fd) != 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+	if (P_UNLIKELY (zsys_close (fd) != 0)) {
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to close /dev/zero handle");
 		munmap (addr, n_bytes);
 		return NULL;
@@ -293,7 +293,7 @@ ztk_mem_mmap (psize	n_bytes,
 }
 
 P_LIB_API pboolean
-ztk_mem_munmap (ppointer	mem,
+zmem_munmap (ppointer	mem,
 	      psize	n_bytes,
 	      PError	**error)
 {
@@ -307,7 +307,7 @@ ztk_mem_munmap (ppointer	mem,
 #endif
 
 	if (P_UNLIKELY (mem == NULL || n_bytes == 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IO_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
@@ -316,28 +316,28 @@ ztk_mem_munmap (ppointer	mem,
 
 #if defined (P_OS_WIN)
 	if (P_UNLIKELY (UnmapViewOfFile (mem) == 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call UnmapViewOfFile() to remove file mapping");
 #elif defined (P_OS_BEOS)
 	if (P_UNLIKELY ((area = area_for (mem)) == B_ERROR)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call area_for() to find allocated memory area");
 		return FALSE;
 	}
 
 	if (P_UNLIKELY ((delete_area (area)) != B_OK)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call delete_area() to remove memory area");
 #elif defined (P_OS_OS2)
 	if (P_UNLIKELY ((ulrc = DosFreeMem ((PVOID) mem)) != NO_ERROR)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_io_from_system ((pint) ulrc),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_io_from_system ((pint) ulrc),
 				     ulrc,
 				     "Failed to call DosFreeMem() to free memory");
 #elif defined (P_OS_AMIGA)
@@ -346,9 +346,9 @@ ztk_mem_munmap (ppointer	mem,
 	if (P_UNLIKELY (FALSE)) {
 #else
 	if (P_UNLIKELY (munmap (mem, n_bytes) != 0)) {
-		ztk_error_set_error_p (error,
-				     (pint) ztk_error_get_last_io (),
-				     ztk_error_get_last_system (),
+		zerror_set_error_p (error,
+				     (pint) zerror_get_last_io (),
+				     zerror_get_last_system (),
 				     "Failed to call munmap() to remove file mapping");
 #endif
 		return FALSE;

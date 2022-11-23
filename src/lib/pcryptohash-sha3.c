@@ -40,7 +40,7 @@ struct PHashSHA3_ {
 	puint32		block_size;
 };
 
-static const puint64 pztk_crypto_hash_sha3_K[] = {
+static const puint64 pzcrypto_hash_sha3_K[] = {
 	0x0000000000000001ULL, 0x0000000000008082ULL,
 	0x800000000000808AULL, 0x8000000080008000ULL,
 	0x000000000000808BULL, 0x0000000080000001ULL,
@@ -55,19 +55,19 @@ static const puint64 pztk_crypto_hash_sha3_K[] = {
 	0x0000000080000001ULL, 0x8000000080008008ULL
 };
 
-static void pztk_crypto_hash_sha3_swaztk_bytes (puint64 *data, puint words);
-static void pztk_crypto_hash_sha3_keccak_theta (PHashSHA3 *ctx);
-static void pztk_crypto_hash_sha3_keccak_rho_pi (PHashSHA3 *ctx);
-static void pztk_crypto_hash_sha3_keccak_chi (PHashSHA3 *ctx);
-static void pztk_crypto_hash_sha3_keccak_permutate (PHashSHA3 *ctx);
-static void pztk_crypto_hash_sha3_process (PHashSHA3 *ctx, const puint64 *data);
-static PHashSHA3 * pztk_crypto_hash_sha3_new_internal (puint bits);
+static void pzcrypto_hash_sha3_swazbytes (puint64 *data, puint words);
+static void pzcrypto_hash_sha3_keccak_theta (PHashSHA3 *ctx);
+static void pzcrypto_hash_sha3_keccak_rho_pi (PHashSHA3 *ctx);
+static void pzcrypto_hash_sha3_keccak_chi (PHashSHA3 *ctx);
+static void pzcrypto_hash_sha3_keccak_permutate (PHashSHA3 *ctx);
+static void pzcrypto_hash_sha3_process (PHashSHA3 *ctx, const puint64 *data);
+static PHashSHA3 * pzcrypto_hash_sha3_new_internal (puint bits);
 
 #define P_SHA3_SHL(val, shift) ((val) << (shift))
 #define P_SHA3_ROTL(val, shift) (P_SHA3_SHL(val, shift) | ((val) >> (64 - (shift))))
 
 static void
-pztk_crypto_hash_sha3_swaztk_bytes (puint64	*data,
+pzcrypto_hash_sha3_swazbytes (puint64	*data,
 				puint	words)
 {
 #ifndef PLIBSYS_IS_BIGENDIAN
@@ -83,7 +83,7 @@ pztk_crypto_hash_sha3_swaztk_bytes (puint64	*data,
 
 /* Theta step (see [Keccak Reference, Section 2.3.2]) */
 static void
-pztk_crypto_hash_sha3_keccak_theta (PHashSHA3 *ctx)
+pzcrypto_hash_sha3_keccak_theta (PHashSHA3 *ctx)
 {
 	puint	i;
 	puint64	C[5], D[5];
@@ -111,12 +111,12 @@ pztk_crypto_hash_sha3_keccak_theta (PHashSHA3 *ctx)
 
 /* Rho and pi steps (see [Keccak Reference, Sections 2.3.3 and 2.3.4]) */
 static void
-pztk_crypto_hash_sha3_keccak_rho_pi (PHashSHA3 *ctx)
+pzcrypto_hash_sha3_keccak_rho_pi (PHashSHA3 *ctx)
 {
-	puint64 tmztk_A;
+	puint64 tmzA;
 
 	/* Unroll the loop over ((0 1)(2 3))^t * (1 0) for 0 ≤ t ≤ 23 */
-	tmztk_A = ctx->hash[1];
+	tmzA = ctx->hash[1];
 	ctx->hash[1]  = P_SHA3_ROTL (ctx->hash[6],  44);
 	ctx->hash[6]  = P_SHA3_ROTL (ctx->hash[9],  20);
 	ctx->hash[9]  = P_SHA3_ROTL (ctx->hash[22], 61);
@@ -140,45 +140,45 @@ pztk_crypto_hash_sha3_keccak_rho_pi (PHashSHA3 *ctx)
 	ctx->hash[17] = P_SHA3_ROTL (ctx->hash[11], 10);
 	ctx->hash[11] = P_SHA3_ROTL (ctx->hash[7],   6);
 	ctx->hash[7]  = P_SHA3_ROTL (ctx->hash[10],  3);
-	ctx->hash[10] = P_SHA3_ROTL (tmztk_A, 1);
+	ctx->hash[10] = P_SHA3_ROTL (tmzA, 1);
 }
 
 /* Chi step (see [Keccak Reference, Section 2.3.1]) */
 static void
-pztk_crypto_hash_sha3_keccak_chi (PHashSHA3 *ctx)
+pzcrypto_hash_sha3_keccak_chi (PHashSHA3 *ctx)
 {
 	puint i;
-	puint64	tmztk_A1, tmztk_A2;
+	puint64	tmzA1, tmzA2;
 
 	for (i = 0; i < 25; i += 5) {
-		tmztk_A1 = ctx->hash[i + 0];
-		tmztk_A2 = ctx->hash[i + 1];
+		tmzA1 = ctx->hash[i + 0];
+		tmzA2 = ctx->hash[i + 1];
 
-		ctx->hash[i + 0] ^= ~tmztk_A2 & ctx->hash[i + 2];
+		ctx->hash[i + 0] ^= ~tmzA2 & ctx->hash[i + 2];
 		ctx->hash[i + 1] ^= ~ctx->hash[i + 2] & ctx->hash[i + 3];
 		ctx->hash[i + 2] ^= ~ctx->hash[i + 3] & ctx->hash[i + 4];
-		ctx->hash[i + 3] ^= ~ctx->hash[i + 4] & tmztk_A1;
-		ctx->hash[i + 4] ^= ~tmztk_A1 & tmztk_A2;
+		ctx->hash[i + 3] ^= ~ctx->hash[i + 4] & tmzA1;
+		ctx->hash[i + 4] ^= ~tmzA1 & tmzA2;
 	}
 }
 
 static void
-pztk_crypto_hash_sha3_keccak_permutate (PHashSHA3 *ctx)
+pzcrypto_hash_sha3_keccak_permutate (PHashSHA3 *ctx)
 {
 	puint i;
 
 	for (i = 0; i < 24; ++i) {
-		pztk_crypto_hash_sha3_keccak_theta (ctx);
-		pztk_crypto_hash_sha3_keccak_rho_pi (ctx);
-		pztk_crypto_hash_sha3_keccak_chi (ctx);
+		pzcrypto_hash_sha3_keccak_theta (ctx);
+		pzcrypto_hash_sha3_keccak_rho_pi (ctx);
+		pzcrypto_hash_sha3_keccak_chi (ctx);
 
 		/* Iota step (see [Keccak Reference, Section 2.3.5]) */
-		ctx->hash[0] ^= pztk_crypto_hash_sha3_K[i];
+		ctx->hash[0] ^= pzcrypto_hash_sha3_K[i];
 	}
 }
 
 static void
-pztk_crypto_hash_sha3_process (PHashSHA3		*ctx,
+pzcrypto_hash_sha3_process (PHashSHA3		*ctx,
 			     const puint64	*data)
 {
 	puint i;
@@ -188,15 +188,15 @@ pztk_crypto_hash_sha3_process (PHashSHA3		*ctx,
 		ctx->hash[i] ^= data[i];
 
 	/* Make the Keccak permutation */
-	pztk_crypto_hash_sha3_keccak_permutate (ctx);
+	pzcrypto_hash_sha3_keccak_permutate (ctx);
 }
 
 static PHashSHA3 *
-pztk_crypto_hash_sha3_new_internal (puint bits)
+pzcrypto_hash_sha3_new_internal (puint bits)
 {
 	PHashSHA3 *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PHashSHA3))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PHashSHA3))) == NULL))
 		return NULL;
 
 	ret->block_size = (1600 - bits * 2) / 8;
@@ -205,7 +205,7 @@ pztk_crypto_hash_sha3_new_internal (puint bits)
 }
 
 void
-ztk_crypto_hash_sha3_reset (PHashSHA3 *ctx)
+zcrypto_hash_sha3_reset (PHashSHA3 *ctx)
 {
 	memset (ctx->buf.buf, 0, 200);
 	memset (ctx->hash, 0, sizeof (ctx->hash));
@@ -214,31 +214,31 @@ ztk_crypto_hash_sha3_reset (PHashSHA3 *ctx)
 }
 
 PHashSHA3 *
-ztk_crypto_hash_sha3_224_new (void)
+zcrypto_hash_sha3_224_new (void)
 {
-	return pztk_crypto_hash_sha3_new_internal (224);
+	return pzcrypto_hash_sha3_new_internal (224);
 }
 
 PHashSHA3 *
-ztk_crypto_hash_sha3_256_new (void)
+zcrypto_hash_sha3_256_new (void)
 {
-	return pztk_crypto_hash_sha3_new_internal (256);
+	return pzcrypto_hash_sha3_new_internal (256);
 }
 
 PHashSHA3 *
-ztk_crypto_hash_sha3_384_new (void)
+zcrypto_hash_sha3_384_new (void)
 {
-	return pztk_crypto_hash_sha3_new_internal (384);
+	return pzcrypto_hash_sha3_new_internal (384);
 }
 
 PHashSHA3 *
-ztk_crypto_hash_sha3_512_new (void)
+zcrypto_hash_sha3_512_new (void)
 {
-	return pztk_crypto_hash_sha3_new_internal (512);
+	return pzcrypto_hash_sha3_new_internal (512);
 }
 
 void
-ztk_crypto_hash_sha3_update (PHashSHA3	*ctx,
+zcrypto_hash_sha3_update (PHashSHA3	*ctx,
 			   const puchar	*data,
 			   psize	len)
 {
@@ -250,8 +250,8 @@ ztk_crypto_hash_sha3_update (PHashSHA3	*ctx,
 
 	if (left && (puint64) len >= to_fill) {
 		memcpy (ctx->buf.buf + left, data, to_fill);
-		pztk_crypto_hash_sha3_swaztk_bytes (ctx->buf.buf_w, ctx->block_size >> 3);
-		pztk_crypto_hash_sha3_process (ctx, ctx->buf.buf_w);
+		pzcrypto_hash_sha3_swazbytes (ctx->buf.buf_w, ctx->block_size >> 3);
+		pzcrypto_hash_sha3_process (ctx, ctx->buf.buf_w);
 
 		data += to_fill;
 		len -= to_fill;
@@ -260,8 +260,8 @@ ztk_crypto_hash_sha3_update (PHashSHA3	*ctx,
 
 	while (len >= ctx->block_size) {
 		memcpy (ctx->buf.buf, data, ctx->block_size);
-		pztk_crypto_hash_sha3_swaztk_bytes (ctx->buf.buf_w, ctx->block_size >> 3);
-		pztk_crypto_hash_sha3_process (ctx, ctx->buf.buf_w);
+		pzcrypto_hash_sha3_swazbytes (ctx->buf.buf_w, ctx->block_size >> 3);
+		pzcrypto_hash_sha3_process (ctx, ctx->buf.buf_w);
 
 		data += ctx->block_size;
 		len -= ctx->block_size;
@@ -272,26 +272,26 @@ ztk_crypto_hash_sha3_update (PHashSHA3	*ctx,
 }
 
 void
-ztk_crypto_hash_sha3_finish (PHashSHA3 *ctx)
+zcrypto_hash_sha3_finish (PHashSHA3 *ctx)
 {
 	memset (ctx->buf.buf + ctx->len, 0, ctx->block_size - ctx->len);
 	ctx->buf.buf[ctx->len]            |= 0x06;
 	ctx->buf.buf[ctx->block_size - 1] |= 0x80;
 
-	pztk_crypto_hash_sha3_swaztk_bytes (ctx->buf.buf_w, ctx->block_size >> 3);
-	pztk_crypto_hash_sha3_process (ctx, ctx->buf.buf_w);
+	pzcrypto_hash_sha3_swazbytes (ctx->buf.buf_w, ctx->block_size >> 3);
+	pzcrypto_hash_sha3_process (ctx, ctx->buf.buf_w);
 
-	pztk_crypto_hash_sha3_swaztk_bytes (ctx->hash, (100 - (ctx->block_size >> 2)) >> 3);
+	pzcrypto_hash_sha3_swazbytes (ctx->hash, (100 - (ctx->block_size >> 2)) >> 3);
 }
 
 const puchar *
-ztk_crypto_hash_sha3_digest (PHashSHA3 *ctx)
+zcrypto_hash_sha3_digest (PHashSHA3 *ctx)
 {
 	return (const puchar *) ctx->hash;
 }
 
 void
-ztk_crypto_hash_sha3_free (PHashSHA3 *ctx)
+zcrypto_hash_sha3_free (PHashSHA3 *ctx)
 {
-	ztk_free (ctx);
+	zfree (ctx);
 }

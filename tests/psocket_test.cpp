@@ -63,7 +63,7 @@ static void clean_error (PError **error)
 	if (error == NULL || *error == NULL)
 		return;
 
-	ztk_error_free (*error);
+	zerror_free (*error);
 	*error = NULL;
 }
 
@@ -72,15 +72,15 @@ static pboolean test_socket_address_directly (const PSocketAddress *addr, puint1
 	if (addr == NULL)
 		return FALSE;
 
-	pchar *addr_str = ztk_socket_address_get_address (addr);
-	PSocketFamily remote_family = ztk_socket_address_get_family (addr);
-	puint16 remote_port = ztk_socket_address_get_port (addr);
-	psize remote_size = ztk_socket_address_get_native_size (addr);
+	pchar *addr_str = zsocket_address_get_address (addr);
+	PSocketFamily remote_family = zsocket_address_get_family (addr);
+	puint16 remote_port = zsocket_address_get_port (addr);
+	psize remote_size = zsocket_address_get_native_size (addr);
 
 	pboolean ret = (strcmp (addr_str, "127.0.0.1") == 0 && remote_family == P_SOCKET_FAMILY_INET &&
 			remote_port == port && remote_size > 0) ? TRUE : FALSE;
 
-	ztk_free (addr_str);
+	zfree (addr_str);
 
 	return ret;
 }
@@ -88,14 +88,14 @@ static pboolean test_socket_address_directly (const PSocketAddress *addr, puint1
 static pboolean test_socket_address (PSocket *socket, puint16 port)
 {
 	/* Test remote address */
-	PSocketAddress *remote_addr = ztk_socket_get_remote_address (socket, NULL);
+	PSocketAddress *remote_addr = zsocket_get_remote_address (socket, NULL);
 
 	if (remote_addr == NULL)
 		return FALSE;
 
 	pboolean ret = test_socket_address_directly (remote_addr, port);
 
-	ztk_socket_address_free (remote_addr);
+	zsocket_address_free (remote_addr);
 
 	return ret;
 }
@@ -105,232 +105,232 @@ static pboolean compare_socket_addresses (const PSocketAddress *addr1, const PSo
 	if (addr1 == NULL || addr2 == NULL)
 		return FALSE;
 
-	pchar *addr_str1 = ztk_socket_address_get_address (addr1);
-	pchar *addr_str2 = ztk_socket_address_get_address (addr2);
+	pchar *addr_str1 = zsocket_address_get_address (addr1);
+	pchar *addr_str2 = zsocket_address_get_address (addr2);
 
 	if (addr_str1 == NULL || addr_str2 == NULL) {
-		ztk_free (addr_str1);
-		ztk_free (addr_str2);
+		zfree (addr_str1);
+		zfree (addr_str2);
 
 		return FALSE;
 	}
 
 	pboolean addr_cmp = (strcmp (addr_str1, addr_str2) == 0 ? TRUE : FALSE);
 
-	ztk_free (addr_str1);
-	ztk_free (addr_str2);
+	zfree (addr_str1);
+	zfree (addr_str2);
 
 	if (addr_cmp == FALSE)
 		return FALSE;
 
-	if (ztk_socket_address_get_family (addr1) != ztk_socket_address_get_family (addr2))
+	if (zsocket_address_get_family (addr1) != zsocket_address_get_family (addr2))
 		return FALSE;
 
-	if (ztk_socket_address_get_native_size (addr1) != ztk_socket_address_get_native_size (addr2))
+	if (zsocket_address_get_native_size (addr1) != zsocket_address_get_native_size (addr2))
 		return FALSE;
 
 	return TRUE;
 }
 
-static void * udztk_socket_sender_thread (void *arg)
+static void * udzsocket_sender_thread (void *arg)
 {
 	pint send_counter = 0;
 
 	if (arg == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
 	SocketTestData *data = (SocketTestData *) (arg);
 
 	/* Create sender socket */
-	PSocket *skt_sender = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *skt_sender = zsocket_new (P_SOCKET_FAMILY_INET,
 					    P_SOCKET_TYPE_DATAGRAM,
 					    P_SOCKET_PROTOCOL_UDP,
 					    NULL);
 
 	if (skt_sender == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
-	PSocketAddress *addr_sender = ztk_socket_address_new ("127.0.0.1", data->sender_port);
+	PSocketAddress *addr_sender = zsocket_address_new ("127.0.0.1", data->sender_port);
 
 	if (addr_sender == NULL) {
-		ztk_socket_free (skt_sender);
-		ztk_uthread_exit (-1);
+		zsocket_free (skt_sender);
+		zuthread_exit (-1);
 	}
 
-	if (ztk_socket_bind (skt_sender, addr_sender, FALSE, NULL) == FALSE) {
-		ztk_socket_free (skt_sender);
-		ztk_socket_address_free (addr_sender);
-		ztk_uthread_exit (-1);
+	if (zsocket_bind (skt_sender, addr_sender, FALSE, NULL) == FALSE) {
+		zsocket_free (skt_sender);
+		zsocket_address_free (addr_sender);
+		zuthread_exit (-1);
 	} else {
-		ztk_socket_address_free (addr_sender);
+		zsocket_address_free (addr_sender);
 
-		PSocketAddress *local_addr = ztk_socket_get_local_address (skt_sender, NULL);
+		PSocketAddress *local_addr = zsocket_get_local_address (skt_sender, NULL);
 
 		if (local_addr == NULL) {
-			ztk_socket_free (skt_sender);
-			ztk_uthread_exit (-1);
+			zsocket_free (skt_sender);
+			zuthread_exit (-1);
 		}
 
-		data->sender_port = ztk_socket_address_get_port (local_addr);
+		data->sender_port = zsocket_address_get_port (local_addr);
 
-		ztk_socket_address_free (local_addr);
+		zsocket_address_free (local_addr);
 	}
 
-	ztk_socket_set_timeout (skt_sender, 50);
+	zsocket_set_timeout (skt_sender, 50);
 
 	/* Test that remote address is NULL */
-	PSocketAddress *remote_addr = ztk_socket_get_remote_address (skt_sender, NULL);
+	PSocketAddress *remote_addr = zsocket_get_remote_address (skt_sender, NULL);
 
 	if (remote_addr != NULL) {
-		if (ztk_socket_address_is_any (remote_addr) == FALSE) {
-			ztk_socket_address_free (remote_addr);
-			ztk_socket_free (skt_sender);
-			ztk_uthread_exit (-1);
+		if (zsocket_address_is_any (remote_addr) == FALSE) {
+			zsocket_address_free (remote_addr);
+			zsocket_free (skt_sender);
+			zuthread_exit (-1);
 		} else {
-			ztk_socket_address_free (remote_addr);
+			zsocket_address_free (remote_addr);
 			remote_addr = NULL;
 		}
 	}
 
 	/* Test that we are not connected */
-	if (ztk_socket_is_connected (skt_sender) == TRUE) {
-		ztk_socket_free (skt_sender);
-		ztk_uthread_exit (-1);
+	if (zsocket_is_connected (skt_sender) == TRUE) {
+		zsocket_free (skt_sender);
+		zuthread_exit (-1);
 	}
 
 	while (is_sender_working == TRUE && data->receiver_port == 0) {
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 		continue;
 	}
 
 	PSocketAddress *addr_receiver = NULL;
 
 	if (data->receiver_port != 0)
-		addr_receiver = ztk_socket_address_new ("127.0.0.1", data->receiver_port);
+		addr_receiver = zsocket_address_new ("127.0.0.1", data->receiver_port);
 
 	while (is_sender_working == TRUE) {
 		if (data->receiver_port == 0)
 			break;
 
-		if (ztk_socket_send_to (skt_sender,
+		if (zsocket_send_to (skt_sender,
 				      addr_receiver,
 				      socket_data,
 				      sizeof (socket_data),
 				      NULL) == sizeof (socket_data))
 			++send_counter;
 
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 	}
 
-	ztk_socket_address_free (addr_receiver);
-	ztk_socket_free (skt_sender);
-	ztk_uthread_exit (send_counter);
+	zsocket_address_free (addr_receiver);
+	zsocket_free (skt_sender);
+	zuthread_exit (send_counter);
 
 	return NULL;
 }
 
-static void * udztk_socket_receiver_thread (void *arg)
+static void * udzsocket_receiver_thread (void *arg)
 {
 	pchar	recv_buffer[sizeof (socket_data) * 3];
 	pint	recv_counter = 0;
 
 	if (arg == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
 	SocketTestData *data = (SocketTestData *) (arg);
 
 	/* Create receiving socket */
-	PSocket *skt_receiver = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *skt_receiver = zsocket_new (P_SOCKET_FAMILY_INET,
 					      P_SOCKET_TYPE_DATAGRAM,
 					      P_SOCKET_PROTOCOL_UDP,
 					      NULL);
 
 	if (skt_receiver == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
-	ztk_socket_set_blocking (skt_receiver, FALSE);
+	zsocket_set_blocking (skt_receiver, FALSE);
 
-	PSocketAddress *addr_receiver = ztk_socket_address_new ("127.0.0.1", data->receiver_port);
+	PSocketAddress *addr_receiver = zsocket_address_new ("127.0.0.1", data->receiver_port);
 
 	if (addr_receiver == NULL) {
-		ztk_socket_free (skt_receiver);
-		ztk_uthread_exit (-1);
+		zsocket_free (skt_receiver);
+		zuthread_exit (-1);
 	}
 
-	if (ztk_socket_bind (skt_receiver, addr_receiver, TRUE, NULL) == FALSE) {
-		ztk_socket_free (skt_receiver);
-		ztk_socket_address_free (addr_receiver);
-		ztk_uthread_exit (-1);
+	if (zsocket_bind (skt_receiver, addr_receiver, TRUE, NULL) == FALSE) {
+		zsocket_free (skt_receiver);
+		zsocket_address_free (addr_receiver);
+		zuthread_exit (-1);
 	} else {
-		ztk_socket_address_free (addr_receiver);
+		zsocket_address_free (addr_receiver);
 
-		PSocketAddress *local_addr = ztk_socket_get_local_address (skt_receiver, NULL);
+		PSocketAddress *local_addr = zsocket_get_local_address (skt_receiver, NULL);
 
 		if (local_addr == NULL) {
-			ztk_socket_free (skt_receiver);
-			ztk_uthread_exit (-1);
+			zsocket_free (skt_receiver);
+			zuthread_exit (-1);
 		}
 
-		data->receiver_port = ztk_socket_address_get_port (local_addr);
+		data->receiver_port = zsocket_address_get_port (local_addr);
 
-		ztk_socket_address_free (local_addr);
+		zsocket_address_free (local_addr);
 	}
 
-	ztk_socket_set_timeout (skt_receiver, 50);
+	zsocket_set_timeout (skt_receiver, 50);
 
 	/* Test that remote address is NULL */
-	PSocketAddress *remote_addr = ztk_socket_get_remote_address (skt_receiver, NULL);
+	PSocketAddress *remote_addr = zsocket_get_remote_address (skt_receiver, NULL);
 
 	if (remote_addr != NULL) {
-		if (ztk_socket_address_is_any (remote_addr) == FALSE) {
-			ztk_socket_address_free (remote_addr);
-			ztk_socket_free (skt_receiver);
-			ztk_uthread_exit (-1);
+		if (zsocket_address_is_any (remote_addr) == FALSE) {
+			zsocket_address_free (remote_addr);
+			zsocket_free (skt_receiver);
+			zuthread_exit (-1);
 		} else {
-			ztk_socket_address_free (remote_addr);
+			zsocket_address_free (remote_addr);
 			remote_addr = NULL;
 		}
 	}
 
 	/* Test that we are not connected */
-	if (ztk_socket_is_connected (skt_receiver) == TRUE) {
-		ztk_socket_free (skt_receiver);
-		ztk_uthread_exit (-1);
+	if (zsocket_is_connected (skt_receiver) == TRUE) {
+		zsocket_free (skt_receiver);
+		zuthread_exit (-1);
 	}
 
 	while (is_receiver_working == TRUE) {
 		PSocketAddress *remote_addr = NULL;
 
-		pssize received = ztk_socket_receive_from (skt_receiver,
+		pssize received = zsocket_receive_from (skt_receiver,
 							 &remote_addr,
 							 recv_buffer,
 							 sizeof (recv_buffer),
 							 NULL);
 
 		if (remote_addr != NULL && test_socket_address_directly (remote_addr, data->sender_port) == FALSE) {
-			ztk_socket_address_free (remote_addr);
+			zsocket_address_free (remote_addr);
 			break;
 		}
 
-		ztk_socket_address_free (remote_addr);
+		zsocket_address_free (remote_addr);
 
 		if (received == sizeof (socket_data))
 			++recv_counter;
 		else if (received > 0) {
-			ztk_socket_free (skt_receiver);
-			ztk_uthread_exit (-1);
+			zsocket_free (skt_receiver);
+			zuthread_exit (-1);
 		}
 
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 	}
 
-	ztk_socket_free (skt_receiver);
-	ztk_uthread_exit (recv_counter);
+	zsocket_free (skt_receiver);
+	zuthread_exit (recv_counter);
 
 	return NULL;
 }
 
-static void * tcztk_socket_sender_thread (void *arg)
+static void * tczsocket_sender_thread (void *arg)
 {
 	pint		send_counter = 0;
 	psize		send_total;
@@ -338,99 +338,99 @@ static void * tcztk_socket_sender_thread (void *arg)
 	pboolean	is_connected = FALSE;
 
 	if (arg == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
 	SocketTestData *data = (SocketTestData *) (arg);
 
 	/* Create sender socket */
-	PSocket *skt_sender = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *skt_sender = zsocket_new (P_SOCKET_FAMILY_INET,
 					    P_SOCKET_TYPE_STREAM,
 					    P_SOCKET_PROTOCOL_DEFAULT,
 					    NULL);
 
 	if (skt_sender == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
-	ztk_socket_set_timeout (skt_sender, 2000);
+	zsocket_set_timeout (skt_sender, 2000);
 
-	if (ztk_socket_get_fd (skt_sender) < 0) {
-		ztk_socket_free (skt_sender);
-		ztk_uthread_exit (-1);
+	if (zsocket_get_fd (skt_sender) < 0) {
+		zsocket_free (skt_sender);
+		zuthread_exit (-1);
 	}
 
 	while (is_sender_working == TRUE && data->receiver_port == 0) {
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 		continue;
 	}
 
-	PSocketAddress *addr_sender = ztk_socket_address_new ("127.0.0.1", data->sender_port);
+	PSocketAddress *addr_sender = zsocket_address_new ("127.0.0.1", data->sender_port);
 
 	if (addr_sender == NULL) {
-		ztk_socket_free (skt_sender);
-		ztk_uthread_exit (-1);
+		zsocket_free (skt_sender);
+		zuthread_exit (-1);
 	}
 
-	if (ztk_socket_bind (skt_sender, addr_sender, FALSE, NULL) == FALSE) {
-		ztk_socket_free (skt_sender);
-		ztk_socket_address_free (addr_sender);
-		ztk_uthread_exit (-1);
+	if (zsocket_bind (skt_sender, addr_sender, FALSE, NULL) == FALSE) {
+		zsocket_free (skt_sender);
+		zsocket_address_free (addr_sender);
+		zuthread_exit (-1);
 	} else {
-		ztk_socket_address_free (addr_sender);
+		zsocket_address_free (addr_sender);
 
-		PSocketAddress *local_addr = ztk_socket_get_local_address (skt_sender, NULL);
+		PSocketAddress *local_addr = zsocket_get_local_address (skt_sender, NULL);
 
 		if (local_addr == NULL) {
-			ztk_socket_free (skt_sender);
-			ztk_uthread_exit (-1);
+			zsocket_free (skt_sender);
+			zuthread_exit (-1);
 		}
 
-		data->sender_port = ztk_socket_address_get_port (local_addr);
+		data->sender_port = zsocket_address_get_port (local_addr);
 
-		ztk_socket_address_free (local_addr);
+		zsocket_address_free (local_addr);
 	}
 
 	send_total = 0;
 	send_now = 0;
 
 	while (is_sender_working == TRUE && data->receiver_port == 0) {
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 		continue;
 	}
 
 	PSocketAddress *addr_receiver = NULL;
 
 	/* Try to connect in non-blocking mode */
-	ztk_socket_set_blocking (skt_sender, FALSE);
+	zsocket_set_blocking (skt_sender, FALSE);
 
 	if (data->receiver_port != 0) {
-		addr_receiver = ztk_socket_address_new ("127.0.0.1", data->receiver_port);
-		is_connected = ztk_socket_connect (skt_sender, addr_receiver, NULL);
+		addr_receiver = zsocket_address_new ("127.0.0.1", data->receiver_port);
+		is_connected = zsocket_connect (skt_sender, addr_receiver, NULL);
 
 		if (is_connected == FALSE) {
-			if (ztk_socket_io_condition_wait (skt_sender, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == TRUE &&
-			    ztk_socket_check_connect_result (skt_sender, NULL) == FALSE) {
-				ztk_socket_address_free (addr_receiver);
-				ztk_socket_free (skt_sender);
-				ztk_uthread_exit (-1);
+			if (zsocket_io_condition_wait (skt_sender, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == TRUE &&
+			    zsocket_check_connect_result (skt_sender, NULL) == FALSE) {
+				zsocket_address_free (addr_receiver);
+				zsocket_free (skt_sender);
+				zuthread_exit (-1);
 			}
 		}
 
-		is_connected = ztk_socket_is_connected (skt_sender);
+		is_connected = zsocket_is_connected (skt_sender);
 
-		if (is_connected == TRUE && ztk_socket_shutdown (skt_sender,
+		if (is_connected == TRUE && zsocket_shutdown (skt_sender,
 							       FALSE,
 							       data->shutdown_channel,
 							       NULL) == FALSE)
 			is_connected = FALSE;
 	}
 
-	if (data->shutdown_channel == TRUE && ztk_socket_is_closed (skt_sender) == TRUE) {
-		ztk_socket_address_free (addr_receiver);
-		ztk_socket_free (skt_sender);
-		ztk_uthread_exit (-1);
+	if (data->shutdown_channel == TRUE && zsocket_is_closed (skt_sender) == TRUE) {
+		zsocket_address_free (addr_receiver);
+		zsocket_free (skt_sender);
+		zuthread_exit (-1);
 	}
 
-	ztk_socket_set_blocking (skt_sender, TRUE);
+	zsocket_set_blocking (skt_sender, TRUE);
 
 	while (is_sender_working == TRUE) {
 		if (data->receiver_port == 0 || is_connected == FALSE)
@@ -439,13 +439,13 @@ static void * tcztk_socket_sender_thread (void *arg)
 		if (test_socket_address (skt_sender, data->receiver_port) == FALSE)
 			break;
 
-		if (data->shutdown_channel == FALSE && ztk_socket_is_connected (skt_sender) == FALSE) {
-			ztk_socket_address_free (addr_receiver);
-			ztk_socket_free (skt_sender);
-			ztk_uthread_exit (-1);
+		if (data->shutdown_channel == FALSE && zsocket_is_connected (skt_sender) == FALSE) {
+			zsocket_address_free (addr_receiver);
+			zsocket_free (skt_sender);
+			zuthread_exit (-1);
 		}
 
-		send_now = ztk_socket_send (skt_sender,
+		send_now = zsocket_send (skt_sender,
 					  socket_data + send_total,
 					  sizeof (socket_data) - send_total,
 					  NULL);
@@ -458,20 +458,20 @@ static void * tcztk_socket_sender_thread (void *arg)
 			++send_counter;
 		}
 
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 	}
 
-	if (ztk_socket_close (skt_sender, NULL) == FALSE)
+	if (zsocket_close (skt_sender, NULL) == FALSE)
 		send_counter = -1;
 
-	ztk_socket_address_free (addr_receiver);
-	ztk_socket_free (skt_sender);
-	ztk_uthread_exit (send_counter);
+	zsocket_address_free (addr_receiver);
+	zsocket_free (skt_sender);
+	zuthread_exit (send_counter);
 
 	return NULL;
 }
 
-static void * tcztk_socket_receiver_thread (void *arg)
+static void * tczsocket_receiver_thread (void *arg)
 {
 	pchar		recv_buffer[sizeof (socket_data)];
 	pint		recv_counter = 0;
@@ -479,46 +479,46 @@ static void * tcztk_socket_receiver_thread (void *arg)
 	pssize		recv_now;
 
 	if (arg == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
 	SocketTestData *data = (SocketTestData *) (arg);
 
 	/* Create receiving socket */
-	PSocket *skt_receiver = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *skt_receiver = zsocket_new (P_SOCKET_FAMILY_INET,
 					      P_SOCKET_TYPE_STREAM,
 					      P_SOCKET_PROTOCOL_TCP,
 					      NULL);
 
 	if (skt_receiver == NULL)
-		ztk_uthread_exit (-1);
+		zuthread_exit (-1);
 
-	PSocketAddress *addr_receiver = ztk_socket_address_new ("127.0.0.1", data->receiver_port);
+	PSocketAddress *addr_receiver = zsocket_address_new ("127.0.0.1", data->receiver_port);
 
 	if (addr_receiver == NULL) {
-		ztk_socket_free (skt_receiver);
-		ztk_uthread_exit (-1);
+		zsocket_free (skt_receiver);
+		zuthread_exit (-1);
 	}
 
-	ztk_socket_set_timeout (skt_receiver, 2000);
+	zsocket_set_timeout (skt_receiver, 2000);
 
-	if (ztk_socket_bind (skt_receiver, addr_receiver, TRUE, NULL) == FALSE ||
-	    ztk_socket_listen (skt_receiver, NULL) == FALSE) {
-		ztk_socket_free (skt_receiver);
-		ztk_socket_address_free (addr_receiver);
-		ztk_uthread_exit (-1);
+	if (zsocket_bind (skt_receiver, addr_receiver, TRUE, NULL) == FALSE ||
+	    zsocket_listen (skt_receiver, NULL) == FALSE) {
+		zsocket_free (skt_receiver);
+		zsocket_address_free (addr_receiver);
+		zuthread_exit (-1);
 	} else {
-		ztk_socket_address_free (addr_receiver);
+		zsocket_address_free (addr_receiver);
 
-		PSocketAddress *local_addr = ztk_socket_get_local_address (skt_receiver, NULL);
+		PSocketAddress *local_addr = zsocket_get_local_address (skt_receiver, NULL);
 
 		if (local_addr == NULL) {
-			ztk_socket_free (skt_receiver);
-			ztk_uthread_exit (-1);
+			zsocket_free (skt_receiver);
+			zuthread_exit (-1);
 		}
 
-		data->receiver_port = ztk_socket_address_get_port (local_addr);
+		data->receiver_port = zsocket_address_get_port (local_addr);
 
-		ztk_socket_address_free (local_addr);
+		zsocket_address_free (local_addr);
 	}
 
 	PSocket *conn_socket = NULL;
@@ -527,10 +527,10 @@ static void * tcztk_socket_receiver_thread (void *arg)
 
 	while (is_receiver_working == TRUE) {
 		if (conn_socket == NULL) {
-			conn_socket = ztk_socket_accept (skt_receiver, NULL);
+			conn_socket = zsocket_accept (skt_receiver, NULL);
 
 			if (conn_socket == NULL) {
-				ztk_uthread_sleep (1);
+				zuthread_sleep (1);
 				continue;
 			} else {
 				/* On Syllable there is a bug in TCP which changes a local port
@@ -540,21 +540,21 @@ static void * tcztk_socket_receiver_thread (void *arg)
 					break;
 #endif
 
-				if (ztk_socket_shutdown (conn_socket, data->shutdown_channel, FALSE, NULL) == FALSE)
+				if (zsocket_shutdown (conn_socket, data->shutdown_channel, FALSE, NULL) == FALSE)
 					break;
 
-				ztk_socket_set_timeout (conn_socket, 2000);
+				zsocket_set_timeout (conn_socket, 2000);
 			}
 		}
 
-		if ((data->shutdown_channel == FALSE && ztk_socket_is_connected (conn_socket) == FALSE) ||
-		    (data->shutdown_channel == TRUE && ztk_socket_is_closed (conn_socket) == TRUE)) {
-			ztk_socket_free (conn_socket);
-			ztk_socket_free (skt_receiver);
-			ztk_uthread_exit (-1);
+		if ((data->shutdown_channel == FALSE && zsocket_is_connected (conn_socket) == FALSE) ||
+		    (data->shutdown_channel == TRUE && zsocket_is_closed (conn_socket) == TRUE)) {
+			zsocket_free (conn_socket);
+			zsocket_free (skt_receiver);
+			zuthread_exit (-1);
 		}
 
-		recv_now = ztk_socket_receive (conn_socket,
+		recv_now = zsocket_receive (conn_socket,
 					     recv_buffer + recv_total,
 					     sizeof (recv_buffer) - recv_total,
 					     NULL);
@@ -571,43 +571,43 @@ static void * tcztk_socket_receiver_thread (void *arg)
 			memset (recv_buffer, 0, sizeof (recv_buffer));
 		}
 
-		ztk_uthread_sleep (1);
+		zuthread_sleep (1);
 	}
 
-	if (ztk_socket_close (skt_receiver, NULL) == FALSE)
+	if (zsocket_close (skt_receiver, NULL) == FALSE)
 		recv_counter = -1;
 
-	ztk_socket_free (conn_socket);
-	ztk_socket_free (skt_receiver);
+	zsocket_free (conn_socket);
+	zsocket_free (skt_receiver);
 
-	ztk_uthread_exit (recv_counter);
+	zuthread_exit (recv_counter);
 
 	return NULL;
 }
 
 P_TEST_CASE_BEGIN (psocket_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	PSocket *socket = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *socket = zsocket_new (P_SOCKET_FAMILY_INET,
 					P_SOCKET_TYPE_DATAGRAM,
 					P_SOCKET_PROTOCOL_UDP,
 					NULL);
 	P_TEST_CHECK (socket != NULL);
 
-	PSocketAddress *sock_addr = ztk_socket_address_new ("127.0.0.1", 32211);
+	PSocketAddress *sock_addr = zsocket_address_new ("127.0.0.1", 32211);
 
 	P_TEST_CHECK (sock_addr != NULL);
-	P_TEST_CHECK (ztk_socket_bind (socket, sock_addr, TRUE, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_bind (socket, sock_addr, TRUE, NULL) == TRUE);
 
-	ztk_socket_address_free (sock_addr);
+	zsocket_address_free (sock_addr);
 
-	ztk_socket_set_timeout (socket, 1000);
-	sock_addr = ztk_socket_address_new ("127.0.0.1", 32215);
+	zsocket_set_timeout (socket, 1000);
+	sock_addr = zsocket_address_new ("127.0.0.1", 32215);
 	P_TEST_CHECK (sock_addr != NULL);
-	P_TEST_CHECK (ztk_socket_connect (socket, sock_addr, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_connect (socket, sock_addr, NULL) == TRUE);
 
-	ztk_socket_address_free (sock_addr);
+	zsocket_address_free (sock_addr);
 
 	PMemVTable vtable;
 
@@ -615,236 +615,236 @@ P_TEST_CASE_BEGIN (psocket_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (ztk_socket_new (P_SOCKET_FAMILY_INET,
+	P_TEST_CHECK (zsocket_new (P_SOCKET_FAMILY_INET,
 				   P_SOCKET_TYPE_DATAGRAM,
 				   P_SOCKET_PROTOCOL_UDP,
 				   NULL) == NULL);
-	P_TEST_CHECK (ztk_socket_new_from_fd (ztk_socket_get_fd (socket), NULL) == NULL);
-	P_TEST_CHECK (ztk_socket_get_local_address (socket, NULL) == NULL);
-	P_TEST_CHECK (ztk_socket_get_remote_address (socket, NULL) == NULL);
+	P_TEST_CHECK (zsocket_new_from_fd (zsocket_get_fd (socket), NULL) == NULL);
+	P_TEST_CHECK (zsocket_get_local_address (socket, NULL) == NULL);
+	P_TEST_CHECK (zsocket_get_remote_address (socket, NULL) == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_socket_close (socket, NULL);
-	ztk_socket_free (socket);
+	zsocket_close (socket, NULL);
+	zsocket_free (socket);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (psocket_bad_input_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PError *error = NULL;
 
-	P_TEST_CHECK (ztk_socket_new_from_fd (-1, &error) == NULL);
+	P_TEST_CHECK (zsocket_new_from_fd (-1, &error) == NULL);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_new (P_SOCKET_FAMILY_INET,
+	P_TEST_CHECK (zsocket_new (P_SOCKET_FAMILY_INET,
 				   (PSocketType) -1,
 				   P_SOCKET_PROTOCOL_TCP,
 				   NULL) == NULL);
 	/* Syllable doesn't validate socket family */
 #ifndef P_OS_SYLLABLE
-	P_TEST_CHECK (ztk_socket_new ((PSocketFamily) -1,
+	P_TEST_CHECK (zsocket_new ((PSocketFamily) -1,
 				   P_SOCKET_TYPE_SEQPACKET,
 				   P_SOCKET_PROTOCOL_TCP,
 				   NULL) == NULL);
 #endif
-	P_TEST_CHECK (ztk_socket_new (P_SOCKET_FAMILY_UNKNOWN,
+	P_TEST_CHECK (zsocket_new (P_SOCKET_FAMILY_UNKNOWN,
 				   P_SOCKET_TYPE_UNKNOWN,
 				   P_SOCKET_PROTOCOL_UNKNOWN,
 				   &error) == NULL);
-	P_TEST_CHECK (ztk_socket_new_from_fd (1, NULL) == NULL);
+	P_TEST_CHECK (zsocket_new_from_fd (1, NULL) == NULL);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_get_fd (NULL) == -1);
-	P_TEST_CHECK (ztk_socket_get_family (NULL) == P_SOCKET_FAMILY_UNKNOWN);
-	P_TEST_CHECK (ztk_socket_get_type (NULL) == P_SOCKET_TYPE_UNKNOWN);
-	P_TEST_CHECK (ztk_socket_get_protocol (NULL) == P_SOCKET_PROTOCOL_UNKNOWN);
-	P_TEST_CHECK (ztk_socket_get_keepalive (NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_get_blocking (NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_get_timeout (NULL) == -1);
-	P_TEST_CHECK (ztk_socket_get_listen_backlog (NULL) == -1);
-	P_TEST_CHECK (ztk_socket_io_condition_wait (NULL, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_io_condition_wait (NULL, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_get_fd (NULL) == -1);
+	P_TEST_CHECK (zsocket_get_family (NULL) == P_SOCKET_FAMILY_UNKNOWN);
+	P_TEST_CHECK (zsocket_get_type (NULL) == P_SOCKET_TYPE_UNKNOWN);
+	P_TEST_CHECK (zsocket_get_protocol (NULL) == P_SOCKET_PROTOCOL_UNKNOWN);
+	P_TEST_CHECK (zsocket_get_keepalive (NULL) == FALSE);
+	P_TEST_CHECK (zsocket_get_blocking (NULL) == FALSE);
+	P_TEST_CHECK (zsocket_get_timeout (NULL) == -1);
+	P_TEST_CHECK (zsocket_get_listen_backlog (NULL) == -1);
+	P_TEST_CHECK (zsocket_io_condition_wait (NULL, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_io_condition_wait (NULL, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == FALSE);
 
-	P_TEST_CHECK (ztk_socket_get_local_address (NULL, &error) == NULL);
+	P_TEST_CHECK (zsocket_get_local_address (NULL, &error) == NULL);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_get_remote_address (NULL, &error) == NULL);
+	P_TEST_CHECK (zsocket_get_remote_address (NULL, &error) == NULL);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_is_connected (NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_is_closed (NULL) == TRUE);
+	P_TEST_CHECK (zsocket_is_connected (NULL) == FALSE);
+	P_TEST_CHECK (zsocket_is_closed (NULL) == TRUE);
 
-	P_TEST_CHECK (ztk_socket_check_connect_result (NULL, &error) == FALSE);
+	P_TEST_CHECK (zsocket_check_connect_result (NULL, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	ztk_socket_set_keepalive (NULL, FALSE);
-	ztk_socket_set_blocking (NULL, FALSE);
-	ztk_socket_set_timeout (NULL, 0);
-	ztk_socket_set_listen_backlog (NULL, 0);
+	zsocket_set_keepalive (NULL, FALSE);
+	zsocket_set_blocking (NULL, FALSE);
+	zsocket_set_timeout (NULL, 0);
+	zsocket_set_listen_backlog (NULL, 0);
 
-	P_TEST_CHECK (ztk_socket_bind (NULL, NULL, FALSE, &error) == FALSE);
+	P_TEST_CHECK (zsocket_bind (NULL, NULL, FALSE, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_connect (NULL, NULL, &error) == FALSE);
+	P_TEST_CHECK (zsocket_connect (NULL, NULL, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_listen (NULL, &error) == FALSE);
+	P_TEST_CHECK (zsocket_listen (NULL, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_accept (NULL, &error) == NULL);
+	P_TEST_CHECK (zsocket_accept (NULL, &error) == NULL);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_receive (NULL, NULL, 0, &error) == -1);
+	P_TEST_CHECK (zsocket_receive (NULL, NULL, 0, &error) == -1);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_receive_from (NULL, NULL, NULL, 0, &error) == -1);
+	P_TEST_CHECK (zsocket_receive_from (NULL, NULL, NULL, 0, &error) == -1);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_send (NULL, NULL, 0, &error) == -1);
+	P_TEST_CHECK (zsocket_send (NULL, NULL, 0, &error) == -1);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_send_to (NULL, NULL, NULL, 0, &error) == -1);
+	P_TEST_CHECK (zsocket_send_to (NULL, NULL, NULL, 0, &error) == -1);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_close (NULL, &error) == FALSE);
+	P_TEST_CHECK (zsocket_close (NULL, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_shutdown (NULL, FALSE, FALSE, &error) == FALSE);
+	P_TEST_CHECK (zsocket_shutdown (NULL, FALSE, FALSE, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_set_buffer_size (NULL, P_SOCKET_DIRECTION_RCV, 0, &error) == FALSE);
+	P_TEST_CHECK (zsocket_set_buffer_size (NULL, P_SOCKET_DIRECTION_RCV, 0, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	P_TEST_CHECK (ztk_socket_set_buffer_size (NULL, P_SOCKET_DIRECTION_SND, 0, &error) == FALSE);
+	P_TEST_CHECK (zsocket_set_buffer_size (NULL, P_SOCKET_DIRECTION_SND, 0, &error) == FALSE);
 	P_TEST_CHECK (error != NULL);
 	clean_error (&error);
 
-	ztk_socket_free (NULL);
+	zsocket_free (NULL);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
-P_TEST_CASE_BEGIN (psocket_general_udztk_test)
+P_TEST_CASE_BEGIN (psocket_general_udztest)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	/* Test UDP socket */
-	PSocket *socket = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *socket = zsocket_new (P_SOCKET_FAMILY_INET,
 					P_SOCKET_TYPE_DATAGRAM,
 					P_SOCKET_PROTOCOL_UDP,
 					NULL);
 
 	P_TEST_CHECK (socket != NULL);
-	P_TEST_CHECK (ztk_socket_get_family (socket) == P_SOCKET_FAMILY_INET);
-	P_TEST_CHECK (ztk_socket_get_fd (socket) >= 0);
-	P_TEST_CHECK (ztk_socket_get_listen_backlog (socket) == 5);
-	P_TEST_CHECK (ztk_socket_get_timeout (socket) == 0);
+	P_TEST_CHECK (zsocket_get_family (socket) == P_SOCKET_FAMILY_INET);
+	P_TEST_CHECK (zsocket_get_fd (socket) >= 0);
+	P_TEST_CHECK (zsocket_get_listen_backlog (socket) == 5);
+	P_TEST_CHECK (zsocket_get_timeout (socket) == 0);
 
 	/* On some operating systems (i.e. OpenVMS) remote address is not NULL */
-	PSocketAddress *remote_addr = ztk_socket_get_remote_address (socket, NULL);
+	PSocketAddress *remote_addr = zsocket_get_remote_address (socket, NULL);
 
 	if (remote_addr != NULL) {
-		P_TEST_CHECK (ztk_socket_address_is_any (remote_addr) == TRUE);
-		ztk_socket_address_free (remote_addr);
+		P_TEST_CHECK (zsocket_address_is_any (remote_addr) == TRUE);
+		zsocket_address_free (remote_addr);
 		remote_addr = NULL;
 	}
 
-	P_TEST_CHECK (ztk_socket_get_protocol (socket) == P_SOCKET_PROTOCOL_UDP);
-	P_TEST_CHECK (ztk_socket_get_blocking (socket) == TRUE);
-	P_TEST_CHECK (ztk_socket_get_type (socket) == P_SOCKET_TYPE_DATAGRAM);
-	P_TEST_CHECK (ztk_socket_get_keepalive (socket) == FALSE);
-	P_TEST_CHECK (ztk_socket_is_closed (socket) == FALSE);
+	P_TEST_CHECK (zsocket_get_protocol (socket) == P_SOCKET_PROTOCOL_UDP);
+	P_TEST_CHECK (zsocket_get_blocking (socket) == TRUE);
+	P_TEST_CHECK (zsocket_get_type (socket) == P_SOCKET_TYPE_DATAGRAM);
+	P_TEST_CHECK (zsocket_get_keepalive (socket) == FALSE);
+	P_TEST_CHECK (zsocket_is_closed (socket) == FALSE);
 
-	ztk_socket_set_listen_backlog (socket, 12);
-	ztk_socket_set_timeout (socket, -10);
-	P_TEST_CHECK (ztk_socket_get_timeout (socket) == 0);
-	ztk_socket_set_timeout (socket, 10);
+	zsocket_set_listen_backlog (socket, 12);
+	zsocket_set_timeout (socket, -10);
+	P_TEST_CHECK (zsocket_get_timeout (socket) == 0);
+	zsocket_set_timeout (socket, 10);
 
-	P_TEST_CHECK (ztk_socket_get_listen_backlog (socket) == 12);
-	P_TEST_CHECK (ztk_socket_get_timeout (socket) == 10);
+	P_TEST_CHECK (zsocket_get_listen_backlog (socket) == 12);
+	P_TEST_CHECK (zsocket_get_timeout (socket) == 10);
 
-	PSocketAddress *sock_addr = ztk_socket_address_new ("127.0.0.1", 32111);
+	PSocketAddress *sock_addr = zsocket_address_new ("127.0.0.1", 32111);
 	P_TEST_CHECK (sock_addr != NULL);
 
-	P_TEST_CHECK (ztk_socket_bind (socket, sock_addr, TRUE, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_bind (socket, sock_addr, TRUE, NULL) == TRUE);
 
 	/* Test creating socket from descriptor */
-	PSocket *fd_socket = ztk_socket_new_from_fd (ztk_socket_get_fd (socket), NULL);
+	PSocket *fd_socket = zsocket_new_from_fd (zsocket_get_fd (socket), NULL);
 	P_TEST_CHECK (fd_socket != NULL);
-	P_TEST_CHECK (ztk_socket_get_family (fd_socket) == P_SOCKET_FAMILY_INET);
-	P_TEST_CHECK (ztk_socket_get_fd (fd_socket) >= 0);
-	P_TEST_CHECK (ztk_socket_get_listen_backlog (fd_socket) == 5);
-	P_TEST_CHECK (ztk_socket_get_timeout (fd_socket) == 0);
+	P_TEST_CHECK (zsocket_get_family (fd_socket) == P_SOCKET_FAMILY_INET);
+	P_TEST_CHECK (zsocket_get_fd (fd_socket) >= 0);
+	P_TEST_CHECK (zsocket_get_listen_backlog (fd_socket) == 5);
+	P_TEST_CHECK (zsocket_get_timeout (fd_socket) == 0);
 
-	remote_addr = ztk_socket_get_remote_address (fd_socket, NULL);
+	remote_addr = zsocket_get_remote_address (fd_socket, NULL);
 
 	if (remote_addr != NULL) {
-		P_TEST_CHECK (ztk_socket_address_is_any (remote_addr) == TRUE);
-		ztk_socket_address_free (remote_addr);
+		P_TEST_CHECK (zsocket_address_is_any (remote_addr) == TRUE);
+		zsocket_address_free (remote_addr);
 		remote_addr = NULL;
 	}
 
-	P_TEST_CHECK (ztk_socket_get_protocol (fd_socket) == P_SOCKET_PROTOCOL_UDP);
-	P_TEST_CHECK (ztk_socket_get_blocking (fd_socket) == TRUE);
-	P_TEST_CHECK (ztk_socket_get_type (fd_socket) == P_SOCKET_TYPE_DATAGRAM);
-	P_TEST_CHECK (ztk_socket_get_keepalive (fd_socket) == FALSE);
-	P_TEST_CHECK (ztk_socket_is_closed (fd_socket) == FALSE);
+	P_TEST_CHECK (zsocket_get_protocol (fd_socket) == P_SOCKET_PROTOCOL_UDP);
+	P_TEST_CHECK (zsocket_get_blocking (fd_socket) == TRUE);
+	P_TEST_CHECK (zsocket_get_type (fd_socket) == P_SOCKET_TYPE_DATAGRAM);
+	P_TEST_CHECK (zsocket_get_keepalive (fd_socket) == FALSE);
+	P_TEST_CHECK (zsocket_is_closed (fd_socket) == FALSE);
 
-	ztk_socket_set_keepalive (fd_socket, FALSE);
-	P_TEST_CHECK (ztk_socket_get_keepalive (fd_socket) == FALSE);
+	zsocket_set_keepalive (fd_socket, FALSE);
+	P_TEST_CHECK (zsocket_get_keepalive (fd_socket) == FALSE);
 
-	ztk_socket_set_keepalive (fd_socket, TRUE);
-	ztk_socket_set_keepalive (fd_socket, FALSE);
-	P_TEST_CHECK (ztk_socket_get_keepalive (fd_socket) == FALSE);
+	zsocket_set_keepalive (fd_socket, TRUE);
+	zsocket_set_keepalive (fd_socket, FALSE);
+	P_TEST_CHECK (zsocket_get_keepalive (fd_socket) == FALSE);
 
 	/* Test UDP local address */
-	PSocketAddress *addr = ztk_socket_get_local_address (socket, NULL);
+	PSocketAddress *addr = zsocket_get_local_address (socket, NULL);
 	P_TEST_CHECK (addr != NULL);
 
 	P_TEST_CHECK (compare_socket_addresses (sock_addr, addr) == TRUE);
 
-	ztk_socket_address_free (sock_addr);
-	ztk_socket_address_free (addr);
+	zsocket_address_free (sock_addr);
+	zsocket_address_free (addr);
 
 	/* Test UDP connecting to remote address */
-	ztk_socket_set_timeout (socket, 1000);
-	addr = ztk_socket_address_new ("127.0.0.1", 32115);
+	zsocket_set_timeout (socket, 1000);
+	addr = zsocket_address_new ("127.0.0.1", 32115);
 	P_TEST_CHECK (addr != NULL);
-	P_TEST_CHECK (ztk_socket_connect (socket, addr, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_connect (socket, addr, NULL) == TRUE);
 
-	P_TEST_CHECK (ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == TRUE);
 
-	sock_addr = ztk_socket_get_remote_address (socket, NULL);
+	sock_addr = zsocket_get_remote_address (socket, NULL);
 
 	/* Syllable doesn't support getpeername() for UDP sockets */
 #ifdef P_OS_SYLLABLE
 	P_TEST_CHECK (sock_addr == NULL);
-	sock_addr = ztk_socket_address_new ("127.0.0.1", 32115);
+	sock_addr = zsocket_address_new ("127.0.0.1", 32115);
 	P_TEST_CHECK (addr != NULL);
 #else
 	P_TEST_CHECK (sock_addr != NULL);
@@ -853,139 +853,139 @@ P_TEST_CASE_BEGIN (psocket_general_udztk_test)
 
 	/* Not supported on Syllable */
 #ifndef P_OS_SYLLABLE
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == TRUE);
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == TRUE);
-	P_TEST_CHECK (ztk_socket_check_connect_result (socket, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_check_connect_result (socket, NULL) == TRUE);
 #endif
 
-	P_TEST_CHECK (ztk_socket_is_connected (socket) == TRUE);
-	P_TEST_CHECK (ztk_socket_close (socket, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_is_connected (socket) == TRUE);
+	P_TEST_CHECK (zsocket_close (socket, NULL) == TRUE);
 
 	pchar sock_buf[10];
 
-	P_TEST_CHECK (ztk_socket_bind (socket, sock_addr, TRUE, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_connect (socket, addr, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_listen (socket, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_accept (socket, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_receive (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_receive_from (socket, NULL, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_send (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_send_to (socket, addr, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_shutdown (socket, TRUE, TRUE, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_get_local_address (socket, NULL) == NULL);
-	P_TEST_CHECK (ztk_socket_check_connect_result (socket, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_get_fd (socket) == -1);
-	P_TEST_CHECK (ztk_socket_is_connected (socket) == FALSE);
-	P_TEST_CHECK (ztk_socket_is_closed (socket) == TRUE);
+	P_TEST_CHECK (zsocket_bind (socket, sock_addr, TRUE, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_connect (socket, addr, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_listen (socket, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_accept (socket, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_receive (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_receive_from (socket, NULL, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_send (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_send_to (socket, addr, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_shutdown (socket, TRUE, TRUE, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_get_local_address (socket, NULL) == NULL);
+	P_TEST_CHECK (zsocket_check_connect_result (socket, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_get_fd (socket) == -1);
+	P_TEST_CHECK (zsocket_is_connected (socket) == FALSE);
+	P_TEST_CHECK (zsocket_is_closed (socket) == TRUE);
 
-	ztk_socket_set_keepalive (socket, TRUE);
-	P_TEST_CHECK (ztk_socket_get_keepalive (socket) == FALSE);
+	zsocket_set_keepalive (socket, TRUE);
+	P_TEST_CHECK (zsocket_get_keepalive (socket) == FALSE);
 
-	P_TEST_CHECK (ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == FALSE);
 
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == FALSE);
 
-	ztk_socket_address_free (sock_addr);
-	ztk_socket_address_free (addr);
-	ztk_socket_free (socket);
-	ztk_socket_free (fd_socket);
+	zsocket_address_free (sock_addr);
+	zsocket_address_free (addr);
+	zsocket_free (socket);
+	zsocket_free (fd_socket);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
-P_TEST_CASE_BEGIN (psocket_general_tcztk_test)
+P_TEST_CASE_BEGIN (psocket_general_tcztest)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	/* Test TCP socket */
-	PSocket *socket = ztk_socket_new (P_SOCKET_FAMILY_INET,
+	PSocket *socket = zsocket_new (P_SOCKET_FAMILY_INET,
 					P_SOCKET_TYPE_STREAM,
 					P_SOCKET_PROTOCOL_TCP,
 					NULL);
-	ztk_socket_set_blocking (socket, FALSE);
-	ztk_socket_set_listen_backlog (socket, 11);
+	zsocket_set_blocking (socket, FALSE);
+	zsocket_set_listen_backlog (socket, 11);
 
-	ztk_socket_set_timeout (socket, -12);
-	P_TEST_CHECK (ztk_socket_get_timeout (socket) == 0);
-	ztk_socket_set_timeout (socket, 12);
+	zsocket_set_timeout (socket, -12);
+	P_TEST_CHECK (zsocket_get_timeout (socket) == 0);
+	zsocket_set_timeout (socket, 12);
 
 	P_TEST_CHECK (socket != NULL);
-	P_TEST_CHECK (ztk_socket_get_family (socket) == P_SOCKET_FAMILY_INET);
-	P_TEST_CHECK (ztk_socket_get_fd (socket) >= 0);
-	P_TEST_CHECK (ztk_socket_get_listen_backlog (socket) == 11);
-	P_TEST_CHECK (ztk_socket_get_timeout (socket) == 12);
-	P_TEST_CHECK (ztk_socket_get_remote_address (socket, NULL) == NULL);
-	P_TEST_CHECK (ztk_socket_get_protocol (socket) == P_SOCKET_PROTOCOL_TCP);
-	P_TEST_CHECK (ztk_socket_get_blocking (socket) == FALSE);
-	P_TEST_CHECK (ztk_socket_get_type (socket) == P_SOCKET_TYPE_STREAM);
-	P_TEST_CHECK (ztk_socket_get_keepalive (socket) == FALSE);
-	P_TEST_CHECK (ztk_socket_is_closed (socket) == FALSE);
+	P_TEST_CHECK (zsocket_get_family (socket) == P_SOCKET_FAMILY_INET);
+	P_TEST_CHECK (zsocket_get_fd (socket) >= 0);
+	P_TEST_CHECK (zsocket_get_listen_backlog (socket) == 11);
+	P_TEST_CHECK (zsocket_get_timeout (socket) == 12);
+	P_TEST_CHECK (zsocket_get_remote_address (socket, NULL) == NULL);
+	P_TEST_CHECK (zsocket_get_protocol (socket) == P_SOCKET_PROTOCOL_TCP);
+	P_TEST_CHECK (zsocket_get_blocking (socket) == FALSE);
+	P_TEST_CHECK (zsocket_get_type (socket) == P_SOCKET_TYPE_STREAM);
+	P_TEST_CHECK (zsocket_get_keepalive (socket) == FALSE);
+	P_TEST_CHECK (zsocket_is_closed (socket) == FALSE);
 
-	ztk_socket_set_keepalive (socket, FALSE);
-	P_TEST_CHECK (ztk_socket_get_keepalive (socket) == FALSE);
+	zsocket_set_keepalive (socket, FALSE);
+	P_TEST_CHECK (zsocket_get_keepalive (socket) == FALSE);
 
-	ztk_socket_set_keepalive (socket, TRUE);
-	ztk_socket_set_keepalive (socket, FALSE);
-	P_TEST_CHECK (ztk_socket_get_keepalive (socket) == FALSE);
+	zsocket_set_keepalive (socket, TRUE);
+	zsocket_set_keepalive (socket, FALSE);
+	P_TEST_CHECK (zsocket_get_keepalive (socket) == FALSE);
 
-	PSocketAddress *sock_addr = ztk_socket_address_new ("127.0.0.1", 0);
+	PSocketAddress *sock_addr = zsocket_address_new ("127.0.0.1", 0);
 	P_TEST_CHECK (sock_addr != NULL);
 
-	P_TEST_CHECK (ztk_socket_bind (socket, sock_addr, TRUE, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_bind (socket, sock_addr, TRUE, NULL) == TRUE);
 
-	PSocketAddress *addr = ztk_socket_get_local_address (socket, NULL);
+	PSocketAddress *addr = zsocket_get_local_address (socket, NULL);
 	P_TEST_CHECK (addr != NULL);
 
 	P_TEST_CHECK (compare_socket_addresses (sock_addr, addr) == TRUE);
 
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == TRUE);
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == TRUE);
 
-	/* In case of success ztk_socket_check_connect_result() marks socket as connected */
-	P_TEST_CHECK (ztk_socket_is_connected (socket) == FALSE);
-	P_TEST_CHECK (ztk_socket_check_connect_result (socket, NULL) == TRUE);
-	P_TEST_CHECK (ztk_socket_close (socket, NULL) == TRUE);
+	/* In case of success zsocket_check_connect_result() marks socket as connected */
+	P_TEST_CHECK (zsocket_is_connected (socket) == FALSE);
+	P_TEST_CHECK (zsocket_check_connect_result (socket, NULL) == TRUE);
+	P_TEST_CHECK (zsocket_close (socket, NULL) == TRUE);
 
 	pchar sock_buf[10];
 
-	P_TEST_CHECK (ztk_socket_bind (socket, sock_addr, TRUE, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_connect (socket, addr, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_listen (socket, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_accept (socket, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_receive (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_receive_from (socket, NULL, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_send (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_send_to (socket, addr, sock_buf, sizeof (sock_buf), NULL) == -1);
-	P_TEST_CHECK (ztk_socket_shutdown (socket, TRUE, TRUE, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_get_local_address (socket, NULL) == NULL);
-	P_TEST_CHECK (ztk_socket_check_connect_result (socket, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_is_closed (socket) == TRUE);
-	P_TEST_CHECK (ztk_socket_get_fd (socket) == -1);
+	P_TEST_CHECK (zsocket_bind (socket, sock_addr, TRUE, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_connect (socket, addr, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_listen (socket, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_accept (socket, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_receive (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_receive_from (socket, NULL, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_send (socket, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_send_to (socket, addr, sock_buf, sizeof (sock_buf), NULL) == -1);
+	P_TEST_CHECK (zsocket_shutdown (socket, TRUE, TRUE, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_get_local_address (socket, NULL) == NULL);
+	P_TEST_CHECK (zsocket_check_connect_result (socket, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_is_closed (socket) == TRUE);
+	P_TEST_CHECK (zsocket_get_fd (socket) == -1);
 
-	ztk_socket_set_keepalive (socket, TRUE);
-	P_TEST_CHECK (ztk_socket_get_keepalive (socket) == FALSE);
+	zsocket_set_keepalive (socket, TRUE);
+	P_TEST_CHECK (zsocket_get_keepalive (socket) == FALSE);
 
-	P_TEST_CHECK (ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLIN, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_io_condition_wait (socket, P_SOCKET_IO_CONDITION_POLLOUT, NULL) == FALSE);
 
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == FALSE);
-	P_TEST_CHECK (ztk_socket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_RCV, 72 * 1024, NULL) == FALSE);
+	P_TEST_CHECK (zsocket_set_buffer_size (socket, P_SOCKET_DIRECTION_SND, 72 * 1024, NULL) == FALSE);
 
-	ztk_socket_address_free (sock_addr);
-	ztk_socket_address_free (addr);
+	zsocket_address_free (sock_addr);
+	zsocket_address_free (addr);
 
-	ztk_socket_free (socket);
+	zsocket_free (socket);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
-P_TEST_CASE_BEGIN (psocket_udztk_test)
+P_TEST_CASE_BEGIN (psocket_udztest)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	is_sender_working   = TRUE;
 	is_receiver_working = TRUE;
@@ -995,12 +995,12 @@ P_TEST_CASE_BEGIN (psocket_udztk_test)
 	data.sender_port      = 0;
 	data.shutdown_channel = FALSE;
 
-	PUThread *receiver_thr = ztk_uthread_create ((PUThreadFunc) udztk_socket_receiver_thread,
+	PUThread *receiver_thr = zuthread_create ((PUThreadFunc) udzsocket_receiver_thread,
 						   (ppointer) &data,
 						   TRUE,
 						   NULL);
 
-	PUThread *sender_thr = ztk_uthread_create ((PUThreadFunc) udztk_socket_sender_thread,
+	PUThread *sender_thr = zuthread_create ((PUThreadFunc) udzsocket_sender_thread,
 						 (ppointer) &data,
 						 TRUE,
 						 NULL);
@@ -1008,29 +1008,29 @@ P_TEST_CASE_BEGIN (psocket_udztk_test)
 	P_TEST_CHECK (sender_thr != NULL);
 	P_TEST_CHECK (receiver_thr != NULL);
 
-	ztk_uthread_sleep (8000);
+	zuthread_sleep (8000);
 
 	is_sender_working = FALSE;
-	pint send_counter = ztk_uthread_join (sender_thr);
+	pint send_counter = zuthread_join (sender_thr);
 
-	ztk_uthread_sleep (2000);
+	zuthread_sleep (2000);
 
 	is_receiver_working = FALSE;
-	pint recv_counter = ztk_uthread_join (receiver_thr);
+	pint recv_counter = zuthread_join (receiver_thr);
 
 	P_TEST_CHECK (send_counter > 0);
 	P_TEST_CHECK (recv_counter > 0);
 
-	ztk_uthread_unref (sender_thr);
-	ztk_uthread_unref (receiver_thr);
+	zuthread_unref (sender_thr);
+	zuthread_unref (receiver_thr);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
-P_TEST_CASE_BEGIN (psocket_tcztk_test)
+P_TEST_CASE_BEGIN (psocket_tcztest)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	is_sender_working   = TRUE;
 	is_receiver_working = TRUE;
@@ -1040,12 +1040,12 @@ P_TEST_CASE_BEGIN (psocket_tcztk_test)
 	data.sender_port      = 0;
 	data.shutdown_channel = FALSE;
 
-	PUThread *receiver_thr = ztk_uthread_create ((PUThreadFunc) tcztk_socket_receiver_thread,
+	PUThread *receiver_thr = zuthread_create ((PUThreadFunc) tczsocket_receiver_thread,
 						   (ppointer) &data,
 						   TRUE,
 						   NULL);
 
-	PUThread *sender_thr = ztk_uthread_create ((PUThreadFunc) tcztk_socket_sender_thread,
+	PUThread *sender_thr = zuthread_create ((PUThreadFunc) tczsocket_sender_thread,
 						 (ppointer) &data,
 						 TRUE,
 						 NULL);
@@ -1053,29 +1053,29 @@ P_TEST_CASE_BEGIN (psocket_tcztk_test)
 	P_TEST_CHECK (receiver_thr != NULL);
 	P_TEST_CHECK (sender_thr != NULL);
 
-	ztk_uthread_sleep (8000);
+	zuthread_sleep (8000);
 
 	is_sender_working = FALSE;
-	pint send_counter = ztk_uthread_join (sender_thr);
+	pint send_counter = zuthread_join (sender_thr);
 
-	ztk_uthread_sleep (2000);
+	zuthread_sleep (2000);
 
 	is_receiver_working = FALSE;
-	pint recv_counter = ztk_uthread_join (receiver_thr);
+	pint recv_counter = zuthread_join (receiver_thr);
 
 	P_TEST_CHECK (send_counter > 0);
 	P_TEST_CHECK (recv_counter > 0);
 
-	ztk_uthread_unref (sender_thr);
-	ztk_uthread_unref (receiver_thr);
+	zuthread_unref (sender_thr);
+	zuthread_unref (receiver_thr);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (psocket_shutdown_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	is_sender_working   = TRUE;
 	is_receiver_working = TRUE;
@@ -1085,12 +1085,12 @@ P_TEST_CASE_BEGIN (psocket_shutdown_test)
 	data.sender_port      = 0;
 	data.shutdown_channel = TRUE;
 
-	PUThread *receiver_thr = ztk_uthread_create ((PUThreadFunc) tcztk_socket_receiver_thread,
+	PUThread *receiver_thr = zuthread_create ((PUThreadFunc) tczsocket_receiver_thread,
 						   (ppointer) &data,
 						   TRUE,
 						   NULL);
 
-	PUThread *sender_thr = ztk_uthread_create ((PUThreadFunc) tcztk_socket_sender_thread,
+	PUThread *sender_thr = zuthread_create ((PUThreadFunc) tczsocket_sender_thread,
 						 (ppointer) &data,
 						 TRUE,
 						 NULL);
@@ -1098,23 +1098,23 @@ P_TEST_CASE_BEGIN (psocket_shutdown_test)
 	P_TEST_CHECK (receiver_thr != NULL);
 	P_TEST_CHECK (sender_thr != NULL);
 
-	ztk_uthread_sleep (8000);
+	zuthread_sleep (8000);
 
 	is_sender_working = FALSE;
-	pint send_counter = ztk_uthread_join (sender_thr);
+	pint send_counter = zuthread_join (sender_thr);
 
-	ztk_uthread_sleep (2000);
+	zuthread_sleep (2000);
 
 	is_receiver_working = FALSE;
-	pint recv_counter = ztk_uthread_join (receiver_thr);
+	pint recv_counter = zuthread_join (receiver_thr);
 
 	P_TEST_CHECK (send_counter == 0);
 	P_TEST_CHECK (recv_counter == 0);
 
-	ztk_uthread_unref (sender_thr);
-	ztk_uthread_unref (receiver_thr);
+	zuthread_unref (sender_thr);
+	zuthread_unref (receiver_thr);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -1122,10 +1122,10 @@ P_TEST_SUITE_BEGIN()
 {
 	P_TEST_SUITE_RUN_CASE (psocket_nomem_test);
 	P_TEST_SUITE_RUN_CASE (psocket_bad_input_test);
-	P_TEST_SUITE_RUN_CASE (psocket_general_udztk_test);
-	P_TEST_SUITE_RUN_CASE (psocket_general_tcztk_test);
-	P_TEST_SUITE_RUN_CASE (psocket_udztk_test);
-	P_TEST_SUITE_RUN_CASE (psocket_tcztk_test);
+	P_TEST_SUITE_RUN_CASE (psocket_general_udztest);
+	P_TEST_SUITE_RUN_CASE (psocket_general_tcztest);
+	P_TEST_SUITE_RUN_CASE (psocket_udztest);
+	P_TEST_SUITE_RUN_CASE (psocket_tcztest);
 	P_TEST_SUITE_RUN_CASE (psocket_shutdown_test);
 }
 P_TEST_SUITE_END()

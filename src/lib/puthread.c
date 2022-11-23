@@ -97,47 +97,47 @@ typedef void (WINAPI * SystemInfoFunc) (LPSYSTEM_INFO);
 #  include <proto/exec.h>
 #endif
 
-extern void ztk_uthread_init_internal (void);
-extern void ztk_uthread_shutdown_internal (void);
-extern void ztk_uthread_exit_internal (void);
-extern void ztk_uthread_wait_internal (PUThread *thread);
-extern void ztk_uthread_free_internal (PUThread *thread);
-extern void ztk_uthread_set_name_internal (PUThread *thread);
-extern PUThread * ztk_uthread_create_internal (PUThreadFunc	func,
+extern void zuthread_init_internal (void);
+extern void zuthread_shutdown_internal (void);
+extern void zuthread_exit_internal (void);
+extern void zuthread_wait_internal (PUThread *thread);
+extern void zuthread_free_internal (PUThread *thread);
+extern void zuthread_set_name_internal (PUThread *thread);
+extern PUThread * zuthread_create_internal (PUThreadFunc	func,
 					     pboolean		joinable,
 					     PUThreadPriority	prio,
 					     psize		stack_size);
 
-static void pztk_uthread_cleanup (ppointer data);
-static ppointer pztk_uthread_proxy (ppointer data);
+static void pzuthread_cleanup (ppointer data);
+static ppointer pzuthread_proxy (ppointer data);
 
 #ifndef P_OS_WIN
 #  if !defined (PLIBSYS_HAS_CLOCKNANOSLEEP) && !defined (PLIBSYS_HAS_NANOSLEEP)
-static pint pztk_uthread_nanosleep (puint32 msec);
+static pint pzuthread_nanosleep (puint32 msec);
 #  endif
 #endif
 
-static PUThreadKey * pztk_uthread_specific_data = NULL;
-static PSpinLock * pztk_uthread_new_spin = NULL;
+static PUThreadKey * pzuthread_specific_data = NULL;
+static PSpinLock * pzuthread_new_spin = NULL;
 
 static void
-pztk_uthread_cleanup (ppointer data)
+pzuthread_cleanup (ppointer data)
 {
-	ztk_uthread_unref (data);
+	zuthread_unref (data);
 }
 
 static ppointer
-pztk_uthread_proxy (ppointer data)
+pzuthread_proxy (ppointer data)
 {
 	PUThreadBase *base_thread = data;
 
-	ztk_uthread_set_local (pztk_uthread_specific_data, data);
+	zuthread_set_local (pzuthread_specific_data, data);
 
-	ztk_spinlock_lock (pztk_uthread_new_spin);
-	ztk_spinlock_unlock (pztk_uthread_new_spin);
+	zspinlock_lock (pzuthread_new_spin);
+	zspinlock_unlock (pzuthread_new_spin);
 
 	if (base_thread->name != NULL)
-		ztk_uthread_set_name_internal ((PUThread *) base_thread);
+		zuthread_set_name_internal ((PUThread *) base_thread);
 
 	base_thread->func (base_thread->data);
 
@@ -145,44 +145,44 @@ pztk_uthread_proxy (ppointer data)
 }
 
 void
-ztk_uthread_init (void)
+zuthread_init (void)
 {
-	if (P_LIKELY (pztk_uthread_specific_data == NULL))
-		pztk_uthread_specific_data = ztk_uthread_local_new ((PDestroyFunc) pztk_uthread_cleanup);
+	if (P_LIKELY (pzuthread_specific_data == NULL))
+		pzuthread_specific_data = zuthread_local_new ((PDestroyFunc) pzuthread_cleanup);
 
-	if (P_LIKELY (pztk_uthread_new_spin == NULL))
-		pztk_uthread_new_spin = ztk_spinlock_new ();
+	if (P_LIKELY (pzuthread_new_spin == NULL))
+		pzuthread_new_spin = zspinlock_new ();
 
-	ztk_uthread_init_internal ();
+	zuthread_init_internal ();
 }
 
 void
-ztk_uthread_shutdown (void)
+zuthread_shutdown (void)
 {
 	PUThread *cur_thread;
 
-	if (P_LIKELY (pztk_uthread_specific_data != NULL)) {
-		cur_thread = ztk_uthread_get_local (pztk_uthread_specific_data);
+	if (P_LIKELY (pzuthread_specific_data != NULL)) {
+		cur_thread = zuthread_get_local (pzuthread_specific_data);
 
 		if (P_UNLIKELY (cur_thread != NULL)) {
-			ztk_uthread_unref (cur_thread);
-			ztk_uthread_set_local (pztk_uthread_specific_data, NULL);
+			zuthread_unref (cur_thread);
+			zuthread_set_local (pzuthread_specific_data, NULL);
 		}
 
-		ztk_uthread_local_free (pztk_uthread_specific_data);
-		pztk_uthread_specific_data = NULL;
+		zuthread_local_free (pzuthread_specific_data);
+		pzuthread_specific_data = NULL;
 	}
 
-	if (P_LIKELY (pztk_uthread_new_spin != NULL)) {
-		ztk_spinlock_free (pztk_uthread_new_spin);
-		pztk_uthread_new_spin = NULL;
+	if (P_LIKELY (pzuthread_new_spin != NULL)) {
+		zspinlock_free (pzuthread_new_spin);
+		pzuthread_new_spin = NULL;
 	}
 
-	ztk_uthread_shutdown_internal ();
+	zuthread_shutdown_internal ();
 }
 
 P_LIB_API PUThread *
-ztk_uthread_create_full (PUThreadFunc	func,
+zuthread_create_full (PUThreadFunc	func,
 		       ppointer		data,
 		       pboolean		joinable,
 		       PUThreadPriority	prio,
@@ -194,9 +194,9 @@ ztk_uthread_create_full (PUThreadFunc	func,
 	if (P_UNLIKELY (func == NULL))
 		return NULL;
 
-	ztk_spinlock_lock (pztk_uthread_new_spin);
+	zspinlock_lock (pzuthread_new_spin);
 
-	base_thread = (PUThreadBase *) ztk_uthread_create_internal (pztk_uthread_proxy,
+	base_thread = (PUThreadBase *) zuthread_create_internal (pzuthread_proxy,
 								  joinable,
 								  prio,
 								  stack_size);
@@ -207,44 +207,44 @@ ztk_uthread_create_full (PUThreadFunc	func,
 		base_thread->joinable  = joinable;
 		base_thread->func      = func;
 		base_thread->data      = data;
-		base_thread->name      = ztk_strdup (name);
+		base_thread->name      = zstrdup (name);
 	}
 
-	ztk_spinlock_unlock (pztk_uthread_new_spin);
+	zspinlock_unlock (pzuthread_new_spin);
 
 	return (PUThread *) base_thread;
 }
 
 P_LIB_API PUThread *
-ztk_uthread_create (PUThreadFunc	func,
+zuthread_create (PUThreadFunc	func,
 		  ppointer	data,
 		  pboolean	joinable,
 		  const pchar	*name)
 {
 	/* All checks will be inside */
-	return ztk_uthread_create_full (func, data, joinable, P_UTHREAD_PRIORITY_INHERIT, 0, name);
+	return zuthread_create_full (func, data, joinable, P_UTHREAD_PRIORITY_INHERIT, 0, name);
 }
 
 P_LIB_API void
-ztk_uthread_exit (pint code)
+zuthread_exit (pint code)
 {
-	PUThreadBase *base_thread = (PUThreadBase *) ztk_uthread_current ();
+	PUThreadBase *base_thread = (PUThreadBase *) zuthread_current ();
 
 	if (P_UNLIKELY (base_thread == NULL))
 		return;
 
 	if (P_UNLIKELY (base_thread->ours == FALSE)) {
-		P_WARNING ("PUThread::ztk_uthread_exit: ztk_uthread_exit() cannot be called from an unknown thread");
+		P_WARNING ("PUThread::zuthread_exit: zuthread_exit() cannot be called from an unknown thread");
 		return;
 	}
 
 	base_thread->ret_code = code;
 
-	ztk_uthread_exit_internal ();
+	zuthread_exit_internal ();
 }
 
 P_LIB_API pint
-ztk_uthread_join (PUThread *thread)
+zuthread_join (PUThread *thread)
 {
 	PUThreadBase *base_thread;
 
@@ -256,32 +256,32 @@ ztk_uthread_join (PUThread *thread)
 	if (base_thread->joinable == FALSE)
 		return -1;
 
-	ztk_uthread_wait_internal (thread);
+	zuthread_wait_internal (thread);
 
 	return base_thread->ret_code;
 }
 
 P_LIB_API PUThread *
-ztk_uthread_current (void)
+zuthread_current (void)
 {
-	PUThreadBase *base_thread = ztk_uthread_get_local (pztk_uthread_specific_data);
+	PUThreadBase *base_thread = zuthread_get_local (pzuthread_specific_data);
 
 	if (P_UNLIKELY (base_thread == NULL)) {
-		if (P_UNLIKELY ((base_thread = ztk_malloc0 (sizeof (PUThreadBase))) == NULL)) {
-			P_ERROR ("PUThread::ztk_uthread_current: failed to allocate memory");
+		if (P_UNLIKELY ((base_thread = zmalloc0 (sizeof (PUThreadBase))) == NULL)) {
+			P_ERROR ("PUThread::zuthread_current: failed to allocate memory");
 			return NULL;
 		}
 
 		base_thread->ref_count = 1;
 
-		ztk_uthread_set_local (pztk_uthread_specific_data, base_thread);
+		zuthread_set_local (pzuthread_specific_data, base_thread);
 	}
 
 	return (PUThread *) base_thread;
 }
 
 P_LIB_API pint
-ztk_uthread_ideal_count (void)
+zuthread_ideal_count (void)
 {
 #if defined (P_OS_WIN)
 	SYSTEM_INFO	sys_info;
@@ -295,7 +295,7 @@ ztk_uthread_ideal_count (void)
 								 "GetSystemInfo");
 
 	if (P_UNLIKELY (sys_info_func == NULL)) {
-		P_ERROR ("PUThread::ztk_uthread_ideal_count: failed to get address of system info procedure");
+		P_ERROR ("PUThread::zuthread_ideal_count: failed to get address of system info procedure");
 		return 1;
 	}
 
@@ -308,7 +308,7 @@ ztk_uthread_ideal_count (void)
 	if (P_LIKELY (pstat_getdynamic (&psd, sizeof (psd), 1, 0) != -1))
 		return (pint) psd.psd_proc_cnt;
 	else {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call pstat_getdynamic()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call pstat_getdynamic()");
 		return 1;
 	}
 #elif defined (P_OS_IRIX)
@@ -317,7 +317,7 @@ ztk_uthread_ideal_count (void)
 	cores = sysconf (_SC_NPROC_ONLN);
 
 	if (P_UNLIKELY (cores < 0)) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call sysconf(_SC_NPROC_ONLN)");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call sysconf(_SC_NPROC_ONLN)");
 		cores = 1;
 	}
 
@@ -331,7 +331,7 @@ ztk_uthread_ideal_count (void)
 	mib[1] = HW_NCPU;
 
 	if (P_UNLIKELY (sysctl (mib, 2, &cores, &len, NULL, 0) == -1)) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call sysctl()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call sysctl()");
 		return 1;
 	}
 
@@ -354,14 +354,14 @@ ztk_uthread_ideal_count (void)
 	status = lib$get_ef (&efn);
 
 	if (P_UNLIKELY (!$VMS_STATUS_SUCCESS (status))) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call lib$get_ef()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call lib$get_ef()");
 		return 1;
 	}
 
 	status = sys$getsyi (efn, NULL, NULL, itmlst, &iosb, tis_io_complete, 0);
 
 	if (P_UNLIKELY (!$VMS_STATUS_SUCCESS (status))) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call sys$getsyiw()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call sys$getsyiw()");
 		lib$free_ef (&efn);
 		return 1;
 	}
@@ -369,13 +369,13 @@ ztk_uthread_ideal_count (void)
 	status = tis_synch (efn, &iosb);
 
 	if (P_UNLIKELY (!$VMS_STATUS_SUCCESS (status))) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call tis_synch()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call tis_synch()");
 		lib$free_ef (&efn);
 		return 1;
 	}
 
 	if (P_UNLIKELY (iosb.iosb$l_getxxi_status != SS$_NORMAL)) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: l_getxxi_status is not normal");
+		P_WARNING ("PUThread::zuthread_ideal_count: l_getxxi_status is not normal");
 		lib$free_ef (&efn);
 		return 1;
 	}
@@ -391,7 +391,7 @@ ztk_uthread_ideal_count (void)
 					 QSV_NUMPROCESSORS,
 					 &cores,
 					 sizeof (cores)) != NO_ERROR)) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call DosQuerySysInfo()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call DosQuerySysInfo()");
 		return 1;
 	}
 
@@ -408,7 +408,7 @@ ztk_uthread_ideal_count (void)
 	system_info sys_info;
 
 	if (P_UNLIKELY (get_system_info_v (&sys_info, SYS_INFO_VERSION) != 0)) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call get_system_info_v()");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call get_system_info_v()");
 		return 1;
 	}
 
@@ -423,7 +423,7 @@ ztk_uthread_ideal_count (void)
 	struct scoutsname utsn;
 
 	if (P_UNLIKELY (__scoinfo (&utsn, sizeof (utsn)) == -1)) {
-		P_ERROR ("PUThread::ztk_uthread_ideal_count: failed to call __scoinfo()");
+		P_ERROR ("PUThread::zuthread_ideal_count: failed to call __scoinfo()");
 		return 1;
 	}
 
@@ -434,7 +434,7 @@ ztk_uthread_ideal_count (void)
 	cores = (pint) sysconf (_SC_NPROCESSORS_ONLN);
 
 	if (P_UNLIKELY (cores  == -1)) {
-		P_WARNING ("PUThread::ztk_uthread_ideal_count: failed to call sysconf(_SC_NPROCESSORS_ONLN)");
+		P_WARNING ("PUThread::zuthread_ideal_count: failed to call sysconf(_SC_NPROCESSORS_ONLN)");
 		return 1;
 	}
 
@@ -445,16 +445,16 @@ ztk_uthread_ideal_count (void)
 }
 
 P_LIB_API void
-ztk_uthread_ref (PUThread *thread)
+zuthread_ref (PUThread *thread)
 {
 	if (P_UNLIKELY (thread == NULL))
 		return;
 
-	ztk_atomic_int_inc (&((PUThreadBase *) thread)->ref_count);
+	zatomic_int_inc (&((PUThreadBase *) thread)->ref_count);
 }
 
 P_LIB_API void
-ztk_uthread_unref (PUThread *thread)
+zuthread_unref (PUThread *thread)
 {
 	PUThreadBase *base_thread;
 
@@ -463,13 +463,13 @@ ztk_uthread_unref (PUThread *thread)
 
 	base_thread = (PUThreadBase *) thread;
 
-	if (ztk_atomic_int_dec_and_test (&base_thread->ref_count) == TRUE) {
-		ztk_free (base_thread->name);
+	if (zatomic_int_dec_and_test (&base_thread->ref_count) == TRUE) {
+		zfree (base_thread->name);
 
 		if (base_thread->ours == TRUE)
-			ztk_uthread_free_internal (thread);
+			zuthread_free_internal (thread);
 		else
-			ztk_free (thread);
+			zfree (thread);
 	}
 }
 
@@ -478,7 +478,7 @@ ztk_uthread_unref (PUThread *thread)
 #  if !defined (PLIBSYS_HAS_CLOCKNANOSLEEP) && !defined (PLIBSYS_HAS_NANOSLEEP)
 #    include <sys/select.h>
 #    include <sys/time.h>
-static pint pztk_uthread_nanosleep (puint32 msec)
+static pint pzuthread_nanosleep (puint32 msec)
 {
 	pint		rc;
 	struct timeval	tstart, tstop, tremain, time2wait;
@@ -493,7 +493,7 @@ static pint pztk_uthread_nanosleep (puint32 msec)
 
 	while (rc != 0) {
 		if (P_UNLIKELY ((rc = select (0, NULL, NULL, NULL, &time2wait)) != 0)) {
-			if (ztk_error_get_last_system () == EINTR) {
+			if (zerror_get_last_system () == EINTR) {
 				if (gettimeofday (&tstop, NULL) != 0)
 					return -1;
 
@@ -514,7 +514,7 @@ static pint pztk_uthread_nanosleep (puint32 msec)
 #endif
 
 P_LIB_API pint
-ztk_uthread_sleep (puint32 msec)
+zuthread_sleep (puint32 msec)
 {
 #if defined (P_OS_WIN)
 	Sleep (msec);
@@ -544,7 +544,7 @@ ztk_uthread_sleep (puint32 msec)
 #  else
 		if (P_UNLIKELY ((result = nanosleep (&time_req, &time_rem)) != 0)) {
 #  endif
-			if (ztk_error_get_last_system () == EINTR)
+			if (zerror_get_last_system () == EINTR)
 				time_req = time_rem;
 			else
 				return -1;
@@ -553,6 +553,6 @@ ztk_uthread_sleep (puint32 msec)
 
 	return 0;
 #else
-	return pztk_uthread_nanosleep (msec);
+	return pzuthread_nanosleep (msec);
 #endif
 }

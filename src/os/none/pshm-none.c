@@ -32,7 +32,7 @@ struct PShm_ {
 };
 
 P_LIB_API PShm *
-ztk_shm_new (const pchar		*name,
+zshm_new (const pchar		*name,
 	   psize		size,
 	   PShmAccessPerms	perms,
 	   PError		**error)
@@ -46,19 +46,19 @@ ztk_shm_new (const pchar		*name,
 }
 
 P_LIB_API void
-ztk_shm_take_ownership (PShm *shm)
+zshm_take_ownership (PShm *shm)
 {
 	P_UNUSED (shm);
 }
 
 P_LIB_API void
-ztk_shm_free (PShm *shm)
+zshm_free (PShm *shm)
 {
 	P_UNUSED (shm);
 }
 
 P_LIB_API pboolean
-ztk_shm_lock (PShm	*shm,
+zshm_lock (PShm	*shm,
 	    PError	**error)
 {
 	P_UNUSED (shm);
@@ -68,7 +68,7 @@ ztk_shm_lock (PShm	*shm,
 }
 
 P_LIB_API pboolean
-ztk_shm_unlock (PShm	*shm,
+zshm_unlock (PShm	*shm,
 	      PError	**error)
 {
 	P_UNUSED (shm);
@@ -78,7 +78,7 @@ ztk_shm_unlock (PShm	*shm,
 }
 
 P_LIB_API ppointer
-ztk_shm_get_address (const PShm *shm)
+zshm_get_address (const PShm *shm)
 {
 	P_UNUSED (shm);
 
@@ -86,7 +86,7 @@ ztk_shm_get_address (const PShm *shm)
 }
 
 P_LIB_API psize
-ztk_shm_get_size (const PShm *shm)
+zshm_get_size (const PShm *shm)
 {
 	P_UNUSED (shm);
 

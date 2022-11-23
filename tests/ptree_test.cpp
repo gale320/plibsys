@@ -39,7 +39,7 @@ P_TEST_MODULE_INIT ();
 #define PTREE_STRESS_TRAVS	30
 
 typedef struct _TreeData {
-	pint	cmztk_counter;
+	pint	cmzcounter;
 	pint	key_destroy_counter;
 	pint	value_destroy_counter;
 	pint	traverse_counter;
@@ -73,21 +73,21 @@ extern "C" void pmem_free (ppointer block)
 static pint
 tree_complexity (PTree *tree)
 {
-	if (tree == NULL || ztk_tree_get_nnodes (tree) == 0)
+	if (tree == NULL || ztree_get_nnodes (tree) == 0)
 		return 0;
 
-	switch (ztk_tree_get_type (tree)) {
+	switch (ztree_get_type (tree)) {
 	case P_TREE_TYPE_BINARY:
-		return ztk_tree_get_nnodes (tree);
+		return ztree_get_nnodes (tree);
 	case P_TREE_TYPE_RB:
-		return 2 * ((pint) (log ((double) ztk_tree_get_nnodes (tree) + 1) / log (2.0)));
+		return 2 * ((pint) (log ((double) ztree_get_nnodes (tree) + 1) / log (2.0)));
 	case P_TREE_TYPE_AVL:
 	{
 		double phi = (1 + sqrt (5.0)) / 2.0;
-		return (pint) (log (sqrt (5.0) * (ztk_tree_get_nnodes (tree) + 2)) / log (phi) - 2);
+		return (pint) (log (sqrt (5.0) * (ztree_get_nnodes (tree) + 2)) / log (phi) - 2);
 	}
 	default:
-		return ztk_tree_get_nnodes (tree);
+		return ztree_get_nnodes (tree);
 	}
 }
 
@@ -112,7 +112,7 @@ compare_keys_data (pconstpointer a, pconstpointer b, ppointer data)
 	int p2 = PPOINTER_TO_INT (b);
 
 	if (data != NULL)
-		((TreeData *) data)->cmztk_counter++;
+		((TreeData *) data)->cmzcounter++;
 
 	if (p1 < p2)
 		return -1;
@@ -166,7 +166,7 @@ tree_traverse_thres (ppointer key, ppointer value, ppointer data)
 static bool
 check_tree_data_is_zero ()
 {
-	return tree_data.cmztk_counter           == 0 &&
+	return tree_data.cmzcounter           == 0 &&
 	       tree_data.key_destroy_counter   == 0 &&
 	       tree_data.value_destroy_counter == 0 &&
 	       tree_data.traverse_counter      == 0 &&
@@ -183,19 +183,19 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 	memset (&tree_data, 0, sizeof (tree_data));
 
 	P_TEST_REQUIRE (tree != NULL);
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
-	P_TEST_CHECK (ztk_tree_get_type (tree) == type);
-	P_TEST_CHECK (ztk_tree_lookup (tree, NULL) == NULL);
-	P_TEST_CHECK (ztk_tree_remove (tree, NULL) == FALSE);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
+	P_TEST_CHECK (ztree_get_type (tree) == type);
+	P_TEST_CHECK (ztree_lookup (tree, NULL) == NULL);
+	P_TEST_CHECK (ztree_remove (tree, NULL) == FALSE);
 
-	ztk_tree_insert (tree, NULL, PINT_TO_POINTER (10));
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 1);
-	P_TEST_CHECK (ztk_tree_lookup (tree, NULL) == PINT_TO_POINTER (10));
-	P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (2)) == NULL);
-	P_TEST_CHECK (ztk_tree_remove (tree, NULL) == TRUE);
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
+	ztree_insert (tree, NULL, PINT_TO_POINTER (10));
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 1);
+	P_TEST_CHECK (ztree_lookup (tree, NULL) == PINT_TO_POINTER (10));
+	P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (2)) == NULL);
+	P_TEST_CHECK (ztree_remove (tree, NULL) == TRUE);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
 
-	ztk_tree_foreach (tree, (PTraverseFunc) tree_traverse, &tree_data);
+	ztree_foreach (tree, (PTraverseFunc) tree_traverse, &tree_data);
 	P_TEST_CHECK (tree_data.traverse_counter == 0);
 	P_TEST_CHECK (tree_data.key_order_errors == 0);
 
@@ -209,29 +209,29 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 
 	memset (&tree_data, 0, sizeof (tree_data));
 
-	ztk_tree_insert (tree, PINT_TO_POINTER (4), PINT_TO_POINTER (40));
-	ztk_tree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
-	ztk_tree_insert (tree, PINT_TO_POINTER (5), PINT_TO_POINTER (50));
-	ztk_tree_insert (tree, PINT_TO_POINTER (2), PINT_TO_POINTER (20));
-	ztk_tree_insert (tree, PINT_TO_POINTER (6), PINT_TO_POINTER (60));
-	ztk_tree_insert (tree, PINT_TO_POINTER (3), PINT_TO_POINTER (30));
+	ztree_insert (tree, PINT_TO_POINTER (4), PINT_TO_POINTER (40));
+	ztree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
+	ztree_insert (tree, PINT_TO_POINTER (5), PINT_TO_POINTER (50));
+	ztree_insert (tree, PINT_TO_POINTER (2), PINT_TO_POINTER (20));
+	ztree_insert (tree, PINT_TO_POINTER (6), PINT_TO_POINTER (60));
+	ztree_insert (tree, PINT_TO_POINTER (3), PINT_TO_POINTER (30));
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 6);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 6);
 
-	ztk_tree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (100));
-	ztk_tree_insert (tree, PINT_TO_POINTER (5), PINT_TO_POINTER (500));
+	ztree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (100));
+	ztree_insert (tree, PINT_TO_POINTER (5), PINT_TO_POINTER (500));
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 6);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 6);
 
-	ztk_tree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
-	ztk_tree_insert (tree, PINT_TO_POINTER (5), PINT_TO_POINTER (50));
+	ztree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
+	ztree_insert (tree, PINT_TO_POINTER (5), PINT_TO_POINTER (50));
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 6);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 6);
 
 	if (check_cmp)
-		P_TEST_CHECK (tree_data.cmztk_counter > 0);
+		P_TEST_CHECK (tree_data.cmzcounter > 0);
 	else
-		P_TEST_CHECK (tree_data.cmztk_counter == 0);
+		P_TEST_CHECK (tree_data.cmzcounter == 0);
 
 	if (check_notify) {
 		P_TEST_CHECK (tree_data.key_sum   == 12);
@@ -246,10 +246,10 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 
 	memset (&tree_data, 0, sizeof (tree_data));
 
-	ztk_tree_foreach (tree, (PTraverseFunc) tree_traverse, &tree_data);
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 6);
+	ztree_foreach (tree, (PTraverseFunc) tree_traverse, &tree_data);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 6);
 
-	P_TEST_CHECK (tree_data.cmztk_counter      == 0);
+	P_TEST_CHECK (tree_data.cmzcounter      == 0);
 	P_TEST_CHECK (tree_data.key_sum          == 21);
 	P_TEST_CHECK (tree_data.value_sum        == 210);
 	P_TEST_CHECK (tree_data.traverse_counter == 6);
@@ -258,41 +258,41 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 	memset (&tree_data, 0, sizeof (tree_data));
 
 	for (int i = 0; i < 7; ++i)
-		P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (i)) == PINT_TO_POINTER (i * 10));
+		P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (i)) == PINT_TO_POINTER (i * 10));
 
 	if (check_cmp)
-		P_TEST_CHECK (tree_data.cmztk_counter > 0);
+		P_TEST_CHECK (tree_data.cmzcounter > 0);
 	else
-		P_TEST_CHECK (tree_data.cmztk_counter == 0);
+		P_TEST_CHECK (tree_data.cmzcounter == 0);
 
 	P_TEST_CHECK (tree_data.key_sum          == 0);
 	P_TEST_CHECK (tree_data.value_sum        == 0);
 	P_TEST_CHECK (tree_data.key_order_errors == 0);
 
-	tree_data.cmztk_counter = 0;
+	tree_data.cmzcounter = 0;
 
-	P_TEST_CHECK (ztk_tree_remove (tree, PINT_TO_POINTER (7)) == FALSE);
+	P_TEST_CHECK (ztree_remove (tree, PINT_TO_POINTER (7)) == FALSE);
 
 	if (check_cmp)
-		P_TEST_CHECK (tree_data.cmztk_counter > 0 &&
-			     tree_data.cmztk_counter <= tree_complexity (tree));
+		P_TEST_CHECK (tree_data.cmzcounter > 0 &&
+			     tree_data.cmzcounter <= tree_complexity (tree));
 	else
-		P_TEST_CHECK (tree_data.cmztk_counter == 0);
+		P_TEST_CHECK (tree_data.cmzcounter == 0);
 
 	if (check_notify) {
 		P_TEST_CHECK (tree_data.key_sum   == 0);
 		P_TEST_CHECK (tree_data.value_sum == 0);
 	}
 
-	tree_data.cmztk_counter = 0;
+	tree_data.cmzcounter = 0;
 
 	for (int i = 0; i < 7; ++i)
-		P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (i)) == PINT_TO_POINTER (i * 10));
+		P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (i)) == PINT_TO_POINTER (i * 10));
 
 	if (check_cmp)
-		P_TEST_CHECK (tree_data.cmztk_counter > 0);
+		P_TEST_CHECK (tree_data.cmzcounter > 0);
 	else
-		P_TEST_CHECK (tree_data.cmztk_counter == 0);
+		P_TEST_CHECK (tree_data.cmzcounter == 0);
 
 	P_TEST_CHECK (tree_data.key_sum          == 0);
 	P_TEST_CHECK (tree_data.value_sum        == 0);
@@ -302,10 +302,10 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 
 	tree_data.traverse_thres = 5;
 
-	ztk_tree_foreach (tree, (PTraverseFunc) tree_traverse_thres, &tree_data);
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 6);
+	ztree_foreach (tree, (PTraverseFunc) tree_traverse_thres, &tree_data);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 6);
 
-	P_TEST_CHECK (tree_data.cmztk_counter      == 0);
+	P_TEST_CHECK (tree_data.cmzcounter      == 0);
 	P_TEST_CHECK (tree_data.key_sum          == 15);
 	P_TEST_CHECK (tree_data.value_sum        == 150);
 	P_TEST_CHECK (tree_data.traverse_counter == 5);
@@ -315,10 +315,10 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 
 	tree_data.traverse_thres = 3;
 
-	ztk_tree_foreach (tree, (PTraverseFunc) tree_traverse_thres, &tree_data);
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 6);
+	ztree_foreach (tree, (PTraverseFunc) tree_traverse_thres, &tree_data);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 6);
 
-	P_TEST_CHECK (tree_data.cmztk_counter      == 0);
+	P_TEST_CHECK (tree_data.cmzcounter      == 0);
 	P_TEST_CHECK (tree_data.key_sum          == 6);
 	P_TEST_CHECK (tree_data.value_sum        == 60);
 	P_TEST_CHECK (tree_data.traverse_counter == 3);
@@ -326,15 +326,15 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 
 	memset (&tree_data, 0, sizeof (tree_data));
 
-	P_TEST_CHECK (ztk_tree_remove (tree, PINT_TO_POINTER (1)) == TRUE);
-	P_TEST_CHECK (ztk_tree_remove (tree, PINT_TO_POINTER (6)) == TRUE);
-	P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (1)) == NULL);
-	P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (6)) == NULL);
+	P_TEST_CHECK (ztree_remove (tree, PINT_TO_POINTER (1)) == TRUE);
+	P_TEST_CHECK (ztree_remove (tree, PINT_TO_POINTER (6)) == TRUE);
+	P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (1)) == NULL);
+	P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (6)) == NULL);
 
 	if (check_cmp)
-		P_TEST_CHECK (tree_data.cmztk_counter > 0);
+		P_TEST_CHECK (tree_data.cmzcounter > 0);
 	else
-		P_TEST_CHECK (tree_data.cmztk_counter == 0);
+		P_TEST_CHECK (tree_data.cmzcounter == 0);
 
 	if (check_notify) {
 		P_TEST_CHECK (tree_data.key_sum   == 7);
@@ -344,15 +344,15 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 		P_TEST_CHECK (tree_data.value_sum == 0);
 	}
 
-	tree_data.cmztk_counter = 0;
+	tree_data.cmzcounter = 0;
 
 	for (int i = 2; i < 6; ++i)
-		P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (i)) == PINT_TO_POINTER (i * 10));
+		P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (i)) == PINT_TO_POINTER (i * 10));
 
 	if (check_cmp)
-		P_TEST_CHECK (tree_data.cmztk_counter > 0);
+		P_TEST_CHECK (tree_data.cmzcounter > 0);
 	else
-		P_TEST_CHECK (tree_data.cmztk_counter == 0);
+		P_TEST_CHECK (tree_data.cmzcounter == 0);
 
 	if (check_notify) {
 		P_TEST_CHECK (tree_data.key_sum   == 7);
@@ -364,16 +364,16 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 
 	P_TEST_CHECK (tree_data.key_order_errors == 0);
 
-	tree_data.cmztk_counter = 0;
+	tree_data.cmzcounter = 0;
 
-	ztk_tree_foreach (tree, NULL, NULL);
+	ztree_foreach (tree, NULL, NULL);
 
-	P_TEST_CHECK (tree_data.cmztk_counter      == 0);
+	P_TEST_CHECK (tree_data.cmzcounter      == 0);
 	P_TEST_CHECK (tree_data.key_order_errors == 0);
 
-	ztk_tree_clear (tree);
+	ztree_clear (tree);
 
-	P_TEST_CHECK (tree_data.cmztk_counter      == 0);
+	P_TEST_CHECK (tree_data.cmzcounter      == 0);
 	P_TEST_CHECK (tree_data.key_order_errors == 0);
 
 	if (check_notify) {
@@ -384,7 +384,7 @@ general_tree_test (PTree *tree, PTreeType type, bool check_cmp, bool check_notif
 		P_TEST_CHECK (tree_data.value_sum == 0);
 	}
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
 
 	return true;
 }
@@ -394,7 +394,7 @@ stress_tree_test (PTree *tree, int node_count)
 {
 	P_TEST_REQUIRE (tree != NULL);
 	P_TEST_REQUIRE (node_count > 0);
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
 
 	srand ((unsigned int) time (NULL));
 
@@ -402,8 +402,8 @@ stress_tree_test (PTree *tree, int node_count)
 
 	memset (&tree_data, 0, sizeof (tree_data));
 
-	pint *keys   = (pint *) ztk_malloc0 ((psize) node_count * sizeof (pint));
-	pint *values = (pint *) ztk_malloc0 ((psize) node_count * sizeof (pint));
+	pint *keys   = (pint *) zmalloc0 ((psize) node_count * sizeof (pint));
+	pint *values = (pint *) zmalloc0 ((psize) node_count * sizeof (pint));
 
 	P_TEST_REQUIRE (keys != NULL);
 	P_TEST_REQUIRE (values != NULL);
@@ -416,23 +416,23 @@ stress_tree_test (PTree *tree, int node_count)
 
 		memset (&tree_data, 0, sizeof (tree_data));
 
-		if (ztk_tree_lookup (tree, PINT_TO_POINTER (rand_number)) != NULL)
+		if (ztree_lookup (tree, PINT_TO_POINTER (rand_number)) != NULL)
 			continue;
 
 		if (counter > 0)
-			P_TEST_CHECK (tree_data.cmztk_counter > 0 &&
-				     tree_data.cmztk_counter <= tree_complexity (tree));
+			P_TEST_CHECK (tree_data.cmzcounter > 0 &&
+				     tree_data.cmzcounter <= tree_complexity (tree));
 
 		memset (&tree_data, 0, sizeof (tree_data));
 
 		keys[counter]   = rand_number;
 		values[counter] = rand () + 1;
 
-		ztk_tree_insert (tree, PINT_TO_POINTER (keys[counter]), PINT_TO_POINTER (values[counter]));
+		ztree_insert (tree, PINT_TO_POINTER (keys[counter]), PINT_TO_POINTER (values[counter]));
 
 		if (counter > 0)
-			P_TEST_CHECK (tree_data.cmztk_counter > 0 &&
-				     tree_data.cmztk_counter <= tree_complexity (tree));
+			P_TEST_CHECK (tree_data.cmzcounter > 0 &&
+				     tree_data.cmzcounter <= tree_complexity (tree));
 
 		++counter;
 	}
@@ -443,7 +443,7 @@ stress_tree_test (PTree *tree, int node_count)
 		tree_data.traverse_thres = i + 1;
 		tree_data.last_key       = -1;
 
-		ztk_tree_foreach (tree, (PTraverseFunc) tree_traverse_thres, &tree_data);
+		ztree_foreach (tree, (PTraverseFunc) tree_traverse_thres, &tree_data);
 
 		P_TEST_CHECK (tree_data.traverse_counter == i + 1);
 		P_TEST_CHECK (tree_data.key_order_errors == 0);
@@ -452,104 +452,104 @@ stress_tree_test (PTree *tree, int node_count)
 	for (int i = 0; i < node_count; ++i) {
 		memset (&tree_data, 0, sizeof (tree_data));
 
-		P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (keys[i])) ==
+		P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (keys[i])) ==
 			     PINT_TO_POINTER (values[i]));
 
-		P_TEST_CHECK (tree_data.cmztk_counter > 0 &&
-			     tree_data.cmztk_counter <= tree_complexity (tree));
+		P_TEST_CHECK (tree_data.cmzcounter > 0 &&
+			     tree_data.cmzcounter <= tree_complexity (tree));
 
-		P_TEST_CHECK (ztk_tree_remove (tree, PINT_TO_POINTER (keys[i])) == TRUE);
-		P_TEST_CHECK (ztk_tree_lookup (tree, PINT_TO_POINTER (keys[i])) == NULL);
+		P_TEST_CHECK (ztree_remove (tree, PINT_TO_POINTER (keys[i])) == TRUE);
+		P_TEST_CHECK (ztree_lookup (tree, PINT_TO_POINTER (keys[i])) == NULL);
 	}
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
 
 	for (int i = 0; i < node_count; ++i)
-		ztk_tree_insert (tree, PINT_TO_POINTER (keys[i]), PINT_TO_POINTER (values[i]));
+		ztree_insert (tree, PINT_TO_POINTER (keys[i]), PINT_TO_POINTER (values[i]));
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == node_count);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == node_count);
 
-	ztk_tree_clear (tree);
+	ztree_clear (tree);
 
-	P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
+	P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
 
-	ztk_free (keys);
-	ztk_free (values);
+	zfree (keys);
+	zfree (values);
 
 	return true;
 }
 
 P_TEST_CASE_BEGIN (ptree_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PMemVTable vtable;
 
 	for (int i = (int) P_TREE_TYPE_BINARY; i <= (int) P_TREE_TYPE_AVL; ++i) {
-		PTree *tree = ztk_tree_new ((PTreeType) i, (PCompareFunc) compare_keys);
+		PTree *tree = ztree_new ((PTreeType) i, (PCompareFunc) compare_keys);
 		P_TEST_CHECK (tree != NULL);
 
 		vtable.free    = pmem_free;
 		vtable.malloc  = pmem_alloc;
 		vtable.realloc = pmem_realloc;
 
-		P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+		P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
-		P_TEST_CHECK (ztk_tree_new ((PTreeType) i, (PCompareFunc) compare_keys) == NULL);
-		ztk_tree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
-		P_TEST_CHECK (ztk_tree_get_nnodes (tree) == 0);
+		P_TEST_CHECK (ztree_new ((PTreeType) i, (PCompareFunc) compare_keys) == NULL);
+		ztree_insert (tree, PINT_TO_POINTER (1), PINT_TO_POINTER (10));
+		P_TEST_CHECK (ztree_get_nnodes (tree) == 0);
 
-		ztk_mem_restore_vtable ();
+		zmem_restore_vtable ();
 
-		ztk_tree_free (tree);
+		ztree_free (tree);
 	}
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (ptree_invalid_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	for (int i = (int) P_TREE_TYPE_BINARY; i <= (int) P_TREE_TYPE_AVL; ++i) {
 		/* Invalid usage */
-		P_TEST_CHECK (ztk_tree_new ((PTreeType) i, NULL) == NULL);
-		P_TEST_CHECK (ztk_tree_new ((PTreeType) -1, (PCompareFunc) compare_keys) == NULL);
-		P_TEST_CHECK (ztk_tree_new ((PTreeType) -1, NULL) == NULL);
+		P_TEST_CHECK (ztree_new ((PTreeType) i, NULL) == NULL);
+		P_TEST_CHECK (ztree_new ((PTreeType) -1, (PCompareFunc) compare_keys) == NULL);
+		P_TEST_CHECK (ztree_new ((PTreeType) -1, NULL) == NULL);
 
-		P_TEST_CHECK (ztk_tree_new_with_data ((PTreeType) i, NULL, NULL) == NULL);
-		P_TEST_CHECK (ztk_tree_new_with_data ((PTreeType) -1, (PCompareDataFunc) compare_keys, NULL) == NULL);
-		P_TEST_CHECK (ztk_tree_new_with_data ((PTreeType) -1, NULL, NULL) == NULL);
+		P_TEST_CHECK (ztree_new_with_data ((PTreeType) i, NULL, NULL) == NULL);
+		P_TEST_CHECK (ztree_new_with_data ((PTreeType) -1, (PCompareDataFunc) compare_keys, NULL) == NULL);
+		P_TEST_CHECK (ztree_new_with_data ((PTreeType) -1, NULL, NULL) == NULL);
 
-		P_TEST_CHECK (ztk_tree_new_full ((PTreeType) i,
+		P_TEST_CHECK (ztree_new_full ((PTreeType) i,
 					      NULL,
 					      NULL,
 					      NULL,
 					      NULL) == NULL);
-		P_TEST_CHECK (ztk_tree_new_full ((PTreeType) -1,
+		P_TEST_CHECK (ztree_new_full ((PTreeType) -1,
 					      (PCompareDataFunc) compare_keys,
 					      NULL,
 					      NULL,
 					      NULL) == NULL);
-		P_TEST_CHECK (ztk_tree_new_full ((PTreeType) -1,
+		P_TEST_CHECK (ztree_new_full ((PTreeType) -1,
 					      NULL,
 					      NULL,
 					      NULL,
 					      NULL) == NULL);
 
-		P_TEST_CHECK (ztk_tree_remove (NULL, NULL) == FALSE);
-		P_TEST_CHECK (ztk_tree_lookup (NULL, NULL) == NULL);
-		P_TEST_CHECK (ztk_tree_get_type (NULL) == (PTreeType) -1);
-		P_TEST_CHECK (ztk_tree_get_nnodes (NULL) == 0);
+		P_TEST_CHECK (ztree_remove (NULL, NULL) == FALSE);
+		P_TEST_CHECK (ztree_lookup (NULL, NULL) == NULL);
+		P_TEST_CHECK (ztree_get_type (NULL) == (PTreeType) -1);
+		P_TEST_CHECK (ztree_get_nnodes (NULL) == 0);
 
-		ztk_tree_insert (NULL, NULL, NULL);
-		ztk_tree_foreach (NULL, NULL, NULL);
-		ztk_tree_clear (NULL);
-		ztk_tree_free (NULL);
+		ztree_insert (NULL, NULL, NULL);
+		ztree_foreach (NULL, NULL, NULL);
+		ztree_clear (NULL);
+		ztree_free (NULL);
 	}
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -557,33 +557,33 @@ P_TEST_CASE_BEGIN (ptree_general_test)
 {
 	PTree *tree;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	for (int i = (int) P_TREE_TYPE_BINARY; i <= (int) P_TREE_TYPE_AVL; ++i) {
 		/* Test 1 */
-		tree = ztk_tree_new ((PTreeType) i, (PCompareFunc) compare_keys);
+		tree = ztree_new ((PTreeType) i, (PCompareFunc) compare_keys);
 
 		P_TEST_CHECK (general_tree_test (tree, (PTreeType) i, false, false) == true);
 
 		memset (&tree_data, 0, sizeof (tree_data));
-		ztk_tree_free (tree);
+		ztree_free (tree);
 
 		P_TEST_CHECK (check_tree_data_is_zero () == true);
 
 		/* Test 2 */
-		tree = ztk_tree_new_with_data ((PTreeType) i,
+		tree = ztree_new_with_data ((PTreeType) i,
 					     (PCompareDataFunc) compare_keys_data,
 					     &tree_data);
 
 		P_TEST_CHECK (general_tree_test (tree, (PTreeType) i, true, false) == true);
 
 		memset (&tree_data, 0, sizeof (tree_data));
-		ztk_tree_free (tree);
+		ztree_free (tree);
 
 		P_TEST_CHECK (check_tree_data_is_zero () == true);
 
 		/* Test 3 */
-		tree = ztk_tree_new_full ((PTreeType) i,
+		tree = ztree_new_full ((PTreeType) i,
 					(PCompareDataFunc) compare_keys_data,
 					&tree_data,
 					(PDestroyFunc) key_destroy_notify,
@@ -591,12 +591,12 @@ P_TEST_CASE_BEGIN (ptree_general_test)
 		P_TEST_CHECK (general_tree_test (tree, (PTreeType) i, true, true) == true);
 
 		memset (&tree_data, 0, sizeof (tree_data));
-		ztk_tree_free (tree);
+		ztree_free (tree);
 
 		P_TEST_CHECK (check_tree_data_is_zero () == true);
 	}
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -604,10 +604,10 @@ P_TEST_CASE_BEGIN (ptree_stress_test)
 {
 	PTree *tree;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	for (int i = (int) P_TREE_TYPE_BINARY; i <= (int) P_TREE_TYPE_AVL; ++i) {
-		tree = ztk_tree_new_full ((PTreeType) i,
+		tree = ztree_new_full ((PTreeType) i,
 					(PCompareDataFunc) compare_keys_data,
 					&tree_data,
 					(PDestroyFunc) key_destroy_notify,
@@ -616,10 +616,10 @@ P_TEST_CASE_BEGIN (ptree_stress_test)
 		for (int j = 0; j < PTREE_STRESS_ITERATIONS; ++j)
 			P_TEST_CHECK (stress_tree_test (tree, PTREE_STRESS_NODES) == true);
 
-		ztk_tree_free (tree);
+		ztree_free (tree);
 	}
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

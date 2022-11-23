@@ -36,18 +36,18 @@ struct PCondVariable_ {
 };
 
 P_LIB_API PCondVariable *
-ztk_cond_variable_new (void)
+zcond_variable_new (void)
 {
 	PCondVariable *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PCondVariable))) == NULL)) {
-		P_ERROR ("PCondVariable::ztk_cond_variable_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PCondVariable))) == NULL)) {
+		P_ERROR ("PCondVariable::zcond_variable_new: failed to allocate memory");
 		return NULL;
 	}
 
 	if (P_UNLIKELY (pthread_cond_init (&ret->hdl, NULL) != 0)) {
-		P_ERROR ("PCondVariable::ztk_cond_variable_new: failed to initialize");
-		ztk_free (ret);
+		P_ERROR ("PCondVariable::zcond_variable_new: failed to initialize");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -55,19 +55,19 @@ ztk_cond_variable_new (void)
 }
 
 P_LIB_API void
-ztk_cond_variable_free (PCondVariable *cond)
+zcond_variable_free (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return;
 
 	if (P_UNLIKELY (pthread_cond_destroy (&cond->hdl) != 0))
-		P_WARNING ("PCondVariable::ztk_cond_variable_free: pthread_cond_destroy() failed");
+		P_WARNING ("PCondVariable::zcond_variable_free: pthread_cond_destroy() failed");
 
-	ztk_free (cond);
+	zfree (cond);
 }
 
 P_LIB_API pboolean
-ztk_cond_variable_wait (PCondVariable	*cond,
+zcond_variable_wait (PCondVariable	*cond,
 		      PMutex		*mutex)
 {
 	if (P_UNLIKELY (cond == NULL || mutex == NULL))
@@ -75,7 +75,7 @@ ztk_cond_variable_wait (PCondVariable	*cond,
 
 	/* Cast is eligible since there is only one field in the PMutex structure */
 	if (P_UNLIKELY (pthread_cond_wait (&cond->hdl, (pthread_mutex_t *) mutex) != 0)) {
-		P_ERROR ("PCondVariable::ztk_cond_variable_wait: pthread_cond_wait() failed");
+		P_ERROR ("PCondVariable::zcond_variable_wait: pthread_cond_wait() failed");
 		return FALSE;
 	}
 
@@ -83,13 +83,13 @@ ztk_cond_variable_wait (PCondVariable	*cond,
 }
 
 P_LIB_API pboolean
-ztk_cond_variable_signal (PCondVariable *cond)
+zcond_variable_signal (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return FALSE;
 
 	if (P_UNLIKELY (pthread_cond_signal (&cond->hdl) != 0)) {
-		P_ERROR ("PCondVariable::ztk_cond_variable_signal: pthread_cond_signal() failed");
+		P_ERROR ("PCondVariable::zcond_variable_signal: pthread_cond_signal() failed");
 		return FALSE;
 	}
 
@@ -97,13 +97,13 @@ ztk_cond_variable_signal (PCondVariable *cond)
 }
 
 P_LIB_API pboolean
-ztk_cond_variable_broadcast (PCondVariable *cond)
+zcond_variable_broadcast (PCondVariable *cond)
 {
 	if (P_UNLIKELY (cond == NULL))
 		return FALSE;
 
 	if (P_UNLIKELY (pthread_cond_broadcast (&cond->hdl) != 0)) {
-		P_ERROR ("PCondVariable::ztk_cond_variable_broadcast: thread_cond_broadcast() failed");
+		P_ERROR ("PCondVariable::zcond_variable_broadcast: thread_cond_broadcast() failed");
 		return FALSE;
 	}
 
@@ -111,11 +111,11 @@ ztk_cond_variable_broadcast (PCondVariable *cond)
 }
 
 void
-ztk_cond_variable_init (void)
+zcond_variable_init (void)
 {
 }
 
 void
-ztk_cond_variable_shutdown (void)
+zcond_variable_shutdown (void)
 {
 }

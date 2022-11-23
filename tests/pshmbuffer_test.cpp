@@ -41,45 +41,45 @@ volatile static pboolean is_working = FALSE;
 
 static void * shm_buffer_test_write_thread (void *)
 {
-	PShmBuffer *buffer = ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL);
+	PShmBuffer *buffer = zshm_buffer_new ("pshm_test_buffer", 1024, NULL);
 
 	if (buffer == NULL)
-		ztk_uthread_exit (1);
+		zuthread_exit (1);
 
 	while (is_working == TRUE) {
-		ztk_uthread_sleep (3);
+		zuthread_sleep (3);
 
-		pssize oztk_result = ztk_shm_buffer_get_free_space (buffer, NULL);
+		pssize ozresult = zshm_buffer_get_free_space (buffer, NULL);
 
-		if (oztk_result < 0) {
+		if (ozresult < 0) {
 			if (is_thread_exit > 0)
 				break;
 			else {
 				++is_thread_exit;
-				ztk_shm_buffer_free (buffer);
-				ztk_uthread_exit (1);
+				zshm_buffer_free (buffer);
+				zuthread_exit (1);
 			}
 		}
 
-		if ((psize) oztk_result < sizeof (test_str))
+		if ((psize) ozresult < sizeof (test_str))
 			continue;
 
-		oztk_result = ztk_shm_buffer_write (buffer, (ppointer) test_str, sizeof (test_str), NULL);
+		ozresult = zshm_buffer_write (buffer, (ppointer) test_str, sizeof (test_str), NULL);
 
-		if (oztk_result < 0) {
+		if (ozresult < 0) {
 			if (is_thread_exit > 0)
 				break;
 			else {
 				++is_thread_exit;
-				ztk_shm_buffer_free (buffer);
-				ztk_uthread_exit (1);
+				zshm_buffer_free (buffer);
+				zuthread_exit (1);
 			}
 		}
 
-		if (oztk_result != sizeof (test_str)) {
+		if (ozresult != sizeof (test_str)) {
 			++is_thread_exit;
-			ztk_shm_buffer_free (buffer);
-			ztk_uthread_exit (1);
+			zshm_buffer_free (buffer);
+			zuthread_exit (1);
 		}
 
 		++read_count;
@@ -87,60 +87,60 @@ static void * shm_buffer_test_write_thread (void *)
 
 	++is_thread_exit;
 
-	ztk_shm_buffer_free (buffer);
-	ztk_uthread_exit (0);
+	zshm_buffer_free (buffer);
+	zuthread_exit (0);
 
 	return NULL;
 }
 
 static void * shm_buffer_test_read_thread (void *)
 {
-	PShmBuffer	*buffer = ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL);
+	PShmBuffer	*buffer = zshm_buffer_new ("pshm_test_buffer", 1024, NULL);
 	pchar		test_buf[sizeof (test_str)];
 
 	if (buffer == NULL)
-		ztk_uthread_exit (1);
+		zuthread_exit (1);
 
 	while (is_working == TRUE) {
-		ztk_uthread_sleep (3);
+		zuthread_sleep (3);
 
-		pssize oztk_result = ztk_shm_buffer_get_used_space (buffer, NULL);
+		pssize ozresult = zshm_buffer_get_used_space (buffer, NULL);
 
-		if (oztk_result < 0) {
+		if (ozresult < 0) {
 			if (is_thread_exit > 0)
 				break;
 			else {
 				++is_thread_exit;
-				ztk_shm_buffer_free (buffer);
-				ztk_uthread_exit (1);
+				zshm_buffer_free (buffer);
+				zuthread_exit (1);
 			}
 		}
 
-		if ((psize) oztk_result < sizeof (test_str))
+		if ((psize) ozresult < sizeof (test_str))
 			continue;
 
-		oztk_result = ztk_shm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL);
+		ozresult = zshm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL);
 
-		if (oztk_result < 0) {
+		if (ozresult < 0) {
 			if (is_thread_exit > 0)
 				break;
 			else {
 				++is_thread_exit;
-				ztk_shm_buffer_free (buffer);
-				ztk_uthread_exit (1);
+				zshm_buffer_free (buffer);
+				zuthread_exit (1);
 			}
 		}
 
-		if (oztk_result != sizeof (test_buf)) {
+		if (ozresult != sizeof (test_buf)) {
 			++is_thread_exit;
-			ztk_shm_buffer_free (buffer);
-			ztk_uthread_exit (1);
+			zshm_buffer_free (buffer);
+			zuthread_exit (1);
 		}
 
 		if (strncmp (test_buf, test_str, sizeof (test_buf)) != 0) {
 			++is_thread_exit;
-			ztk_shm_buffer_free (buffer);
-			ztk_uthread_exit (1);
+			zshm_buffer_free (buffer);
+			zuthread_exit (1);
 		}
 
 		++write_count;
@@ -148,8 +148,8 @@ static void * shm_buffer_test_read_thread (void *)
 
 	++is_thread_exit;
 
-	ztk_shm_buffer_free (buffer);
-	ztk_uthread_exit (0);
+	zshm_buffer_free (buffer);
+	zuthread_exit (0);
 
 	return NULL;
 }
@@ -175,7 +175,7 @@ extern "C" void pmem_free (ppointer block)
 
 P_TEST_CASE_BEGIN (pshmbuffer_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PMemVTable vtable;
 
@@ -183,158 +183,158 @@ P_TEST_CASE_BEGIN (pshmbuffer_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
 
-	P_TEST_CHECK (ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL) == NULL);
+	P_TEST_CHECK (zshm_buffer_new ("pshm_test_buffer", 1024, NULL) == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pshmbuffer_bad_input_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_CHECK (ztk_shm_buffer_new (NULL, 0, NULL) == NULL);
-	P_TEST_CHECK (ztk_shm_buffer_read (NULL, NULL, 0, NULL) == -1);
-	P_TEST_CHECK (ztk_shm_buffer_write (NULL, NULL, 0, NULL) == -1);
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (NULL, NULL) == -1);
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (NULL, NULL) == -1);
+	P_TEST_CHECK (zshm_buffer_new (NULL, 0, NULL) == NULL);
+	P_TEST_CHECK (zshm_buffer_read (NULL, NULL, 0, NULL) == -1);
+	P_TEST_CHECK (zshm_buffer_write (NULL, NULL, 0, NULL) == -1);
+	P_TEST_CHECK (zshm_buffer_get_free_space (NULL, NULL) == -1);
+	P_TEST_CHECK (zshm_buffer_get_used_space (NULL, NULL) == -1);
 
-	PShmBuffer *buf = ztk_shm_buffer_new ("pshm_invalid_buffer", 0, NULL);
-	ztk_shm_buffer_take_ownership (buf);
-	ztk_shm_buffer_free (buf);
+	PShmBuffer *buf = zshm_buffer_new ("pshm_invalid_buffer", 0, NULL);
+	zshm_buffer_take_ownership (buf);
+	zshm_buffer_free (buf);
 
-	ztk_shm_buffer_clear (NULL);
-	ztk_shm_buffer_free (NULL);
+	zshm_buffer_clear (NULL);
+	zshm_buffer_free (NULL);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pshmbuffer_general_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	pchar		test_buf[sizeof (test_str)];
 	pchar		*large_buf;
 	PShmBuffer	*buffer = NULL;
 
 	/* Buffer may be from the previous test on UNIX systems */
-	buffer = ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL);
+	buffer = zshm_buffer_new ("pshm_test_buffer", 1024, NULL);
 	P_TEST_REQUIRE (buffer != NULL);
-	ztk_shm_buffer_take_ownership (buffer);
-	ztk_shm_buffer_free (buffer);
-	buffer = ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL);
+	zshm_buffer_take_ownership (buffer);
+	zshm_buffer_free (buffer);
+	buffer = zshm_buffer_new ("pshm_test_buffer", 1024, NULL);
 	P_TEST_REQUIRE (buffer != NULL);
 
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == 1024);
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == 0);
-	ztk_shm_buffer_clear (buffer);
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == 1024);
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == 0);
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == 1024);
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == 0);
+	zshm_buffer_clear (buffer);
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == 1024);
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == 0);
 
 	memset (test_buf, 0, sizeof (test_buf));
 
-	P_TEST_CHECK (ztk_shm_buffer_write (buffer, (ppointer) test_str, sizeof (test_str), NULL) == sizeof (test_str));
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == (1024 - sizeof (test_str)));
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == sizeof (test_str));
-	P_TEST_CHECK (ztk_shm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL) == sizeof (test_str));
-	P_TEST_CHECK (ztk_shm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL) == 0);
+	P_TEST_CHECK (zshm_buffer_write (buffer, (ppointer) test_str, sizeof (test_str), NULL) == sizeof (test_str));
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == (1024 - sizeof (test_str)));
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == sizeof (test_str));
+	P_TEST_CHECK (zshm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL) == sizeof (test_str));
+	P_TEST_CHECK (zshm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL) == 0);
 
 	P_TEST_CHECK (strncmp (test_buf, test_str, sizeof (test_str)) == 0);
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == 1024);
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == 0);
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == 1024);
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == 0);
 
-	ztk_shm_buffer_clear (buffer);
+	zshm_buffer_clear (buffer);
 
-	large_buf = (pchar *) ztk_malloc0 (2048);
+	large_buf = (pchar *) zmalloc0 (2048);
 	P_TEST_REQUIRE (large_buf != NULL);
-	P_TEST_CHECK (ztk_shm_buffer_write (buffer, (ppointer) large_buf, 2048, NULL) == 0);
+	P_TEST_CHECK (zshm_buffer_write (buffer, (ppointer) large_buf, 2048, NULL) == 0);
 
-	ztk_free (large_buf);
-	ztk_shm_buffer_free (buffer);
+	zfree (large_buf);
+	zshm_buffer_free (buffer);
 
 	/* Test read-write positions */
 
-	buffer = ztk_shm_buffer_new ("pshm_test_buffer_small", 10, NULL);
+	buffer = zshm_buffer_new ("pshm_test_buffer_small", 10, NULL);
 	P_TEST_REQUIRE (buffer != NULL);
-	ztk_shm_buffer_take_ownership (buffer);
-	ztk_shm_buffer_free (buffer);
-	buffer = ztk_shm_buffer_new ("pshm_test_buffer_small", 10, NULL);
+	zshm_buffer_take_ownership (buffer);
+	zshm_buffer_free (buffer);
+	buffer = zshm_buffer_new ("pshm_test_buffer_small", 10, NULL);
 	P_TEST_REQUIRE (buffer != NULL);
 
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == 10);
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == 0);
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == 10);
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == 0);
 
 	/* Case 1: write position > read position */
-	P_TEST_CHECK (ztk_shm_buffer_write (buffer, (ppointer) test_str_sm, sizeof (test_str_sm), NULL) == sizeof (test_str_sm));
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == (10 - sizeof (test_str_sm)));
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == sizeof (test_str_sm));
+	P_TEST_CHECK (zshm_buffer_write (buffer, (ppointer) test_str_sm, sizeof (test_str_sm), NULL) == sizeof (test_str_sm));
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == (10 - sizeof (test_str_sm)));
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == sizeof (test_str_sm));
 
 	/* Case 2: write position == read position */
 	memset (test_buf, 0, sizeof (test_buf));
-	P_TEST_CHECK (ztk_shm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL) == sizeof (test_str_sm));
+	P_TEST_CHECK (zshm_buffer_read (buffer, (ppointer) test_buf, sizeof (test_buf), NULL) == sizeof (test_str_sm));
 	P_TEST_CHECK (strncmp (test_buf, test_str_sm, sizeof (test_str_sm)) == 0);
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == 10);
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == 0);
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == 10);
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == 0);
 
 	/* Case 3: write position < read position */
-	P_TEST_CHECK (ztk_shm_buffer_write (buffer, (ppointer) test_str_sm, sizeof (test_str_sm), NULL) == sizeof (test_str_sm));
-	P_TEST_CHECK (ztk_shm_buffer_get_free_space (buffer, NULL) == (10 - sizeof (test_str_sm)));
-	P_TEST_CHECK (ztk_shm_buffer_get_used_space (buffer, NULL) == sizeof (test_str_sm));
+	P_TEST_CHECK (zshm_buffer_write (buffer, (ppointer) test_str_sm, sizeof (test_str_sm), NULL) == sizeof (test_str_sm));
+	P_TEST_CHECK (zshm_buffer_get_free_space (buffer, NULL) == (10 - sizeof (test_str_sm)));
+	P_TEST_CHECK (zshm_buffer_get_used_space (buffer, NULL) == sizeof (test_str_sm));
 
-	ztk_shm_buffer_free (buffer);
+	zshm_buffer_free (buffer);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 #ifndef P_OS_HPUX
 P_TEST_CASE_BEGIN (pshmbuffer_thread_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PShmBuffer	*buffer = NULL;
 	PUThread	*thr1, *thr2;
 
 	/* Buffer may be from the previous test on UNIX systems */
-	buffer = ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL);
+	buffer = zshm_buffer_new ("pshm_test_buffer", 1024, NULL);
 	P_TEST_REQUIRE (buffer != NULL);
-	ztk_shm_buffer_take_ownership (buffer);
-	ztk_shm_buffer_free (buffer);
+	zshm_buffer_take_ownership (buffer);
+	zshm_buffer_free (buffer);
 
 	is_thread_exit = 0;
 	read_count     = 0;
 	write_count    = 0;
 	is_working     = TRUE;
 
-	buffer = ztk_shm_buffer_new ("pshm_test_buffer", 1024, NULL);
+	buffer = zshm_buffer_new ("pshm_test_buffer", 1024, NULL);
 	P_TEST_REQUIRE (buffer != NULL);
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) shm_buffer_test_write_thread, NULL, TRUE, NULL);
+	thr1 = zuthread_create ((PUThreadFunc) shm_buffer_test_write_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) shm_buffer_test_read_thread, NULL, TRUE, NULL);
+	thr2 = zuthread_create ((PUThreadFunc) shm_buffer_test_read_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	ztk_uthread_sleep (5000);
+	zuthread_sleep (5000);
 
 	is_working = FALSE;
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == 0);
-	P_TEST_CHECK (ztk_uthread_join (thr2) == 0);
+	P_TEST_CHECK (zuthread_join (thr1) == 0);
+	P_TEST_CHECK (zuthread_join (thr2) == 0);
 
 	P_TEST_CHECK (read_count > 0);
 	P_TEST_CHECK (write_count > 0);
 
-	ztk_shm_buffer_free (buffer);
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
+	zshm_buffer_free (buffer);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 #endif /* !P_OS_HPUX */

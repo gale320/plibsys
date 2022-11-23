@@ -56,30 +56,30 @@ static void * spinlock_test_thread (void *)
 	pint	i;
 
 	for (i = 0; i < 1000; ++i) {
-		if (!ztk_spinlock_trylock (global_spinlock)) {
-			if (!ztk_spinlock_lock (global_spinlock))
-				ztk_uthread_exit (1);
+		if (!zspinlock_trylock (global_spinlock)) {
+			if (!zspinlock_lock (global_spinlock))
+				zuthread_exit (1);
 		}
 
 		if (spinlock_test_val == PSPINLOCK_MAX_VAL)
 			--spinlock_test_val;
 		else {
-			ztk_uthread_sleep (1);
+			zuthread_sleep (1);
 			++spinlock_test_val;
 		}
 
-		if (!ztk_spinlock_unlock (global_spinlock))
-			ztk_uthread_exit (1);
+		if (!zspinlock_unlock (global_spinlock))
+			zuthread_exit (1);
 	}
 
-	ztk_uthread_exit (0);
+	zuthread_exit (0);
 
 	return NULL;
 }
 
 P_TEST_CASE_BEGIN (pspinlock_nomem_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	PMemVTable vtable;
 
@@ -87,25 +87,25 @@ P_TEST_CASE_BEGIN (pspinlock_nomem_test)
 	vtable.malloc  = pmem_alloc;
 	vtable.realloc = pmem_realloc;
 
-	P_TEST_CHECK (ztk_mem_set_vtable (&vtable) == TRUE);
-	P_TEST_CHECK (ztk_spinlock_new () == NULL);
+	P_TEST_CHECK (zmem_set_vtable (&vtable) == TRUE);
+	P_TEST_CHECK (zspinlock_new () == NULL);
 
-	ztk_mem_restore_vtable ();
+	zmem_restore_vtable ();
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
 P_TEST_CASE_BEGIN (pspinlock_bad_input_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
-	P_TEST_REQUIRE (ztk_spinlock_lock (NULL) == FALSE);
-	P_TEST_REQUIRE (ztk_spinlock_unlock (NULL) == FALSE);
-	P_TEST_REQUIRE (ztk_spinlock_trylock (NULL) == FALSE);
-	ztk_spinlock_free (NULL);
+	P_TEST_REQUIRE (zspinlock_lock (NULL) == FALSE);
+	P_TEST_REQUIRE (zspinlock_unlock (NULL) == FALSE);
+	P_TEST_REQUIRE (zspinlock_trylock (NULL) == FALSE);
+	zspinlock_free (NULL);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 
@@ -113,29 +113,29 @@ P_TEST_CASE_BEGIN (pspinlock_general_test)
 {
 	PUThread *thr1, *thr2;
 
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	spinlock_test_val = PSPINLOCK_MAX_VAL;
-	global_spinlock   = ztk_spinlock_new ();
+	global_spinlock   = zspinlock_new ();
 
 	P_TEST_REQUIRE (global_spinlock != NULL);
 
-	thr1 = ztk_uthread_create ((PUThreadFunc) spinlock_test_thread, NULL, TRUE, NULL);
+	thr1 = zuthread_create ((PUThreadFunc) spinlock_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr1 != NULL);
 
-	thr2 = ztk_uthread_create ((PUThreadFunc) spinlock_test_thread, NULL, TRUE, NULL);
+	thr2 = zuthread_create ((PUThreadFunc) spinlock_test_thread, NULL, TRUE, NULL);
 	P_TEST_REQUIRE (thr2 != NULL);
 
-	P_TEST_CHECK (ztk_uthread_join (thr1) == 0);
-	P_TEST_CHECK (ztk_uthread_join (thr2) == 0);
+	P_TEST_CHECK (zuthread_join (thr1) == 0);
+	P_TEST_CHECK (zuthread_join (thr2) == 0);
 
 	P_TEST_REQUIRE (spinlock_test_val == PSPINLOCK_MAX_VAL);
 
-	ztk_uthread_unref (thr1);
-	ztk_uthread_unref (thr2);
-	ztk_spinlock_free (global_spinlock);
+	zuthread_unref (thr1);
+	zuthread_unref (thr2);
+	zspinlock_free (global_spinlock);
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

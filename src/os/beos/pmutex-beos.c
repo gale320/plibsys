@@ -37,18 +37,18 @@ struct PMutex_ {
 };
 
 P_LIB_API PMutex *
-ztk_mutex_new (void)
+zmutex_new (void)
 {
 	PMutex *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PMutex))) == NULL)) {
-		P_ERROR ("PMutex::ztk_mutex_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PMutex))) == NULL)) {
+		P_ERROR ("PMutex::zmutex_new: failed to allocate memory");
 		return NULL;
 	}
 
 	if (P_UNLIKELY ((ret->hdl = create_sem (1, "")) < B_OK)) {
-		P_ERROR ("PMutex::ztk_mutex_new: create_sem() failed");
-		ztk_free (ret);
+		P_ERROR ("PMutex::zmutex_new: create_sem() failed");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -56,7 +56,7 @@ ztk_mutex_new (void)
 }
 
 P_LIB_API pboolean
-ztk_mutex_lock (PMutex *mutex)
+zmutex_lock (PMutex *mutex)
 {
 	status_t ret_status;
 
@@ -69,13 +69,13 @@ ztk_mutex_lock (PMutex *mutex)
 	if (P_LIKELY (ret_status == B_NO_ERROR))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::ztk_mutex_lock: acquire_sem() failed");
+		P_ERROR ("PMutex::zmutex_lock: acquire_sem() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API pboolean
-ztk_mutex_trylock (PMutex *mutex)
+zmutex_trylock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -84,7 +84,7 @@ ztk_mutex_trylock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-ztk_mutex_unlock (PMutex *mutex)
+zmutex_unlock (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return FALSE;
@@ -92,19 +92,19 @@ ztk_mutex_unlock (PMutex *mutex)
 	if (P_LIKELY (release_sem (mutex->hdl) == B_NO_ERROR))
 		return TRUE;
 	else {
-		P_ERROR ("PMutex::ztk_mutex_unlock: release_sem() failed");
+		P_ERROR ("PMutex::zmutex_unlock: release_sem() failed");
 		return FALSE;
 	}
 }
 
 P_LIB_API void
-ztk_mutex_free (PMutex *mutex)
+zmutex_free (PMutex *mutex)
 {
 	if (P_UNLIKELY (mutex == NULL))
 		return;
 
 	if (P_UNLIKELY (delete_sem (mutex->hdl) != B_NO_ERROR))
-		P_ERROR ("PMutex::ztk_mutex_free: delete_sem() failed");
+		P_ERROR ("PMutex::zmutex_free: delete_sem() failed");
 
-	ztk_free (mutex);
+	zfree (mutex);
 }

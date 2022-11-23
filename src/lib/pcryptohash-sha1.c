@@ -40,15 +40,15 @@ struct PHashSHA1_ {
 	puint32		len_low;
 };
 
-static const puchar pztk_crypto_hash_sha1_pad[64] = {
+static const puchar pzcrypto_hash_sha1_pad[64] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static void pztk_crypto_hash_sha1_swaztk_bytes (puint32 *data, puint words);
-static void pztk_crypto_hash_sha1_process (PHashSHA1 *ctx, const puint32 data[16]);
+static void pzcrypto_hash_sha1_swazbytes (puint32 *data, puint words);
+static void pzcrypto_hash_sha1_process (PHashSHA1 *ctx, const puint32 data[16]);
 
 #define P_SHA1_ROTL(val, shift) ((val) << (shift) |  (val) >> (32 - (shift)))
 
@@ -95,7 +95,7 @@ static void pztk_crypto_hash_sha1_process (PHashSHA1 *ctx, const puint32 data[16
 }
 
 static void
-pztk_crypto_hash_sha1_swaztk_bytes (puint32	*data,
+pzcrypto_hash_sha1_swazbytes (puint32	*data,
 				puint	words)
 {
 #ifdef PLIBSYS_IS_BIGENDIAN
@@ -110,7 +110,7 @@ pztk_crypto_hash_sha1_swaztk_bytes (puint32	*data,
 }
 
 static void
-pztk_crypto_hash_sha1_process (PHashSHA1		*ctx,
+pzcrypto_hash_sha1_process (PHashSHA1		*ctx,
 			     const puint32	data[16])
 {
 	puint32	W[16], A, B, C, D, E;
@@ -218,7 +218,7 @@ pztk_crypto_hash_sha1_process (PHashSHA1		*ctx,
 }
 
 void
-ztk_crypto_hash_sha1_reset (PHashSHA1 *ctx)
+zcrypto_hash_sha1_reset (PHashSHA1 *ctx)
 {
 	memset (ctx->buf.buf, 0, 64);
 
@@ -233,20 +233,20 @@ ztk_crypto_hash_sha1_reset (PHashSHA1 *ctx)
 }
 
 PHashSHA1 *
-ztk_crypto_hash_sha1_new (void)
+zcrypto_hash_sha1_new (void)
 {
 	PHashSHA1 *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PHashSHA1))) == NULL))
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PHashSHA1))) == NULL))
 		return NULL;
 
-	ztk_crypto_hash_sha1_reset (ret);
+	zcrypto_hash_sha1_reset (ret);
 
 	return ret;
 }
 
 void
-ztk_crypto_hash_sha1_update (PHashSHA1	*ctx,
+zcrypto_hash_sha1_update (PHashSHA1	*ctx,
 			   const puchar	*data,
 			   psize	len)
 {
@@ -262,8 +262,8 @@ ztk_crypto_hash_sha1_update (PHashSHA1	*ctx,
 
 	if (left && (puint32) len >= to_fill) {
 		memcpy (ctx->buf.buf + left, data, to_fill);
-		pztk_crypto_hash_sha1_swaztk_bytes (ctx->buf.buf_w, 16);
-		pztk_crypto_hash_sha1_process (ctx, ctx->buf.buf_w);
+		pzcrypto_hash_sha1_swazbytes (ctx->buf.buf_w, 16);
+		pzcrypto_hash_sha1_process (ctx, ctx->buf.buf_w);
 
 		data += to_fill;
 		len -= to_fill;
@@ -272,8 +272,8 @@ ztk_crypto_hash_sha1_update (PHashSHA1	*ctx,
 
 	while (len >= 64) {
 		memcpy (ctx->buf.buf, data, 64);
-		pztk_crypto_hash_sha1_swaztk_bytes (ctx->buf.buf_w, 16);
-		pztk_crypto_hash_sha1_process (ctx, ctx->buf.buf_w);
+		pzcrypto_hash_sha1_swazbytes (ctx->buf.buf_w, 16);
+		pzcrypto_hash_sha1_process (ctx, ctx->buf.buf_w);
 
 		data += 64;
 		len -= 64;
@@ -284,7 +284,7 @@ ztk_crypto_hash_sha1_update (PHashSHA1	*ctx,
 }
 
 void
-ztk_crypto_hash_sha1_finish (PHashSHA1 *ctx)
+zcrypto_hash_sha1_finish (PHashSHA1 *ctx)
 {
 	puint32	high, low;
 	pint	left, last;
@@ -297,25 +297,25 @@ ztk_crypto_hash_sha1_finish (PHashSHA1 *ctx)
 	     | ctx->len_low >> 29;
 
 	if (last > 0)
-		ztk_crypto_hash_sha1_update (ctx, pztk_crypto_hash_sha1_pad, (psize) last);
+		zcrypto_hash_sha1_update (ctx, pzcrypto_hash_sha1_pad, (psize) last);
 
 	ctx->buf.buf_w[14] = high;
 	ctx->buf.buf_w[15] = low;
 
-	pztk_crypto_hash_sha1_swaztk_bytes (ctx->buf.buf_w, 14);
-	pztk_crypto_hash_sha1_process (ctx, ctx->buf.buf_w);
+	pzcrypto_hash_sha1_swazbytes (ctx->buf.buf_w, 14);
+	pzcrypto_hash_sha1_process (ctx, ctx->buf.buf_w);
 
-	pztk_crypto_hash_sha1_swaztk_bytes (ctx->hash, 5);
+	pzcrypto_hash_sha1_swazbytes (ctx->hash, 5);
 }
 
 const puchar *
-ztk_crypto_hash_sha1_digest (PHashSHA1 *ctx)
+zcrypto_hash_sha1_digest (PHashSHA1 *ctx)
 {
 	return (const puchar *) ctx->hash;
 }
 
 void
-ztk_crypto_hash_sha1_free (PHashSHA1 *ctx)
+zcrypto_hash_sha1_free (PHashSHA1 *ctx)
 {
-	ztk_free (ctx);
+	zfree (ctx);
 }

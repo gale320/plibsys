@@ -48,7 +48,7 @@ P_LIB_GLOBAL_API int global_api_test ()
 
 P_TEST_CASE_BEGIN (pmacros_general_test)
 {
-	ztk_libsys_init ();
+	zlibsys_init ();
 
 	/* Test OS detection macros */
 #if !defined (P_OS_DARWIN) && !defined (P_OS_MAC9)     && !defined (P_OS_BSD4)      && \
@@ -635,7 +635,7 @@ P_TEST_CASE_BEGIN (pmacros_general_test)
 
 	P_TEST_CHECK (PLIBSYS_VERSION >= PLIBSYS_VERSION_CHECK (0, 0, 1));
 
-	ztk_libsys_shutdown ();
+	zlibsys_shutdown ();
 }
 P_TEST_CASE_END ()
 

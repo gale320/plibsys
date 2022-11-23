@@ -47,18 +47,18 @@ struct PHashTable_ {
 /* Size of unique hash keys in hash table */
 #define P_HASH_TABLE_SIZE 101
 
-static puint pztk_hash_table_calc_hash (pconstpointer pointer, psize modulo);
-static PHashTableNode * pztk_hash_table_find_node (const PHashTable *table, pconstpointer key, puint hash);
+static puint pzhash_table_calc_hash (pconstpointer pointer, psize modulo);
+static PHashTableNode * pzhash_table_find_node (const PHashTable *table, pconstpointer key, puint hash);
 
 static puint
-pztk_hash_table_calc_hash (pconstpointer pointer, psize modulo)
+pzhash_table_calc_hash (pconstpointer pointer, psize modulo)
 {
 	/* As simple as we can :) */
 	return (puint) (((psize) (P_POINTER_TO_INT (pointer) + 37)) % modulo);
 }
 
 static PHashTableNode *
-pztk_hash_table_find_node (const PHashTable *table, pconstpointer key, puint hash)
+pzhash_table_find_node (const PHashTable *table, pconstpointer key, puint hash)
 {
 	PHashTableNode *ret;
 
@@ -70,18 +70,18 @@ pztk_hash_table_find_node (const PHashTable *table, pconstpointer key, puint has
 }
 
 P_LIB_API PHashTable *
-ztk_hash_table_new (void)
+zhash_table_new (void)
 {
 	PHashTable *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PHashTable))) == NULL)) {
-		P_ERROR ("PHashTable::ztk_hash_table_new: failed(1) to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PHashTable))) == NULL)) {
+		P_ERROR ("PHashTable::zhash_table_new: failed(1) to allocate memory");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret->table = ztk_malloc0 (P_HASH_TABLE_SIZE * sizeof (PHashTableNode *))) == NULL)) {
-		P_ERROR ("PHashTable::ztk_hash_table_new: failed(2) to allocate memory");
-		ztk_free (ret);
+	if (P_UNLIKELY ((ret->table = zmalloc0 (P_HASH_TABLE_SIZE * sizeof (PHashTableNode *))) == NULL)) {
+		P_ERROR ("PHashTable::zhash_table_new: failed(2) to allocate memory");
+		zfree (ret);
 		return NULL;
 	}
 
@@ -91,7 +91,7 @@ ztk_hash_table_new (void)
 }
 
 P_LIB_API void
-ztk_hash_table_insert (PHashTable *table, ppointer key, ppointer value)
+zhash_table_insert (PHashTable *table, ppointer key, ppointer value)
 {
 	PHashTableNode	*node;
 	puint		hash;
@@ -99,11 +99,11 @@ ztk_hash_table_insert (PHashTable *table, ppointer key, ppointer value)
 	if (P_UNLIKELY (table == NULL))
 		return;
 
-	hash = pztk_hash_table_calc_hash (key, table->size);
+	hash = pzhash_table_calc_hash (key, table->size);
 
-	if ((node = pztk_hash_table_find_node (table, key, hash)) == NULL) {
-		if (P_UNLIKELY ((node = ztk_malloc0 (sizeof (PHashTableNode))) == NULL)) {
-			P_ERROR ("PHashTable::ztk_hash_table_insert: failed to allocate memory");
+	if ((node = pzhash_table_find_node (table, key, hash)) == NULL) {
+		if (P_UNLIKELY ((node = zmalloc0 (sizeof (PHashTableNode))) == NULL)) {
+			P_ERROR ("PHashTable::zhash_table_insert: failed to allocate memory");
 			return;
 		}
 
@@ -118,7 +118,7 @@ ztk_hash_table_insert (PHashTable *table, ppointer key, ppointer value)
 }
 
 P_LIB_API ppointer
-ztk_hash_table_lookup (const PHashTable *table, pconstpointer key)
+zhash_table_lookup (const PHashTable *table, pconstpointer key)
 {
 	PHashTableNode	*node;
 	puint		hash;
@@ -126,13 +126,13 @@ ztk_hash_table_lookup (const PHashTable *table, pconstpointer key)
 	if (P_UNLIKELY (table == NULL))
 		return NULL;
 
-	hash = pztk_hash_table_calc_hash (key, table->size);
+	hash = pzhash_table_calc_hash (key, table->size);
 
-	return ((node = pztk_hash_table_find_node (table, key, hash)) == NULL) ? (ppointer) (-1) : node->value;
+	return ((node = pzhash_table_find_node (table, key, hash)) == NULL) ? (ppointer) (-1) : node->value;
 }
 
 P_LIB_API PList *
-ztk_hash_table_keys (const PHashTable *table)
+zhash_table_keys (const PHashTable *table)
 {
 	PList		*ret = NULL;
 	PHashTableNode	*node;
@@ -143,13 +143,13 @@ ztk_hash_table_keys (const PHashTable *table)
 
 	for (i = 0; i < table->size; ++i)
 		for (node = table->table[i]; node != NULL; node = node->next)
-			ret = ztk_list_append (ret, node->key);
+			ret = zlist_append (ret, node->key);
 
 	return ret;
 }
 
 P_LIB_API PList *
-ztk_hash_table_values (const PHashTable *table)
+zhash_table_values (const PHashTable *table)
 {
 	PList		*ret = NULL;
 	PHashTableNode	*node;
@@ -160,13 +160,13 @@ ztk_hash_table_values (const PHashTable *table)
 
 	for (i = 0; i < table->size; ++i)
 		for (node = table->table[i]; node != NULL; node = node->next)
-			ret = ztk_list_append (ret, node->value);
+			ret = zlist_append (ret, node->value);
 
 	return ret;
 }
 
 P_LIB_API void
-ztk_hash_table_free (PHashTable *table)
+zhash_table_free (PHashTable *table)
 {
 	PHashTableNode	*node, *next_node;
 	puint		i;
@@ -177,16 +177,16 @@ ztk_hash_table_free (PHashTable *table)
 	for (i = 0; i < table->size; ++i)
 		for (node = table->table[i]; node != NULL; ) {
 			next_node = node->next;
-			ztk_free (node);
+			zfree (node);
 			node = next_node;
 		}
 
-	ztk_free (table->table);
-	ztk_free (table);
+	zfree (table->table);
+	zfree (table);
 }
 
 P_LIB_API void
-ztk_hash_table_remove (PHashTable *table, pconstpointer key)
+zhash_table_remove (PHashTable *table, pconstpointer key)
 {
 	PHashTableNode	*node, *prev_node;
 	puint		hash;
@@ -194,9 +194,9 @@ ztk_hash_table_remove (PHashTable *table, pconstpointer key)
 	if (P_UNLIKELY (table == NULL))
 		return;
 
-	hash = pztk_hash_table_calc_hash (key, table->size);
+	hash = pzhash_table_calc_hash (key, table->size);
 
-	if (pztk_hash_table_find_node (table, key, hash) != NULL) {
+	if (pzhash_table_find_node (table, key, hash) != NULL) {
 		node = table->table[hash];
 		prev_node = NULL;
 
@@ -207,7 +207,7 @@ ztk_hash_table_remove (PHashTable *table, pconstpointer key)
 				else
 					prev_node->next = node->next;
 
-				ztk_free (node);
+				zfree (node);
 				break;
 			} else {
 				prev_node = node;
@@ -218,7 +218,7 @@ ztk_hash_table_remove (PHashTable *table, pconstpointer key)
 }
 
 P_LIB_API PList *
-ztk_hash_table_lookuztk_by_value (const PHashTable *table, pconstpointer val, PCompareFunc func)
+zhash_table_lookuzby_value (const PHashTable *table, pconstpointer val, PCompareFunc func)
 {
 	PList		*ret = NULL;
 	PHashTableNode	*node;
@@ -236,7 +236,7 @@ ztk_hash_table_lookuztk_by_value (const PHashTable *table, pconstpointer val, PC
 				res = (func (node->value, val) == 0);
 
 			if (res)
-				ret = ztk_list_append (ret, node->key);
+				ret = zlist_append (ret, node->key);
 		}
 
 	return ret;

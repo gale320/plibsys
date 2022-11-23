@@ -40,10 +40,10 @@ struct PLibraryLoader_ {
 	APIRET		last_error;
 };
 
-static void pztk_library_loader_clean_handle (plibrary_handle handle);
+static void pzlibrary_loader_clean_handle (plibrary_handle handle);
 
 static void
-pztk_library_loader_clean_handle (plibrary_handle handle)
+pzlibrary_loader_clean_handle (plibrary_handle handle)
 {
 	APIRET ulrc;
 
@@ -51,11 +51,11 @@ pztk_library_loader_clean_handle (plibrary_handle handle)
 		;
 
 	if (P_UNLIKELY (ulrc != NO_ERROR))
-		P_ERROR ("PLibraryLoader::pztk_library_loader_clean_handle: DosFreeModule() failed");
+		P_ERROR ("PLibraryLoader::pzlibrary_loader_clean_handle: DosFreeModule() failed");
 }
 
 P_LIB_API PLibraryLoader *
-ztk_library_loader_new (const pchar *path)
+zlibrary_loader_new (const pchar *path)
 {
 	PLibraryLoader	*loader = NULL;
 	plibrary_handle	handle  = NULLHANDLE;
@@ -63,7 +63,7 @@ ztk_library_loader_new (const pchar *path)
 	APIRET		ulrc;
 
 
-	if (!ztk_file_is_exists (path))
+	if (!zfile_is_exists (path))
 		return NULL;
 
 	while ((ulrc = DosLoadModule ((PSZ) load_err,
@@ -73,13 +73,13 @@ ztk_library_loader_new (const pchar *path)
 		;
 
 	if (P_UNLIKELY (ulrc != NO_ERROR)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: DosLoadModule() failed");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: DosLoadModule() failed");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((loader = ztk_malloc0 (sizeof (PLibraryLoader))) == NULL)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_new: failed to allocate memory");
-		pztk_library_loader_clean_handle (handle);
+	if (P_UNLIKELY ((loader = zmalloc0 (sizeof (PLibraryLoader))) == NULL)) {
+		P_ERROR ("PLibraryLoader::zlibrary_loader_new: failed to allocate memory");
+		pzlibrary_loader_clean_handle (handle);
 		return NULL;
 	}
 
@@ -90,7 +90,7 @@ ztk_library_loader_new (const pchar *path)
 }
 
 P_LIB_API PFuncAddr
-ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
+zlibrary_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 {
 	PFN	func_addr = NULL;
 	APIRET	ulrc;
@@ -99,7 +99,7 @@ ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 		return NULL;
 
 	if (P_UNLIKELY ((ulrc = DosQueryProcAddr (loader->handle, 0, (PSZ) sym, &func_addr)) != NO_ERROR)) {
-		P_ERROR ("PLibraryLoader::ztk_library_loader_get_symbol: DosQueryProcAddr() failed");
+		P_ERROR ("PLibraryLoader::zlibrary_loader_get_symbol: DosQueryProcAddr() failed");
 		loader->last_error = ulrc;
 		return NULL;
 	}
@@ -110,18 +110,18 @@ ztk_library_loader_get_symbol (PLibraryLoader *loader, const pchar *sym)
 }
 
 P_LIB_API void
-ztk_library_loader_free (PLibraryLoader *loader)
+zlibrary_loader_free (PLibraryLoader *loader)
 {
 	if (P_UNLIKELY (loader == NULL))
 		return;
 
-	pztk_library_loader_clean_handle (loader->handle);
+	pzlibrary_loader_clean_handle (loader->handle);
 
-	ztk_free (loader);
+	zfree (loader);
 }
 
 P_LIB_API pchar *
-ztk_library_loader_get_last_error (PLibraryLoader *loader)
+zlibrary_loader_get_last_error (PLibraryLoader *loader)
 {
 	if (loader == NULL)
 		return NULL;
@@ -130,26 +130,26 @@ ztk_library_loader_get_last_error (PLibraryLoader *loader)
 		case NO_ERROR:
 			return NULL;
 		case ERROR_INVALID_HANDLE:
-			return ztk_strdup ("Invalid resource handler");
+			return zstrdup ("Invalid resource handler");
 		case ERROR_INVALID_NAME:
-			return ztk_strdup ("Invalid procedure name");
+			return zstrdup ("Invalid procedure name");
 		default:
-			return ztk_strdup ("Unknown error");
+			return zstrdup ("Unknown error");
 	}
 }
 
 P_LIB_API pboolean
-ztk_library_loader_is_ref_counted (void)
+zlibrary_loader_is_ref_counted (void)
 {
 	return TRUE;
 }
 
 void
-ztk_library_loader_init (void)
+zlibrary_loader_init (void)
 {
 }
 
 void
-ztk_library_loader_shutdown (void)
+zlibrary_loader_shutdown (void)
 {
 }

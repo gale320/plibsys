@@ -32,19 +32,19 @@ struct PMutex_ {
 };
 
 P_LIB_API PMutex *
-ztk_mutex_new (void)
+zmutex_new (void)
 {
 	return NULL;
 }
 
 P_LIB_API pboolean
-ztk_mutex_lock (PMutex *mutex)
+zmutex_lock (PMutex *mutex)
 {
 	return FALSE;
 }
 
 P_LIB_API pboolean
-ztk_mutex_trylock (PMutex *mutex)
+zmutex_trylock (PMutex *mutex)
 {
 	P_UNUSED (mutex);
 
@@ -52,7 +52,7 @@ ztk_mutex_trylock (PMutex *mutex)
 }
 
 P_LIB_API pboolean
-ztk_mutex_unlock (PMutex *mutex)
+zmutex_unlock (PMutex *mutex)
 {
 	P_UNUSED (mutex);
 
@@ -60,7 +60,7 @@ ztk_mutex_unlock (PMutex *mutex)
 }
 
 P_LIB_API void
-ztk_mutex_free (PMutex *mutex)
+zmutex_free (PMutex *mutex)
 {
 	P_UNUSED (mutex);
 }

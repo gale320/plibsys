@@ -56,11 +56,11 @@
  * performed too frequently, or when the number of reader threads is a way more
  * than writer ones.
  *
- * A reader enters a critical section with ztk_rwlock_reader_lock() or
- * ztk_rwlock_reader_trylock() and exits with ztk_rwlock_reader_unlock().
+ * A reader enters a critical section with zrwlock_reader_lock() or
+ * zrwlock_reader_trylock() and exits with zrwlock_reader_unlock().
  *
- * A writer enters the critical section with ztk_rwlock_writer_lock() or
- * ztk_rwlock_writer_trylock() and exits with ztk_rwlock_writer_unlock().
+ * A writer enters the critical section with zrwlock_writer_lock() or
+ * zrwlock_writer_trylock() and exits with zrwlock_writer_unlock().
  */
 
 #if !defined (PLIBSYS_H_INSIDE) && !defined (PLIBSYS_COMPILATION)
@@ -83,7 +83,7 @@ typedef struct PRWLock_ PRWLock;
  * @return Pointer to a newly created #PRWLock object.
  * @since 0.0.1
  */
-P_LIB_API PRWLock *	ztk_rwlock_new		(void);
+P_LIB_API PRWLock *	zrwlock_new		(void);
 
 /**
  * @brief Locks a read-write lock for reading.
@@ -96,7 +96,7 @@ P_LIB_API PRWLock *	ztk_rwlock_new		(void);
  * Forces the calling thread to sleep until the @a lock becomes available for
  * locking.
  */
-P_LIB_API pboolean	ztk_rwlock_reader_lock	(PRWLock *lock);
+P_LIB_API pboolean	zrwlock_reader_lock	(PRWLock *lock);
 
 /**
  * @brief Tries to lock a read-write lock for reading immediately.
@@ -109,7 +109,7 @@ P_LIB_API pboolean	ztk_rwlock_reader_lock	(PRWLock *lock);
  * Tries to lock the @a lock and returns immediately if it is not available for
  * locking.
  */
-P_LIB_API pboolean	ztk_rwlock_reader_trylock	(PRWLock *lock);
+P_LIB_API pboolean	zrwlock_reader_trylock	(PRWLock *lock);
 
 /**
  * @brief Releases a locked for reading read-write lock.
@@ -126,7 +126,7 @@ P_LIB_API pboolean	ztk_rwlock_reader_trylock	(PRWLock *lock);
  * It's implementation dependent whether only the same thread can lock and
  * unlock the same read-write lock.
  */
-P_LIB_API pboolean	ztk_rwlock_reader_unlock	(PRWLock *lock);
+P_LIB_API pboolean	zrwlock_reader_unlock	(PRWLock *lock);
 
 /**
  * @brief Locks a read-write lock for writing.
@@ -139,7 +139,7 @@ P_LIB_API pboolean	ztk_rwlock_reader_unlock	(PRWLock *lock);
  * Forces the calling thread to sleep until the @a lock becomes available for
  * locking.
  */
-P_LIB_API pboolean	ztk_rwlock_writer_lock	(PRWLock *lock);
+P_LIB_API pboolean	zrwlock_writer_lock	(PRWLock *lock);
 
 /**
  * @brief Tries to lock a read-write lock immediately.
@@ -152,7 +152,7 @@ P_LIB_API pboolean	ztk_rwlock_writer_lock	(PRWLock *lock);
  * Tries to lock the @a lock and returns immediately if it is not available for
  * locking.
  */
-P_LIB_API pboolean	ztk_rwlock_writer_trylock	(PRWLock *lock);
+P_LIB_API pboolean	zrwlock_writer_trylock	(PRWLock *lock);
 
 /**
  * @brief Releases a locked for writing read-write lock.
@@ -169,7 +169,7 @@ P_LIB_API pboolean	ztk_rwlock_writer_trylock	(PRWLock *lock);
  * It's implementation dependent whether only the same thread can lock and
  * unlock the same read-write lock.
  */
-P_LIB_API pboolean	ztk_rwlock_writer_unlock	(PRWLock *lock);
+P_LIB_API pboolean	zrwlock_writer_unlock	(PRWLock *lock);
 
 /**
  * @brief Frees a #PRWLock object.
@@ -178,7 +178,7 @@ P_LIB_API pboolean	ztk_rwlock_writer_unlock	(PRWLock *lock);
  * @warning It doesn't unlock the @a lock before freeing memory, so you should
  * do it manually.
  */
-P_LIB_API void		ztk_rwlock_free		(PRWLock *lock);
+P_LIB_API void		zrwlock_free		(PRWLock *lock);
 
 P_END_DECLS
 

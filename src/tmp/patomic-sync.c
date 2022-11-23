@@ -30,7 +30,7 @@
 #endif
 
 P_LIB_API pint
-ztk_atomic_int_get (const volatile pint *atomic)
+zatomic_int_get (const volatile pint *atomic)
 {
 #ifdef P_CC_CRAY
 	__builtin_ia32_mfence ();
@@ -41,7 +41,7 @@ ztk_atomic_int_get (const volatile pint *atomic)
 }
 
 P_LIB_API void
-ztk_atomic_int_set (volatile pint	*atomic,
+zatomic_int_set (volatile pint	*atomic,
 		  pint		val)
 {
 	*atomic = val;
@@ -53,19 +53,19 @@ ztk_atomic_int_set (volatile pint	*atomic,
 }
 
 P_LIB_API void
-ztk_atomic_int_inc (volatile pint *atomic)
+zatomic_int_inc (volatile pint *atomic)
 {
 	(void) __sync_fetch_and_add (atomic, 1);
 }
 
 P_LIB_API pboolean
-ztk_atomic_int_dec_and_test (volatile pint *atomic)
+zatomic_int_dec_and_test (volatile pint *atomic)
 {
 	return __sync_fetch_and_sub (atomic, 1) == 1 ? TRUE : FALSE;
 }
 
 P_LIB_API pboolean
-ztk_atomic_int_compare_and_exchange (volatile pint	*atomic,
+zatomic_int_compare_and_exchange (volatile pint	*atomic,
 				   pint			oldval,
 				   pint			newval)
 {
@@ -77,35 +77,35 @@ ztk_atomic_int_compare_and_exchange (volatile pint	*atomic,
 }
 
 P_LIB_API pint
-ztk_atomic_int_add (volatile pint	*atomic,
+zatomic_int_add (volatile pint	*atomic,
 		  pint		val)
 {
 	return (pint) __sync_fetch_and_add (atomic, val);
 }
 
 P_LIB_API puint
-ztk_atomic_int_and (volatile puint	*atomic,
+zatomic_int_and (volatile puint	*atomic,
 		  puint			val)
 {
 	return (puint) __sync_fetch_and_and (atomic, val);
 }
 
 P_LIB_API puint
-ztk_atomic_int_or (volatile puint	*atomic,
+zatomic_int_or (volatile puint	*atomic,
 		 puint		val)
 {
 	return (puint) __sync_fetch_and_or (atomic, val);
 }
 
 P_LIB_API puint
-ztk_atomic_int_xor (volatile puint	*atomic,
+zatomic_int_xor (volatile puint	*atomic,
 		  puint			val)
 {
 	return (puint) __sync_fetch_and_xor (atomic, val);
 }
 
 P_LIB_API ppointer
-ztk_atomic_pointer_get (const volatile void *atomic)
+zatomic_pointer_get (const volatile void *atomic)
 {
 #ifdef P_CC_CRAY
 	__builtin_ia32_mfence ();
@@ -116,7 +116,7 @@ ztk_atomic_pointer_get (const volatile void *atomic)
 }
 
 P_LIB_API void
-ztk_atomic_pointer_set (volatile void	*atomic,
+zatomic_pointer_set (volatile void	*atomic,
 		      ppointer		val)
 {
 	volatile psize *cur_val = (volatile psize *) atomic;
@@ -130,7 +130,7 @@ ztk_atomic_pointer_set (volatile void	*atomic,
 }
 
 P_LIB_API pboolean
-ztk_atomic_pointer_compare_and_exchange (volatile void	*atomic,
+zatomic_pointer_compare_and_exchange (volatile void	*atomic,
 				       ppointer		oldval,
 				       ppointer		newval)
 {
@@ -146,45 +146,45 @@ ztk_atomic_pointer_compare_and_exchange (volatile void	*atomic,
 }
 
 P_LIB_API pssize
-ztk_atomic_pointer_add (volatile void	*atomic,
+zatomic_pointer_add (volatile void	*atomic,
 		      pssize		val)
 {
 	return (pssize) __sync_fetch_and_add ((volatile pssize *) atomic, val);
 }
 
 P_LIB_API psize
-ztk_atomic_pointer_and (volatile void	*atomic,
+zatomic_pointer_and (volatile void	*atomic,
 		      psize		val)
 {
 	return (psize) __sync_fetch_and_and ((volatile psize *) atomic, val);
 }
 
 P_LIB_API psize
-ztk_atomic_pointer_or (volatile void	*atomic,
+zatomic_pointer_or (volatile void	*atomic,
 		     psize		val)
 {
 	return (psize) __sync_fetch_and_or ((volatile psize *) atomic, val);
 }
 
 P_LIB_API psize
-ztk_atomic_pointer_xor (volatile void	*atomic,
+zatomic_pointer_xor (volatile void	*atomic,
 		      psize		val)
 {
 	return (psize) __sync_fetch_and_xor ((volatile psize *) atomic, val);
 }
 
 P_LIB_API pboolean
-ztk_atomic_is_lock_free (void)
+zatomic_is_lock_free (void)
 {
 	return TRUE;
 }
 
 void
-ztk_atomic_thread_init (void)
+zatomic_thread_init (void)
 {
 }
 
 void
-ztk_atomic_thread_shutdown (void)
+zatomic_thread_shutdown (void)
 {
 }

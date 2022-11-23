@@ -27,242 +27,242 @@
 #include "pmutex.h"
 
 /* We have to use the slow, but safe locking method. */
-static PMutex *pztk_atomic_mutex = NULL;
+static PMutex *pzatomic_mutex = NULL;
 
 P_LIB_API pint
-ztk_atomic_int_get (const volatile pint *atomic)
+zatomic_int_get (const volatile pint *atomic)
 {
 	pint value;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	value = *atomic;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return value;
 }
 
 P_LIB_API void
-ztk_atomic_int_set (volatile pint	*atomic,
+zatomic_int_set (volatile pint	*atomic,
 		  pint		val)
 {
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	*atomic = val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 }
 
 P_LIB_API void
-ztk_atomic_int_inc (volatile pint *atomic)
+zatomic_int_inc (volatile pint *atomic)
 {
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	(*atomic)++;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 }
 
 P_LIB_API pboolean
-ztk_atomic_int_dec_and_test (volatile pint *atomic)
+zatomic_int_dec_and_test (volatile pint *atomic)
 {
 	pboolean is_zero;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	is_zero = --(*atomic) == 0;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return is_zero;
 }
 
 P_LIB_API pboolean
-ztk_atomic_int_compare_and_exchange (volatile pint	*atomic,
+zatomic_int_compare_and_exchange (volatile pint	*atomic,
 				   pint			oldval,
 				   pint			newval)
 {
 	pboolean success;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 
 	if ((success = (*atomic == oldval)))
 		*atomic = newval;
 
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return success;
 }
 
 P_LIB_API pint
-ztk_atomic_int_add (volatile pint	*atomic,
+zatomic_int_add (volatile pint	*atomic,
 		  pint		val)
 {
 	pint oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *atomic;
 	*atomic = oldval + val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API puint
-ztk_atomic_int_and (volatile puint	*atomic,
+zatomic_int_and (volatile puint	*atomic,
 		  puint			val)
 {
 	puint oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *atomic;
 	*atomic = oldval & val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API puint
-ztk_atomic_int_or (volatile puint	*atomic,
+zatomic_int_or (volatile puint	*atomic,
 		 puint		val)
 {
 	puint oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *atomic;
 	*atomic = oldval | val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API puint
-ztk_atomic_int_xor (volatile puint	*atomic,
+zatomic_int_xor (volatile puint	*atomic,
 		  puint			val)
 {
 	puint oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *atomic;
 	*atomic = oldval ^ val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API ppointer
-ztk_atomic_pointer_get (const volatile void *atomic)
+zatomic_pointer_get (const volatile void *atomic)
 {
 	const volatile ppointer *ptr = atomic;
 	ppointer value;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	value = *ptr;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return value;
 }
 
 P_LIB_API void
-ztk_atomic_pointer_set (volatile void	*atomic,
+zatomic_pointer_set (volatile void	*atomic,
 		      ppointer		val)
 {
 	volatile ppointer *ptr = atomic;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	*ptr = val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 }
 
 P_LIB_API pboolean
-ztk_atomic_pointer_compare_and_exchange (volatile void	*atomic,
+zatomic_pointer_compare_and_exchange (volatile void	*atomic,
 				       ppointer		oldval,
 				       ppointer		newval)
 {
 	volatile ppointer *ptr = atomic;
 	pboolean success;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 
 	if ((success = (*ptr == oldval)))
 		*ptr = newval;
 
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return success;
 }
 
 P_LIB_API pssize
-ztk_atomic_pointer_add (volatile void	*atomic,
+zatomic_pointer_add (volatile void	*atomic,
 		      pssize		val)
 {
 	volatile pssize *ptr = atomic;
 	pssize oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *ptr;
 	*ptr = oldval + val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API psize
-ztk_atomic_pointer_and (volatile void	*atomic,
+zatomic_pointer_and (volatile void	*atomic,
 		      psize		val)
 {
 	volatile psize *ptr = atomic;
 	psize oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *ptr;
 	*ptr = oldval & val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API psize
-ztk_atomic_pointer_or (volatile void	*atomic,
+zatomic_pointer_or (volatile void	*atomic,
 		     psize		val)
 {
 	volatile psize *ptr = atomic;
 	psize oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *ptr;
 	*ptr = oldval | val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API psize
-ztk_atomic_pointer_xor (volatile void	*atomic,
+zatomic_pointer_xor (volatile void	*atomic,
 		      psize		val)
 {
 	volatile psize *ptr = atomic;
 	psize oldval;
 
-	ztk_mutex_lock (pztk_atomic_mutex);
+	zmutex_lock (pzatomic_mutex);
 	oldval = *ptr;
 	*ptr = oldval ^ val;
-	ztk_mutex_unlock (pztk_atomic_mutex);
+	zmutex_unlock (pzatomic_mutex);
 
 	return oldval;
 }
 
 P_LIB_API pboolean
-ztk_atomic_is_lock_free (void)
+zatomic_is_lock_free (void)
 {
 	return FALSE;
 }
 
 void
-ztk_atomic_thread_init (void)
+zatomic_thread_init (void)
 {
-	if (P_LIKELY (pztk_atomic_mutex == NULL))
-		pztk_atomic_mutex = ztk_mutex_new ();
+	if (P_LIKELY (pzatomic_mutex == NULL))
+		pzatomic_mutex = zmutex_new ();
 }
 
 void
-ztk_atomic_thread_shutdown (void)
+zatomic_thread_shutdown (void)
 {
-	if (P_LIKELY (pztk_atomic_mutex != NULL)) {
-		ztk_mutex_free (pztk_atomic_mutex);
-		pztk_atomic_mutex = NULL;
+	if (P_LIKELY (pzatomic_mutex != NULL)) {
+		zmutex_free (pzatomic_mutex);
+		pzatomic_mutex = NULL;
 	}
 }

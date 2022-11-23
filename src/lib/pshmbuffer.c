@@ -39,17 +39,17 @@ struct PShmBuffer_ {
 	psize size;
 };
 
-static psize pztk_shm_buffer_get_free_space (PShmBuffer *buf);
-static psize pztk_shm_buffer_get_used_space (PShmBuffer *buf);
+static psize pzshm_buffer_get_free_space (PShmBuffer *buf);
+static psize pzshm_buffer_get_used_space (PShmBuffer *buf);
 
 /* Warning: this function is not thread-safe, only for internal usage */
 static psize
-pztk_shm_buffer_get_free_space (PShmBuffer *buf)
+pzshm_buffer_get_free_space (PShmBuffer *buf)
 {
 	psize		read_pos, write_pos;
 	ppointer	addr;
 
-	addr = ztk_shm_get_address (buf->shm);
+	addr = zshm_get_address (buf->shm);
 
 	memcpy (&read_pos, (pchar *) addr + P_SHM_BUFFER_READ_OFFSET, sizeof (read_pos));
 	memcpy (&write_pos, (pchar *) addr + P_SHM_BUFFER_WRITE_OFFSET, sizeof (write_pos));
@@ -63,12 +63,12 @@ pztk_shm_buffer_get_free_space (PShmBuffer *buf)
 }
 
 static psize
-pztk_shm_buffer_get_used_space (PShmBuffer *buf)
+pzshm_buffer_get_used_space (PShmBuffer *buf)
 {
 	psize		read_pos, write_pos;
 	ppointer	addr;
 
-	addr = ztk_shm_get_address (buf->shm);
+	addr = zshm_get_address (buf->shm);
 
 	memcpy (&read_pos, (pchar *) addr + P_SHM_BUFFER_READ_OFFSET, sizeof (read_pos));
 	memcpy (&write_pos, (pchar *) addr + P_SHM_BUFFER_WRITE_OFFSET, sizeof (write_pos));
@@ -82,7 +82,7 @@ pztk_shm_buffer_get_used_space (PShmBuffer *buf)
 }
 
 P_LIB_API PShmBuffer *
-ztk_shm_buffer_new (const pchar	*name,
+zshm_buffer_new (const pchar	*name,
 		  psize		size,
 		  PError	**error)
 {
@@ -90,64 +90,64 @@ ztk_shm_buffer_new (const pchar	*name,
 	PShm		*shm;
 
 	if (P_UNLIKELY (name == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((shm = ztk_shm_new (name,
+	if (P_UNLIKELY ((shm = zshm_new (name,
 					  (size != 0) ? size + P_SHM_BUFFER_DATA_OFFSET + 1 : 0,
 					  P_SHM_ACCESS_READWRITE,
 					  error)) == NULL))
 		return NULL;
 
-	if (P_UNLIKELY (ztk_shm_get_size (shm) <= P_SHM_BUFFER_DATA_OFFSET + 1)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY (zshm_get_size (shm) <= P_SHM_BUFFER_DATA_OFFSET + 1)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Too small memory segment to hold required data");
-		ztk_shm_free (shm);
+		zshm_free (shm);
 		return NULL;
 	}
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PShmBuffer))) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PShmBuffer))) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_NO_RESOURCES,
 				     0,
 				     "Failed to allocate memory for shared buffer");
-		ztk_shm_free (shm);
+		zshm_free (shm);
 		return NULL;
 	}
 
 	ret->shm  = shm;
-	ret->size = ztk_shm_get_size (shm) - P_SHM_BUFFER_DATA_OFFSET;
+	ret->size = zshm_get_size (shm) - P_SHM_BUFFER_DATA_OFFSET;
 
 	return ret;
 }
 
 P_LIB_API void
-ztk_shm_buffer_free (PShmBuffer *buf)
+zshm_buffer_free (PShmBuffer *buf)
 {
 	if (P_UNLIKELY (buf == NULL))
 		return;
 
-	ztk_shm_free (buf->shm);
-	ztk_free (buf);
+	zshm_free (buf->shm);
+	zfree (buf);
 }
 
 P_LIB_API void
-ztk_shm_buffer_take_ownership (PShmBuffer *buf)
+zshm_buffer_take_ownership (PShmBuffer *buf)
 {
 	if (P_UNLIKELY (buf == NULL))
 		return;
 
-	ztk_shm_take_ownership (buf->shm);
+	zshm_take_ownership (buf->shm);
 }
 
 P_LIB_API pint
-ztk_shm_buffer_read (PShmBuffer	*buf,
+zshm_buffer_read (PShmBuffer	*buf,
 		   ppointer	storage,
 		   psize	len,
 		   PError	**error)
@@ -158,35 +158,35 @@ ztk_shm_buffer_read (PShmBuffer	*buf,
 	ppointer	addr;
 
 	if (P_UNLIKELY (buf == NULL || storage == NULL || len == 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY ((addr = ztk_shm_get_address (buf->shm)) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((addr = zshm_get_address (buf->shm)) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Unable to get shared memory address");
 		return -1;
 	}
 
-	if (P_UNLIKELY (ztk_shm_lock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_lock (buf->shm, error) == FALSE))
 		return -1;
 
 	memcpy (&read_pos, (pchar *) addr + P_SHM_BUFFER_READ_OFFSET, sizeof (read_pos));
 	memcpy (&write_pos, (pchar *) addr + P_SHM_BUFFER_WRITE_OFFSET, sizeof (write_pos));
 
 	if (read_pos == write_pos) {
-		if (P_UNLIKELY (ztk_shm_unlock (buf->shm, error) == FALSE))
+		if (P_UNLIKELY (zshm_unlock (buf->shm, error) == FALSE))
 			return -1;
 
 		return 0;
 	}
 
-	data_aval = pztk_shm_buffer_get_used_space (buf);
+	data_aval = pzshm_buffer_get_used_space (buf);
 	to_copy   = (data_aval <= len) ? data_aval : len;
 
 	for (i = 0; i < to_copy; ++i)
@@ -197,14 +197,14 @@ ztk_shm_buffer_read (PShmBuffer	*buf,
 	read_pos = (read_pos + to_copy) % buf->size;
 	memcpy ((pchar *) addr + P_SHM_BUFFER_READ_OFFSET, &read_pos, sizeof (read_pos));
 
-	if (P_UNLIKELY (ztk_shm_unlock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_unlock (buf->shm, error) == FALSE))
 		return -1;
 
 	return (pint) to_copy;
 }
 
 P_LIB_API pssize
-ztk_shm_buffer_write (PShmBuffer	*buf,
+zshm_buffer_write (PShmBuffer	*buf,
 		    ppointer	data,
 		    psize	len,
 		    PError	**error)
@@ -214,29 +214,29 @@ ztk_shm_buffer_write (PShmBuffer	*buf,
 	ppointer	addr;
 
 	if (P_UNLIKELY (buf == NULL || data == NULL || len == 0)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY ((addr = ztk_shm_get_address (buf->shm)) == NULL)) {
-		ztk_error_set_error_p (error,
+	if (P_UNLIKELY ((addr = zshm_get_address (buf->shm)) == NULL)) {
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Unable to get shared memory address");
 		return -1;
 	}
 
-	if (P_UNLIKELY (ztk_shm_lock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_lock (buf->shm, error) == FALSE))
 		return -1;
 
 	memcpy (&read_pos, (pchar *) addr + P_SHM_BUFFER_READ_OFFSET, sizeof (read_pos));
 	memcpy (&write_pos, (pchar *) addr + P_SHM_BUFFER_WRITE_OFFSET, sizeof (write_pos));
 
-	if (pztk_shm_buffer_get_free_space (buf) < len) {
-		if (P_UNLIKELY (ztk_shm_unlock (buf->shm, error) == FALSE))
+	if (pzshm_buffer_get_free_space (buf) < len) {
+		if (P_UNLIKELY (zshm_unlock (buf->shm, error) == FALSE))
 			return -1;
 
 		return 0;
@@ -250,64 +250,64 @@ ztk_shm_buffer_write (PShmBuffer	*buf,
 	write_pos = (write_pos + len) % buf->size;
 	memcpy ((pchar *) addr + P_SHM_BUFFER_WRITE_OFFSET, &write_pos, sizeof (write_pos));
 
-	if (P_UNLIKELY (ztk_shm_unlock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_unlock (buf->shm, error) == FALSE))
 		return -1;
 
 	return (pssize) len;
 }
 
 P_LIB_API pssize
-ztk_shm_buffer_get_free_space (PShmBuffer	*buf,
+zshm_buffer_get_free_space (PShmBuffer	*buf,
 			     PError	**error)
 {
 	psize space;
 
 	if (P_UNLIKELY (buf == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY (ztk_shm_lock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_lock (buf->shm, error) == FALSE))
 		return -1;
 
-	space = pztk_shm_buffer_get_free_space (buf);
+	space = pzshm_buffer_get_free_space (buf);
 
-	if (P_UNLIKELY (ztk_shm_unlock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_unlock (buf->shm, error) == FALSE))
 		return -1;
 
 	return (pssize) space;
 }
 
 P_LIB_API pssize
-ztk_shm_buffer_get_used_space (PShmBuffer	*buf,
+zshm_buffer_get_used_space (PShmBuffer	*buf,
 			     PError	**error)
 {
 	psize space;
 
 	if (P_UNLIKELY (buf == NULL)) {
-		ztk_error_set_error_p (error,
+		zerror_set_error_p (error,
 				     (pint) P_ERROR_IPC_INVALID_ARGUMENT,
 				     0,
 				     "Invalid input argument");
 		return -1;
 	}
 
-	if (P_UNLIKELY (ztk_shm_lock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_lock (buf->shm, error) == FALSE))
 		return -1;
 
-	space = pztk_shm_buffer_get_used_space (buf);
+	space = pzshm_buffer_get_used_space (buf);
 
-	if (P_UNLIKELY (ztk_shm_unlock (buf->shm, error) == FALSE))
+	if (P_UNLIKELY (zshm_unlock (buf->shm, error) == FALSE))
 		return -1;
 
 	return (pssize) space;
 }
 
 P_LIB_API void
-ztk_shm_buffer_clear (PShmBuffer *buf)
+zshm_buffer_clear (PShmBuffer *buf)
 {
 	ppointer	addr;
 	psize		size;
@@ -315,20 +315,20 @@ ztk_shm_buffer_clear (PShmBuffer *buf)
 	if (P_UNLIKELY (buf == NULL))
 		return;
 
-	if (P_UNLIKELY ((addr = ztk_shm_get_address (buf->shm)) == NULL)) {
-		P_ERROR ("PShmBuffer::ztk_shm_buffer_clear: ztk_shm_get_address() failed");
+	if (P_UNLIKELY ((addr = zshm_get_address (buf->shm)) == NULL)) {
+		P_ERROR ("PShmBuffer::zshm_buffer_clear: zshm_get_address() failed");
 		return;
 	}
 
-	size = ztk_shm_get_size (buf->shm);
+	size = zshm_get_size (buf->shm);
 
-	if (P_UNLIKELY (ztk_shm_lock (buf->shm, NULL) == FALSE)) {
-		P_ERROR ("PShmBuffer::ztk_shm_buffer_clear: ztk_shm_lock() failed");
+	if (P_UNLIKELY (zshm_lock (buf->shm, NULL) == FALSE)) {
+		P_ERROR ("PShmBuffer::zshm_buffer_clear: zshm_lock() failed");
 		return;
 	}
 
 	memset (addr, 0, size);
 
-	if (P_UNLIKELY (ztk_shm_unlock (buf->shm, NULL) == FALSE))
-		P_ERROR ("PShmBuffer::ztk_shm_buffer_clear: ztk_shm_unlock() failed");
+	if (P_UNLIKELY (zshm_unlock (buf->shm, NULL) == FALSE))
+		P_ERROR ("PShmBuffer::zshm_buffer_clear: zshm_unlock() failed");
 }

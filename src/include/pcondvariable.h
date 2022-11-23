@@ -49,13 +49,13 @@
  * should be locked prior calling the condition waiting routine.
  *
  * The waiting thread behavior: create a new condition variable with
- * ztk_cond_variable_new(), create and lock a mutex before a critical section and
+ * zcond_variable_new(), create and lock a mutex before a critical section and
  * wait for a signal from another thread on this condition variable
- * using ztk_cond_variable_wait().
+ * using zcond_variable_wait().
  *
  * The signaling thread behavior: upon reaching event time emit a signal with
- * ztk_cond_variable_signal() to wake up a single waiting thread or
- * ztk_cond_variable_broadcast() to wake up all the waiting threads.
+ * zcond_variable_signal() to wake up a single waiting thread or
+ * zcond_variable_broadcast() to wake up all the waiting threads.
  *
  * After emitting the signal only the one thread will get the locked mutex back
  * to continue executing the critical section.
@@ -87,14 +87,14 @@ typedef struct PCondVariable_ PCondVariable;
  * failed.
  * @since 0.0.1
  */
-P_LIB_API PCondVariable *	ztk_cond_variable_new		(void);
+P_LIB_API PCondVariable *	zcond_variable_new		(void);
 
 /**
  * @brief Frees #PCondVariable structure.
  * @param cond Condtion variable to free.
  * @since 0.0.1
  */
-P_LIB_API void			ztk_cond_variable_free		(PCondVariable	*cond);
+P_LIB_API void			zcond_variable_free		(PCondVariable	*cond);
 
 /**
  * @brief Waits for a signal on a given condition variable.
@@ -105,7 +105,7 @@ P_LIB_API void			ztk_cond_variable_free		(PCondVariable	*cond);
  *
  * The calling thread will sleep until the signal on @a cond arrived.
  */
-P_LIB_API pboolean		ztk_cond_variable_wait		(PCondVariable	*cond,
+P_LIB_API pboolean		zcond_variable_wait		(PCondVariable	*cond,
 								 PMutex		*mutex);
 
 /**
@@ -118,9 +118,9 @@ P_LIB_API pboolean		ztk_cond_variable_wait		(PCondVariable	*cond,
  * up. Do not rely on a queue concept for waiting threads. Though the
  * implementation is intended to be much close to a queue, it's not fairly
  * enough. Due that any thread can be waken up, even if it has just called
- * ztk_cond_variable_wait() while there are other waiting threads.
+ * zcond_variable_wait() while there are other waiting threads.
  */
-P_LIB_API pboolean		ztk_cond_variable_signal		(PCondVariable	*cond);
+P_LIB_API pboolean		zcond_variable_signal		(PCondVariable	*cond);
 
 /**
  * @brief Emitts a signal on a given condition variable for all the waiting
@@ -131,7 +131,7 @@ P_LIB_API pboolean		ztk_cond_variable_signal		(PCondVariable	*cond);
  *
  * After emitting the signal all the threads waiting for it will be waken up.
  */
-P_LIB_API pboolean		ztk_cond_variable_broadcast	(PCondVariable	*cond);
+P_LIB_API pboolean		zcond_variable_broadcast	(PCondVariable	*cond);
 
 P_END_DECLS
 

@@ -37,12 +37,12 @@ struct PSpinLock_ {
 };
 
 P_LIB_API PSpinLock *
-ztk_spinlock_new (void)
+zspinlock_new (void)
 {
 	PSpinLock *ret;
 
-	if (P_UNLIKELY ((ret = ztk_malloc0 (sizeof (PSpinLock))) == NULL)) {
-		P_ERROR ("PSpinLock::ztk_spinlock_new: failed to allocate memory");
+	if (P_UNLIKELY ((ret = zmalloc0 (sizeof (PSpinLock))) == NULL)) {
+		P_ERROR ("PSpinLock::zspinlock_new: failed to allocate memory");
 		return NULL;
 	}
 
@@ -50,17 +50,17 @@ ztk_spinlock_new (void)
 }
 
 P_LIB_API pboolean
-ztk_spinlock_lock (PSpinLock *spinlock)
+zspinlock_lock (PSpinLock *spinlock)
 {
-	pint tmztk_int;
+	pint tmzint;
 
 	if (P_UNLIKELY (spinlock == NULL))
 		return FALSE;
 
 	do {
-		tmztk_int = 0;
+		tmzint = 0;
 	} while ((pboolean) __atomic_compare_exchange_n (PSPINLOCK_INT_CAST (&(spinlock->spin)),
-							 &tmztk_int,
+							 &tmzint,
 							 1,
 							 0,
 							 __ATOMIC_ACQUIRE,
@@ -70,15 +70,15 @@ ztk_spinlock_lock (PSpinLock *spinlock)
 }
 
 P_LIB_API pboolean
-ztk_spinlock_trylock (PSpinLock *spinlock)
+zspinlock_trylock (PSpinLock *spinlock)
 {
-	pint tmztk_int = 0;
+	pint tmzint = 0;
 
 	if (P_UNLIKELY (spinlock == NULL))
 		return FALSE;
 
 	return (pboolean) __atomic_compare_exchange_n (PSPINLOCK_INT_CAST (&(spinlock->spin)),
-						       &tmztk_int,
+						       &tmzint,
 						       1,
 						       0,
 						       __ATOMIC_ACQUIRE,
@@ -86,7 +86,7 @@ ztk_spinlock_trylock (PSpinLock *spinlock)
 }
 
 P_LIB_API pboolean
-ztk_spinlock_unlock (PSpinLock *spinlock)
+zspinlock_unlock (PSpinLock *spinlock)
 {
 	if (P_UNLIKELY (spinlock == NULL))
 		return FALSE;
@@ -97,7 +97,7 @@ ztk_spinlock_unlock (PSpinLock *spinlock)
 }
 
 P_LIB_API void
-ztk_spinlock_free (PSpinLock *spinlock)
+zspinlock_free (PSpinLock *spinlock)
 {
-	ztk_free (spinlock);
+	zfree (spinlock);
 }

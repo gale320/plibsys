@@ -36,7 +36,7 @@
 
 P_BEGIN_DECLS
 
-pboolean	ztk_tree_avl_insert	(PTreeBaseNode		**root_node,
+pboolean	ztree_avl_insert	(PTreeBaseNode		**root_node,
 					 PCompareDataFunc	compare_func,
 					 ppointer		data,
 					 PDestroyFunc		key_destroy_func,
@@ -44,14 +44,14 @@ pboolean	ztk_tree_avl_insert	(PTreeBaseNode		**root_node,
 					 ppointer		key,
 					 ppointer		value);
 
-pboolean	ztk_tree_avl_remove	(PTreeBaseNode		**root_node,
+pboolean	ztree_avl_remove	(PTreeBaseNode		**root_node,
 					 PCompareDataFunc	compare_func,
 					 ppointer		data,
 					 PDestroyFunc		key_destroy_func,
 					 PDestroyFunc		value_destroy_func,
 					 pconstpointer		key);
 
-void		ztk_tree_avl_node_free	(PTreeBaseNode	*node);
+void		ztree_avl_node_free	(PTreeBaseNode	*node);
 
 P_END_DECLS
 

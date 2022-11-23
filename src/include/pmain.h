@@ -29,18 +29,18 @@
  * @author Alexander Saprykin
  *
  * Before using the library you must to initialize it properly. Use
- * ztk_libsys_init() to initialize the library. Please note that you need to call
+ * zlibsys_init() to initialize the library. Please note that you need to call
  * it only once, not in every thread. This call is not MT-safe (because it also
  * initializes the threading subsystem itself), so it is best to place it in the
  * program's main thread, when the program starts.
  *
- * The only difference between ztk_libsys_init() and ztk_libsys_init_full() is that
+ * The only difference between zlibsys_init() and zlibsys_init_full() is that
  * the latter one allows to setup memory management routines before doing any
  * internal library call. This way you can ensure to use provided memory
  * management everywhere (even for library initialization).
  *
  * When you do not need the library anymore release used resourses with the
- * ztk_libsys_shutdown() routine. You should only call it once, too. This call is
+ * zlibsys_shutdown() routine. You should only call it once, too. This call is
  * not MT-safe (because it also deinitializes the threading subsystem itself),
  * so it is best to place it in the program's main thread, when the program
  * finishes.
@@ -178,21 +178,21 @@ P_BEGIN_DECLS
  * @brief Initializes library resources.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_libsys_init		(void);
+P_LIB_API void		zlibsys_init		(void);
 
 /**
  * @brief Initializes library resources along with the memory table.
  * @param vtable Memory management table.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_libsys_init_full	(const PMemVTable *vtable);
+P_LIB_API void		zlibsys_init_full	(const PMemVTable *vtable);
 
 /**
  * @brief Frees library resources. You should stop using any of the library
  * routines after calling this one.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_libsys_shutdown	(void);
+P_LIB_API void		zlibsys_shutdown	(void);
 
 /**
  * @brief Gets the library version against which it was compiled at run-time.
@@ -202,7 +202,7 @@ P_LIB_API void		ztk_libsys_shutdown	(void);
  * against.
  * @sa #PLIBSYS_VERSION, #PLIBSYS_VERSION_STR, #PLIBSYS_VERSION_CHECK
  */
-P_LIB_API const pchar *	ztk_libsys_version	(void);
+P_LIB_API const pchar *	zlibsys_version	(void);
 
 P_END_DECLS
 

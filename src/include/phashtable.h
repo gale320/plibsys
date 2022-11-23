@@ -48,7 +48,7 @@
  * several values belong to the same key.
  *
  * Note that #PHashTable stores keys and values only as pointers, so you need
- * to free used memory manually, ztk_hash_table_free() will not do it in any way.
+ * to free used memory manually, zhash_table_free() will not do it in any way.
  *
  * Integers (up to 32 bits) can be stored in pointers using #P_POINTER_TO_INT
  * and #P_INT_TO_POINTER macros.
@@ -75,9 +75,9 @@ typedef struct PHashTable_ PHashTable;
  * @return Pointer to a	 newly initialized #PHashTable structure in case of
  * success, NULL otherwise.
  * @since 0.0.1
- * @note Free with ztk_hash_table_free() after usage.
+ * @note Free with zhash_table_free() after usage.
  */
-P_LIB_API PHashTable *	ztk_hash_table_new		(void);
+P_LIB_API PHashTable *	zhash_table_new		(void);
 
 /**
  * @brief Inserts a new key-value pair into a hash table.
@@ -89,7 +89,7 @@ P_LIB_API PHashTable *	ztk_hash_table_new		(void);
  * This function only stores pointers, so you need to manually free pointed
  * data after using the hash table.
  */
-P_LIB_API void		ztk_hash_table_insert		(PHashTable		*table,
+P_LIB_API void		zhash_table_insert		(PHashTable		*table,
 							 ppointer		key,
 							 ppointer		value);
 
@@ -101,7 +101,7 @@ P_LIB_API void		ztk_hash_table_insert		(PHashTable		*table,
  * value was found.
  * @since 0.0.1
  */
-P_LIB_API ppointer	ztk_hash_table_lookup		(const PHashTable	*table,
+P_LIB_API ppointer	zhash_table_lookup		(const PHashTable	*table,
 							 pconstpointer		key);
 
 /**
@@ -110,10 +110,10 @@ P_LIB_API ppointer	ztk_hash_table_lookup		(const PHashTable	*table,
  * @return List of all the stored keys, the list can be empty if no keys were
  * found.
  * @since 0.0.1
- * @note You should manually free the returned list with ztk_list_free() after
+ * @note You should manually free the returned list with zlist_free() after
  * using it.
  */
-P_LIB_API PList *	ztk_hash_table_keys		(const PHashTable	*table);
+P_LIB_API PList *	zhash_table_keys		(const PHashTable	*table);
 
 /**
  * @brief Gives a list of all the stored values in the hash table.
@@ -121,17 +121,17 @@ P_LIB_API PList *	ztk_hash_table_keys		(const PHashTable	*table);
  * @return List of all the stored values, the list can be empty if no keys were
  * found.
  * @since 0.0.1
- * @note You should manually free the returned list with ztk_list_free() after
+ * @note You should manually free the returned list with zlist_free() after
  * using it.
  */
-P_LIB_API PList *	ztk_hash_table_values		(const PHashTable	*table);
+P_LIB_API PList *	zhash_table_values		(const PHashTable	*table);
 
 /**
  * @brief Frees a previously initialized #PHashTable.
  * @param table Hash table to free.
  * @since 0.0.1
  */
-P_LIB_API void		ztk_hash_table_free		(PHashTable		*table);
+P_LIB_API void		zhash_table_free		(PHashTable		*table);
 
 /**
  * @brief Removes @a key from a hash table.
@@ -139,7 +139,7 @@ P_LIB_API void		ztk_hash_table_free		(PHashTable		*table);
  * @param key Key to remove (if exists).
  * @since 0.0.1
  */
-P_LIB_API void		ztk_hash_table_remove		(PHashTable		*table,
+P_LIB_API void		zhash_table_remove		(PHashTable		*table,
 							 pconstpointer		key);
 
 /**
@@ -151,14 +151,14 @@ P_LIB_API void		ztk_hash_table_remove		(PHashTable		*table,
  * @return List of the keys with @a val (can be NULL), NULL if no keys were
  * found.
  * @since 0.0.1
- * @note Caller is responsible to call ztk_list_free() on the returned list after
+ * @note Caller is responsible to call zlist_free() on the returned list after
  * usage.
  *
  * The compare function should return 0 if a value from the hash table (the
  * first parameter) is accepted related to the given lookup value (the second
  * parameter), and -1 or 1 otherwise.
  */
-P_LIB_API PList *	ztk_hash_table_lookuztk_by_value	(const PHashTable	*table,
+P_LIB_API PList *	zhash_table_lookuzby_value	(const PHashTable	*table,
 							 pconstpointer		val,
 							 PCompareFunc		func);
 

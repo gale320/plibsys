@@ -44,12 +44,12 @@
  * the system to make it working.
  *
  * Convenient methods to create special addresses are provided: for the loopback
- * interface use ztk_socket_address_new_loopback(), for the any-address interface
- * use ztk_socket_address_new_any().
+ * interface use zsocket_address_new_loopback(), for the any-address interface
+ * use zsocket_address_new_any().
  *
  * If you want to get the underlying native address structure for further usage
- * in system calls use ztk_socket_address_to_native(), and
- * ztk_socket_address_new_from_native() for a vice versa conversion.
+ * in system calls use zsocket_address_to_native(), and
+ * zsocket_address_new_from_native() for a vice versa conversion.
  */
 
 #if !defined (PLIBSYS_H_INSIDE) && !defined (PLIBSYS_COMPILATION)
@@ -91,7 +91,7 @@ typedef struct PSocketAddress_ PSocketAddress;
  * @return Pointer to #PSocketAddress in case of success, NULL otherwise.
  * @since 0.0.1
  */
-P_LIB_API PSocketAddress *	ztk_socket_address_new_from_native	(pconstpointer		native,
+P_LIB_API PSocketAddress *	zsocket_address_new_from_native	(pconstpointer		native,
 									 psize			len);
 
 /**
@@ -107,7 +107,7 @@ P_LIB_API PSocketAddress *	ztk_socket_address_new_from_native	(pconstpointer		na
  * correctly parse such an address though some old operating systems may fail in
  * case of lack of the getaddrinfo() call.
  */
-P_LIB_API PSocketAddress *	ztk_socket_address_new			(const pchar		*address,
+P_LIB_API PSocketAddress *	zsocket_address_new			(const pchar		*address,
 									 puint16		port);
 
 /**
@@ -119,9 +119,9 @@ P_LIB_API PSocketAddress *	ztk_socket_address_new			(const pchar		*address,
  * @note This call creates a network address for the set of all possible
  * addresses, so you can't use it for receiving or sending data on a particular
  * network address. If you need to bind a socket to the specific address
- * (i.e. 127.0.0.1) use ztk_socket_address_new() instead.
+ * (i.e. 127.0.0.1) use zsocket_address_new() instead.
  */
-P_LIB_API PSocketAddress *	ztk_socket_address_new_any		(PSocketFamily		family,
+P_LIB_API PSocketAddress *	zsocket_address_new_any		(PSocketFamily		family,
 									 puint16		port);
 
 /**
@@ -133,9 +133,9 @@ P_LIB_API PSocketAddress *	ztk_socket_address_new_any		(PSocketFamily		family,
  * @note This call creates a network address for the entire loopback network
  * interface, so you can't use it for receiving or sending data on a particular
  * network address. If you need to bind a socket to the specific address
- * (i.e. 127.0.0.1) use ztk_socket_address_new() instead.
+ * (i.e. 127.0.0.1) use zsocket_address_new() instead.
  */
-P_LIB_API PSocketAddress *	ztk_socket_address_new_loopback		(PSocketFamily		family,
+P_LIB_API PSocketAddress *	zsocket_address_new_loopback		(PSocketFamily		family,
 									 puint16		port);
 
 /**
@@ -146,7 +146,7 @@ P_LIB_API PSocketAddress *	ztk_socket_address_new_loopback		(PSocketFamily		fami
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean		ztk_socket_address_to_native		(const PSocketAddress	*addr,
+P_LIB_API pboolean		zsocket_address_to_native		(const PSocketAddress	*addr,
 									 ppointer		dest,
 									 psize			destlen);
 
@@ -157,7 +157,7 @@ P_LIB_API pboolean		ztk_socket_address_to_native		(const PSocketAddress	*addr,
  * otherwise.
  * @since 0.0.1
  */
-P_LIB_API psize			ztk_socket_address_get_native_size	(const PSocketAddress	*addr);
+P_LIB_API psize			zsocket_address_get_native_size	(const PSocketAddress	*addr);
 
 /**
  * @brief Gets a family of a socket address.
@@ -165,7 +165,7 @@ P_LIB_API psize			ztk_socket_address_get_native_size	(const PSocketAddress	*addr
  * @return #PSocketFamily of the socket address.
  * @since 0.0.1
  */
-P_LIB_API PSocketFamily		ztk_socket_address_get_family		(const PSocketAddress	*addr);
+P_LIB_API PSocketFamily		zsocket_address_get_family		(const PSocketAddress	*addr);
 
 /**
  * @brief Gets a socket address in a string representation, i.e. "172.146.45.5".
@@ -174,7 +174,7 @@ P_LIB_API PSocketFamily		ztk_socket_address_get_family		(const PSocketAddress	*a
  * success, NULL otherwise. The caller takes ownership of the returned pointer.
  * @since 0.0.1
  */
-P_LIB_API pchar *		ztk_socket_address_get_address		(const PSocketAddress	*addr);
+P_LIB_API pchar *		zsocket_address_get_address		(const PSocketAddress	*addr);
 
 /**
  * @brief Gets a port number of a socket address.
@@ -182,7 +182,7 @@ P_LIB_API pchar *		ztk_socket_address_get_address		(const PSocketAddress	*addr);
  * @return Port number in case of success, 0 otherwise.
  * @since 0.0.1
  */
-P_LIB_API puint16		ztk_socket_address_get_port		(const PSocketAddress	*addr);
+P_LIB_API puint16		zsocket_address_get_port		(const PSocketAddress	*addr);
 
 /**
  * @brief Gets IPv6 traffic class and flow information.
@@ -191,9 +191,9 @@ P_LIB_API puint16		ztk_socket_address_get_port		(const PSocketAddress	*addr);
  * @since 0.0.1
  * @note This call is valid only for an IPv6 address, otherwise 0 is returned.
  * @note Some operating systems may not support this property.
- * @sa ztk_socket_address_is_flow_info_supported()
+ * @sa zsocket_address_is_flow_info_supported()
  */
-P_LIB_API puint32		ztk_socket_address_get_flow_info		(const PSocketAddress	*addr);
+P_LIB_API puint32		zsocket_address_get_flow_info		(const PSocketAddress	*addr);
 
 /**
  * @brief Gets an IPv6 set of interfaces for a scope.
@@ -202,9 +202,9 @@ P_LIB_API puint32		ztk_socket_address_get_flow_info		(const PSocketAddress	*addr
  * @since 0.0.1
  * @note This call is valid only for an IPv6 address, otherwise 0 is returned.
  * @note Some operating systems may not support this property.
- * @sa ztk_socket_address_is_scope_id_supported()
+ * @sa zsocket_address_is_scope_id_supported()
  */
-P_LIB_API puint32		ztk_socket_address_get_scope_id		(const PSocketAddress	*addr);
+P_LIB_API puint32		zsocket_address_get_scope_id		(const PSocketAddress	*addr);
 
 /**
  * @brief Sets IPv6 traffic class and flow information.
@@ -213,9 +213,9 @@ P_LIB_API puint32		ztk_socket_address_get_scope_id		(const PSocketAddress	*addr)
  * @since 0.0.1
  * @note This call is valid only for an IPv6 address.
  * @note Some operating systems may not support this property.
- * @sa ztk_socket_address_is_flow_info_supported()
+ * @sa zsocket_address_is_flow_info_supported()
  */
-P_LIB_API void			ztk_socket_address_set_flow_info		(PSocketAddress		*addr,
+P_LIB_API void			zsocket_address_set_flow_info		(PSocketAddress		*addr,
 									 puint32		flowinfo);
 
 /**
@@ -225,9 +225,9 @@ P_LIB_API void			ztk_socket_address_set_flow_info		(PSocketAddress		*addr,
  * @since 0.0.1
  * @note This call is valid only for an IPv6 address.
  * @note Some operating systems may not support this property.
- * @sa ztk_socket_address_is_scope_id_supported()
+ * @sa zsocket_address_is_scope_id_supported()
  */
-P_LIB_API void			ztk_socket_address_set_scope_id		(PSocketAddress		*addr,
+P_LIB_API void			zsocket_address_set_scope_id		(PSocketAddress		*addr,
 									 puint32		scope_id);
 
 /**
@@ -235,21 +235,21 @@ P_LIB_API void			ztk_socket_address_set_scope_id		(PSocketAddress		*addr,
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean		ztk_socket_address_is_flow_info_supported	(void);
+P_LIB_API pboolean		zsocket_address_is_flow_info_supported	(void);
 
 /**
  * @brief Checks whether a set of interfaces for a scope is supported in IPv6.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.1
  */
-P_LIB_API pboolean		ztk_socket_address_is_scope_id_supported	(void);
+P_LIB_API pboolean		zsocket_address_is_scope_id_supported	(void);
 
 /**
  * @brief Checks whether IPv6 protocol is supported.
  * @return TRUE in case of success, FALSE otherwise.
  * @since 0.0.3
  */
-P_LIB_API pboolean		ztk_socket_address_is_ipv6_supported	(void);
+P_LIB_API pboolean		zsocket_address_is_ipv6_supported	(void);
 
 /**
  * @brief Checks whether a given socket address is an any-address
@@ -258,9 +258,9 @@ P_LIB_API pboolean		ztk_socket_address_is_ipv6_supported	(void);
  * @return TRUE if the @a addr is the any-address representation, FALSE
  * otherwise.
  * @since 0.0.1
- * @sa ztk_socket_address_new_any()
+ * @sa zsocket_address_new_any()
  */
-P_LIB_API pboolean		ztk_socket_address_is_any			(const PSocketAddress	*addr);
+P_LIB_API pboolean		zsocket_address_is_any			(const PSocketAddress	*addr);
 
 /**
  * @brief Checks whether a given socket address is for the loopback interface.
@@ -268,16 +268,16 @@ P_LIB_API pboolean		ztk_socket_address_is_any			(const PSocketAddress	*addr);
  * @param addr #PSocketAddress to check.
  * @return TRUE if the @a addr is for the loopback interface, FALSE otherwise.
  * @since 0.0.1
- * @sa ztk_socket_address_new_loopback()
+ * @sa zsocket_address_new_loopback()
  */
-P_LIB_API pboolean		ztk_socket_address_is_loopback		(const PSocketAddress	*addr);
+P_LIB_API pboolean		zsocket_address_is_loopback		(const PSocketAddress	*addr);
 
 /**
  * @brief Frees a socket address structure and its resources.
  * @param addr #PSocketAddress to free.
  * @since 0.0.1
  */
-P_LIB_API void			ztk_socket_address_free			(PSocketAddress		*addr);
+P_LIB_API void			zsocket_address_free			(PSocketAddress		*addr);
 
 P_END_DECLS
 
